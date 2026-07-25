@@ -1,0 +1,14 @@
+{
+  "name": "libetee-kintone",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Libetee kintone 売上日報アプリの自動構築・データ移行・分析ツール",
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "apps": "node src/listApps.js",
+    "create-app": "node src/createApp.js",
+    "migrate": "node src/migrate.js",
+    "analyze": "node src/analyze.js"
+  }
+}

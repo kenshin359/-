@@ -1,0 +1,12 @@
+# 認証情報は絶対にコミットしない
+.env
+.env.local
+*.secret
+
+# Node
+node_modules/
+npm-debug.log*
+
+# 出力・作業ファイル
+out/
+*.tmp
