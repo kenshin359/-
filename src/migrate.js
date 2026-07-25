@@ -37,6 +37,9 @@ function toRecord(p) {
     sales_rakuten: v(p.sales.rakuten),
     sales_amazon: v(p.sales.amazon),
     sales_own: v(p.sales.own),
+    sales_tiktok: v(p.sales.tiktok),
+    sales_qoo10: v(p.sales.qoo10),
+    sales_base: v(p.sales.base),
     // sales_total は計算フィールドなので送らない（自動算出）
     rk_access: v(p.metrics.rakuten.access),
     rk_cvr: v(p.metrics.rakuten.cvr),

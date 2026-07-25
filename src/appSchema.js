@@ -13,15 +13,18 @@ export const FIELDS = {
     defaultNowValue: false,
   },
 
-  // ── 売上（円）──
+  // ── 売上（円）── 6チャネル ──
   sales_rakuten: numberField('sales_rakuten', '楽天 売上', { unit: '円' }),
   sales_amazon: numberField('sales_amazon', 'Amazon 売上', { unit: '円' }),
   sales_own: numberField('sales_own', '自社サイト 売上', { unit: '円' }),
+  sales_tiktok: numberField('sales_tiktok', 'TikTok 売上', { unit: '円' }),
+  sales_qoo10: numberField('sales_qoo10', 'Qoo10 売上', { unit: '円' }),
+  sales_base: numberField('sales_base', 'BASE 売上', { unit: '円' }),
   sales_total: {
     type: 'CALC',
     code: 'sales_total',
     label: '合計売上',
-    expression: 'sales_rakuten + sales_amazon + sales_own',
+    expression: 'sales_rakuten + sales_amazon + sales_own + sales_tiktok + sales_qoo10 + sales_base',
     format: 'NUMBER',
     displayScale: '0',
     unit: '円',

@@ -51,7 +51,7 @@ export function parseReport(text) {
 
   const out = {
     date: null,
-    sales: { rakuten: null, amazon: null, own: null, total: null },
+    sales: { rakuten: null, amazon: null, own: null, tiktok: null, qoo10: null, base: null, total: null },
     metrics: { rakuten: {}, amazon: {} },
     ranking: [],
   };
@@ -65,6 +65,9 @@ export function parseReport(text) {
   out.sales.rakuten = num(pick(salesSec, '楽天'));
   out.sales.amazon = num(pick(salesSec, 'Amazon'));
   out.sales.own = num(pick(salesSec, '自社サイト')) ?? num(pick(salesSec, '自社'));
+  out.sales.tiktok = num(pick(salesSec, 'TikTok'));
+  out.sales.qoo10 = num(pick(salesSec, 'Qoo10'));
+  out.sales.base = num(pick(salesSec, 'BASE')) ?? num(pick(salesSec, 'Base'));
   out.sales.total = num(pick(salesSec, '合計'));
 
   // ── 詳細数値（モール別指標）──
