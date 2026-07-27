@@ -13,6 +13,9 @@
 | `npm run create-app` | 「売上日報（新）」アプリを自動作成（フィールド＋デプロイまで） |
 | `npm run migrate` | 既存の文章データをパースして新アプリへ投入 |
 | `npm run analyze` | 月次サマリー等を出力し、分析用のきれいな数値を書き出し |
+| `npm run create-weekly-app` | 「SNS/LP週次報告（新）」アプリを自動作成 |
+| `npm run migrate-weekly` | SNS/LPチームの週次報告（文章）をパースして週次アプリへ投入 |
+| `npm run analyze-weekly` | 週次サマリー（投稿数の推移・アカウント別内訳）を出力 |
 
 ## セットアップ
 
@@ -35,6 +38,27 @@ DRY_RUN=1 npm run migrate     # ③ まず抽出結果だけ確認（out/preview
 npm run migrate              # ④ 問題なければ本投入
 npm run analyze              # ⑤ 集計・分析
 ```
+
+## SNS/LP 週次報告ツール
+
+売上日報と同じ思想で、SNS・LPチームの**週次業務報告（文章）**を構造化データに変換し、
+kintone に蓄積・分析できるようにするツールです。投稿数・アカウント別内訳・商品/カテゴリ別の
+実施内容と来週予定などを抽出します（幹部会議の議事録などチーム週次報告でない文章は自動的に除外）。
+
+```bash
+npm run create-weekly-app          # ① 週次アプリを作成 → 表示された ID を KINTONE_WEEKLY_APP_ID に設定
+DRY_RUN=1 npm run migrate-weekly    # ② まず抽出結果だけ確認（out/weekly-preview.json）
+npm run migrate-weekly             # ③ 問題なければ本投入
+npm run analyze-weekly             # ④ 週次サマリー・アカウント別投稿数を集計
+```
+
+入力元は2通りです。
+
+- **kintone の既存アプリ** … `.env` の `KINTONE_WEEKLY_OLD_APP_ID` を設定すると、その全レコードの
+  文字列フィールドを走査してパースします。
+- **ローカルのサンプル** … 未設定の場合は `samples/weekly/` 配下の `.txt` / `.md` を読み込みます。
+  1ファイル内に複数の報告があるときは罫線（`———` など）で区切ってください。
+  年は報告文（`2026年`）→ ファイル名の先頭4桁（`2026-07-21_sns.txt`）→ `WEEKLY_YEAR` の順で決まります。
 
 ## 安全について
 

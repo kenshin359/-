@@ -9,6 +9,9 @@
     "apps": "node src/listApps.js",
     "create-app": "node src/createApp.js",
     "migrate": "node src/migrate.js",
-    "analyze": "node src/analyze.js"
+    "analyze": "node src/analyze.js",
+    "create-weekly-app": "node src/createWeeklyApp.js",
+    "migrate-weekly": "node src/migrateWeekly.js",
+    "analyze-weekly": "node src/analyzeWeekly.js"
   }
 }
