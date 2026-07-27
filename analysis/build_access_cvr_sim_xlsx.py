@@ -59,13 +59,13 @@ for x in rows:
     ws.cell(r,1,x['name']); ws.cell(r,2,x['n'])
     ws.cell(r,3,x['javg']).number_format=YEN
     ws.cell(r,4,x['jacc']).number_format=NUM
-    ws.cell(r,5,x['jcvr']*100).number_format=P2
+    ws.cell(r,5,x['jcvr']).number_format='0.00%'
     ws.cell(r,6,x['a0']).number_format=NUM
-    ws.cell(r,7,x['cvr0']*100).number_format=P3
+    ws.cell(r,7,x['cvr0']).number_format='0.000%'
     ws.cell(r,8,x['b4']).number_format=YEN
     ws.cell(r,9,x['b4']*x['n']).number_format=YEN
     ws.cell(r,10,x['a1']).number_format=NUM
-    ws.cell(r,11,x['cvr1']*100).number_format=P3
+    ws.cell(r,11,x['cvr1']).number_format='0.000%'
     ws.cell(r,12,x['af']).number_format=YEN
     ws.cell(r,13,x['af']*x['n']).number_format=YEN
     ws.cell(r,14,(x['af']-x['b4'])*x['n']).number_format=YEN
