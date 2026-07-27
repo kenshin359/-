@@ -29,34 +29,51 @@ async function fetchAll(app) {
   return all;
 }
 
-// パース結果 → 新アプリのレコード形式
+// パース結果 → 新アプリのレコード形式（チャネル別実績テーブル）
+const v = (x) => ({ value: x ?? '' });
+const rate = (a, b) => (a != null && b) ? Math.round((a / b) * 10000) / 100 : null; // 割合(%)
+
+// 1チャネル分の行を作る。データが無ければ null（＝行を作らない）
+function channelRow(channel, { sales, units, access, cvr, like, bulk } = {}) {
+  const hasData = [sales, units, access, cvr, like, bulk].some((x) => x != null);
+  if (!hasData) return null;
+  return {
+    value: {
+      channel: { value: channel },
+      ch_sales: v(sales),
+      ch_units: v(units),
+      ch_access: v(access),
+      ch_cvr: v(cvr),
+      ch_like: v(like),
+      ch_bulk: v(bulk),
+    },
+  };
+}
+
 function toRecord(p) {
-  const v = (x) => ({ value: x ?? '' });
+  const rows = [
+    // 楽天: いいね率は「お気に入り登録数 ÷ アクセス数」で推定
+    channelRow('楽天', {
+      sales: p.sales.rakuten,
+      access: p.metrics.rakuten.access,
+      cvr: p.metrics.rakuten.cvr,
+      like: rate(p.metrics.rakuten.fav, p.metrics.rakuten.access),
+    }),
+    channelRow('Amazon', {
+      sales: p.sales.amazon,
+      access: p.metrics.amazon.access,
+      cvr: p.metrics.amazon.cvr,
+    }),
+    channelRow('自社サイト', { sales: p.sales.own }),
+    channelRow('TikTok', { sales: p.sales.tiktok }),
+    channelRow('Qoo10', { sales: p.sales.qoo10 }),
+    channelRow('BASE', { sales: p.sales.base }),
+  ].filter(Boolean);
+
   return {
     date: v(p.date),
-    sales_rakuten: v(p.sales.rakuten),
-    sales_amazon: v(p.sales.amazon),
-    sales_own: v(p.sales.own),
-    sales_tiktok: v(p.sales.tiktok),
-    sales_qoo10: v(p.sales.qoo10),
-    sales_base: v(p.sales.base),
-    // sales_total は計算フィールドなので送らない（自動算出）
-    rk_access: v(p.metrics.rakuten.access),
-    rk_cvr: v(p.metrics.rakuten.cvr),
-    rk_fav: v(p.metrics.rakuten.fav),
-    rk_stay: v(p.metrics.rakuten.stay),
-    az_access: v(p.metrics.amazon.access),
-    az_cvr: v(p.metrics.amazon.cvr),
-    ranking: {
-      value: p.ranking.map((x) => ({
-        value: {
-          mall: { value: ['楽天', 'Amazon', '自社サイト'].includes(x.mall) ? x.mall : '楽天' },
-          product: { value: x.product },
-          rank: { value: x.rank ?? '' },
-          out_of_rank: { value: x.outOfRank ? ['圏外'] : [] },
-        },
-      })),
-    },
+    // total_sales / total_units は計算フィールドなので送らない（自動算出）
+    results: { value: rows },
   };
 }
 

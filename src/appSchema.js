@@ -1,6 +1,7 @@
 // 「売上日報（新）」アプリのフィールド定義。
-// 仕様書（作り直し仕様書）のセクション3をそのままコード化したもの。
-// kintone の「フィールド追加API」に渡す properties 形式（キー = フィールドコード）。
+// 設計思想：1レコード＝1日。その中に「チャネル別実績」テーブルを持ち、
+// 6チャネル × 各指標（売上・個数・アクセス・転換率・いいね率・まとめ買い率）を
+// スプレッドシートのように毎日“落とし込む”。合計は計算フィールドで自動算出。
 
 export const FIELDS = {
   // ── 日付 ──
@@ -13,62 +14,59 @@ export const FIELDS = {
     defaultNowValue: false,
   },
 
-  // ── 売上（円）── 6チャネル ──
-  sales_rakuten: numberField('sales_rakuten', '楽天 売上', { unit: '円' }),
-  sales_amazon: numberField('sales_amazon', 'Amazon 売上', { unit: '円' }),
-  sales_own: numberField('sales_own', '自社サイト 売上', { unit: '円' }),
-  sales_tiktok: numberField('sales_tiktok', 'TikTok 売上', { unit: '円' }),
-  sales_qoo10: numberField('sales_qoo10', 'Qoo10 売上', { unit: '円' }),
-  sales_base: numberField('sales_base', 'BASE 売上', { unit: '円' }),
-  sales_total: {
+  // ── 合計（テーブルから自動集計）──
+  total_sales: {
     type: 'CALC',
-    code: 'sales_total',
+    code: 'total_sales',
     label: '合計売上',
-    expression: 'sales_rakuten + sales_amazon + sales_own + sales_tiktok + sales_qoo10 + sales_base',
+    expression: 'SUM(ch_sales)', // チャネル別実績の「売上」列を合算
     format: 'NUMBER',
     displayScale: '0',
     unit: '円',
     unitPosition: 'AFTER',
   },
+  total_units: {
+    type: 'CALC',
+    code: 'total_units',
+    label: '合計売上個数',
+    expression: 'SUM(ch_units)',
+    format: 'NUMBER',
+    displayScale: '0',
+    unit: '個',
+    unitPosition: 'AFTER',
+  },
 
-  // ── 楽天 指標 ──
-  rk_access: numberField('rk_access', '楽天 アクセス数', {}),
-  rk_cvr: numberField('rk_cvr', '楽天 転換率', { unit: '%', unitPosition: 'AFTER', displayScale: '2' }),
-  rk_fav: numberField('rk_fav', '楽天 お気に入り登録数', {}),
-  rk_stay: numberField('rk_stay', '楽天 滞在時間', { unit: '秒', unitPosition: 'AFTER' }),
-
-  // ── Amazon 指標 ──
-  az_access: numberField('az_access', 'Amazon アクセス数', {}),
-  az_cvr: numberField('az_cvr', 'Amazon 転換率', { unit: '%', unitPosition: 'AFTER', displayScale: '2' }),
-
-  // ── 商品別ランキング（テーブル）──
-  ranking: {
+  // ── チャネル別実績（テーブル）──
+  results: {
     type: 'SUBTABLE',
-    code: 'ranking',
-    label: '商品別ランキング',
+    code: 'results',
+    label: 'チャネル別実績',
     fields: {
-      mall: {
+      channel: {
         type: 'DROP_DOWN',
-        code: 'mall',
-        label: 'モール',
+        code: 'channel',
+        label: 'チャネル',
         options: {
           楽天: { label: '楽天', index: '0' },
           Amazon: { label: 'Amazon', index: '1' },
           自社サイト: { label: '自社サイト', index: '2' },
+          TikTok: { label: 'TikTok', index: '3' },
+          Qoo10: { label: 'Qoo10', index: '4' },
+          BASE: { label: 'BASE', index: '5' },
         },
       },
-      product: { type: 'SINGLE_LINE_TEXT', code: 'product', label: '商品名' },
-      rank: { type: 'NUMBER', code: 'rank', label: '順位', digit: false },
-      out_of_rank: {
-        type: 'CHECK_BOX',
-        code: 'out_of_rank',
-        label: 'ランキング外',
-        options: { 圏外: { label: '圏外', index: '0' } },
-        defaultValue: [],
-      },
+      ch_sales: numberField('ch_sales', '売上', { unit: '円' }),
+      ch_units: numberField('ch_units', '売上個数', { unit: '個' }),
+      ch_access: numberField('ch_access', 'アクセス数', {}),
+      ch_cvr: numberField('ch_cvr', '転換率', { unit: '%', displayScale: '2' }),
+      ch_like: numberField('ch_like', 'いいね率', { unit: '%', displayScale: '2' }),
+      ch_bulk: numberField('ch_bulk', 'まとめ買い率', { unit: '%', displayScale: '2' }),
     },
   },
 };
+
+// チャネルコード（マイグレーション等で共有）
+export const CHANNELS = ['楽天', 'Amazon', '自社サイト', 'TikTok', 'Qoo10', 'BASE'];
 
 function numberField(code, label, { unit, unitPosition = 'AFTER', displayScale } = {}) {
   const f = { type: 'NUMBER', code, label, digit: true };
