@@ -14,7 +14,7 @@ C_SC=PatternFill("solid",fgColor="D6E4F0"); C_FAN=PatternFill("solid",fgColor="D
 thin=Side(style="thin",color="BFBFBF"); B=Border(left=thin,right=thin,top=thin,bottom=thin)
 CEN=Alignment(horizontal="center",vertical="center",wrap_text=True); LEFT=Alignment(horizontal="left",vertical="center")
 J=json.load(open('july_seg_official.json'))
-SC_AOV=29500; FAN_AOV=3500; DROP=0.8; CPC=12
+SC_AOV=29500; FAN_AOV=3500; DROP=0.8; CPC=10
 SEG={}
 for k,(a0,a1) in {'hei':(20000,30000),'mar':(30000,50000),'won':(30000,50000),'f50':(30000,50000),'kabu':(30000,50000)}.items():
     s=J[k]; od=s['avg']/s['aov']; q=max(0,min(1,(s['aov']-FAN_AOV)/(SC_AOV-FAN_AOV)))
@@ -53,7 +53,7 @@ ws.cell(r,1,'7月店舗全体(税抜・7/1-26)：¥43,920,694（過去最高ペ�
 # ===== S2 8月勝負日 =====
 w2=wb.create_sheet("8月勝負日_そのままvs攻め")
 w2.merge_cells("A1:M1"); w2["A1"]="8月イベント勝負日（日付順）：そのまま vs 攻めパターン"; w2["A1"].font=TITLE
-w2.merge_cells("A2:M2"); w2["A2"]="スーツケース広告の設定。そのまま＝平日2万/イベント3万・転換率7月実績。攻め＝平日3万/イベント5万・転換率×0.8。広告費＝アクセス×¥12(メタ実績単価)。売上/日＝SC+FAN(FAN据え置き)。"; w2["A2"].font=SUB
+w2.merge_cells("A2:M2"); w2["A2"]="スーツケース広告の設定。そのまま＝平日2万/イベント3万・転換率7月実績。攻め＝平日3万/イベント5万・転換率×0.8。広告費＝SCアクセス×¥10（アクセス単価統一）。ハンディファンは¥8/アクセス・据え置きのため両パターン共通＝差額に影響なし。売上/日＝SC+FAN。"; w2["A2"].font=SUB
 w2.merge_cells("D4:G4"); w2["D4"]="そのままパターン"
 w2.merge_cells("H4:K4"); w2["H4"]="攻めパターン（転換率×0.8）"
 for rng,fill in [("D4:G4",H_B4),("H4:K4",H_AF)]:
@@ -117,6 +117,8 @@ for label,v,fill in rows_sum:
     if fill: c.fill=fill
     r+=1
 w2.cell(r,1,f'増分ROAS＝売上差額÷広告費差額＝{(t_af-t_b4)/(t_ad1-t_ad0):.1f}倍（転換率×0.8の保守前提。×0.9なら{16717450/(t_ad1-t_ad0):.1f}倍）').font=SUB
+r+=1
+w2.cell(r,1,'【補足】アクセス単価の前提：スーツケース＝¥10/アクセス、ハンディファン＝¥8/アクセスで統一。FANはアクセス据え置きのため広告費も両パターン同額（差額計算に影響しない）。').font=SUB
 r+=1
 w2.cell(r,1,'★勝負日の頂点は8/5・8/10・8/25のかぶり3日：攻めで1日¥508万（+¥110万/日）。在庫最厚で臨むこと。').font=SUB
 w2.freeze_panes="A6"
