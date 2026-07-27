@@ -59,8 +59,34 @@ function matchFixed(dateStr) {
   return hits;
 }
 
+// イベント名を「種別コード」に正規化する。
+// 予想の倍率は種別ごとにまったく違う（マラソン ≠ 5と0のつく日 ≠ スーパーSALE）ので、
+// フリーテキストのイベント名も、パターン推定も、必ずこの関数で同じ種別に畳む。
+// 戻り値の型コード（例）: '楽天_お買い物マラソン' / '楽天_スーパーSALE' / 'Amazon_プライムデー'
+export function categorizeEvent(platform, name = '') {
+  const s = String(name);
+  const p = platform || '';
+  if (p === '楽天' || /楽天/.test(s)) {
+    if (/マラソン/.test(s)) return '楽天_お買い物マラソン';
+    if (/スーパー\s*SALE|スーパーSALE|\bSS\b|スーパーセール/i.test(s)) return '楽天_スーパーSALE';
+    if (/5と0|５と０|5・0|ゼロと5|5と０/.test(s)) return '楽天_5と0のつく日';
+    if (/ワンダフル/.test(s)) return '楽天_ワンダフルデー';
+    if (/イーグルス|感謝祭|優勝/.test(s)) return '楽天_イーグルス感謝祭';
+    if (p === '楽天') return '楽天_その他';
+  }
+  if (p === 'Amazon' || /Amazon|アマゾン/i.test(s)) {
+    if (/プライムデー|prime\s*day/i.test(s)) return 'Amazon_プライムデー';
+    if (/プライム感謝祭/.test(s)) return 'Amazon_プライム感謝祭';
+    if (/ブラックフライデー|black\s*friday|サイバーマンデー/i.test(s)) return 'Amazon_ブラックフライデー';
+    if (/タイムセール祭|タイムセール/.test(s)) return 'Amazon_タイムセール祭り';
+    if (/新生活/.test(s)) return 'Amazon_新生活セール';
+    if (p === 'Amazon') return 'Amazon_その他';
+  }
+  return p ? `${p}_その他` : 'その他';
+}
+
 // 日付を「イベント日 / 平常日」に色分けする。
-// 戻り値: { date, isEvent, platforms:[], events:[{platform,name,source}] }
+// 戻り値: { date, isEvent, platforms:[], types:[], events:[{platform,name,type,source}] }
 //   source = 'fixed'（確定日程に一致） | 'pattern'（定期パターンに合致）
 export function classifyDate(dateStr) {
   const events = [];
@@ -82,8 +108,10 @@ export function classifyDate(dateStr) {
     }
   }
 
+  for (const e of events) e.type = categorizeEvent(e.platform, e.name);
   const platforms = [...new Set(events.map((e) => e.platform))];
-  return { date: dateStr, isEvent: events.length > 0, platforms, events };
+  const types = [...new Set(events.map((e) => e.type))];
+  return { date: dateStr, isEvent: events.length > 0, platforms, types, events };
 }
 
 // 基準日から未来N日ぶんの暦を返す（予想チームが「次のイベント日」を探すのに使う）
