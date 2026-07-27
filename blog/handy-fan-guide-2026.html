@@ -1,0 +1,701 @@
+<title>ハンディファンの選び方2026 | Libetee 読み物</title>
+<meta name="description" content="「買ったのに涼しくない」を防ぐハンディファン選びの完全ガイド。気化熱の仕組みから、失敗しない5つのチェックポイント、シーン別の使い方までやさしく解説します。">
+<style>
+  :root {
+    --ground: #f5f8f9;
+    --surface: #ffffff;
+    --surface-2: #eef4f5;
+    --ink: #14201f;
+    --ink-soft: #45585a;
+    --ink-faint: #7a8b8c;
+    --line: #dde7e8;
+    --accent: #0c8f9b;
+    --accent-deep: #076570;
+    --accent-wash: #e4f4f5;
+    --heat: #e06a3b;
+    --heat-wash: #fbebe2;
+    --radius: 14px;
+    --maxw: 44rem;
+    --serif: "Hiragino Mincho ProN", "Yu Mincho", "YuMincho", serif;
+    --sans: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Yu Gothic", "YuGothic", "Meiryo", system-ui, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ground: #0e1516;
+      --surface: #151f20;
+      --surface-2: #1b2728;
+      --ink: #eaf2f2;
+      --ink-soft: #b3c2c2;
+      --ink-faint: #7f9091;
+      --line: #26383a;
+      --accent: #3bc3ce;
+      --accent-deep: #7fe0e8;
+      --accent-wash: #12292c;
+      --heat: #f0865b;
+      --heat-wash: #2a1c16;
+    }
+  }
+  :root[data-theme="light"] {
+    --ground: #f5f8f9; --surface: #ffffff; --surface-2: #eef4f5;
+    --ink: #14201f; --ink-soft: #45585a; --ink-faint: #7a8b8c;
+    --line: #dde7e8; --accent: #0c8f9b; --accent-deep: #076570;
+    --accent-wash: #e4f4f5; --heat: #e06a3b; --heat-wash: #fbebe2;
+  }
+  :root[data-theme="dark"] {
+    --ground: #0e1516; --surface: #151f20; --surface-2: #1b2728;
+    --ink: #eaf2f2; --ink-soft: #b3c2c2; --ink-faint: #7f9091;
+    --line: #26383a; --accent: #3bc3ce; --accent-deep: #7fe0e8;
+    --accent-wash: #12292c; --heat: #f0865b; --heat-wash: #2a1c16;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--sans);
+    line-height: 1.9;
+    font-size: 16px;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* ---- top bar ---- */
+  .topbar {
+    position: sticky; top: 0; z-index: 10;
+    background: color-mix(in srgb, var(--ground) 86%, transparent);
+    backdrop-filter: saturate(1.4) blur(10px);
+    border-bottom: 1px solid var(--line);
+  }
+  .topbar-inner {
+    max-width: var(--maxw); margin: 0 auto; padding: 12px 20px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .brand {
+    font-weight: 800; letter-spacing: .14em; font-size: .82rem;
+    text-transform: uppercase; color: var(--accent-deep);
+  }
+  .brand-dot { color: var(--heat); }
+  .brand-sub { color: var(--ink-faint); font-size: .74rem; letter-spacing: .1em; }
+
+  main { max-width: var(--maxw); margin: 0 auto; padding: 0 20px 5rem; }
+
+  /* ---- hero ---- */
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: 8px;
+    margin-top: 2.6rem;
+    font-size: .74rem; font-weight: 700; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--accent-deep);
+  }
+  .eyebrow::before {
+    content: ""; width: 26px; height: 2px; background: var(--accent); border-radius: 2px;
+  }
+  h1 {
+    font-family: var(--serif);
+    font-size: clamp(1.7rem, 5.4vw, 2.5rem);
+    line-height: 1.32; font-weight: 700;
+    text-wrap: balance; letter-spacing: .01em;
+    margin: .7rem 0 1rem;
+  }
+  h1 .hl { color: var(--accent-deep); }
+  .meta {
+    display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center;
+    color: var(--ink-faint); font-size: .82rem;
+    padding-bottom: 1.4rem; border-bottom: 1px solid var(--line);
+  }
+  .tag {
+    background: var(--accent-wash); color: var(--accent-deep);
+    padding: 3px 10px; border-radius: 100px; font-weight: 700; font-size: .74rem;
+  }
+
+  .lead {
+    font-size: 1.02rem; color: var(--ink-soft);
+    background: var(--surface); border: 1px solid var(--line);
+    border-left: 4px solid var(--accent);
+    border-radius: var(--radius);
+    padding: 1.1rem 1.3rem; margin: 1.8rem 0;
+  }
+  .lead p { margin: 0; }
+  .lead p + p { margin-top: .6rem; }
+
+  h2 {
+    font-family: var(--serif);
+    font-size: clamp(1.28rem, 3.6vw, 1.62rem);
+    line-height: 1.4; font-weight: 700; text-wrap: balance;
+    margin: 3.2rem 0 1rem; padding-top: 1.2rem;
+    border-top: 1px solid var(--line);
+  }
+  h2 .num {
+    display: inline-block; min-width: 1.7em;
+    color: var(--accent); font-family: var(--sans); font-weight: 800;
+    font-size: .82em;
+  }
+  h3 {
+    font-size: 1.06rem; font-weight: 800; color: var(--ink);
+    margin: 2rem 0 .5rem; letter-spacing: .01em;
+  }
+  p { margin: .8rem 0; }
+  strong { color: var(--ink); font-weight: 800; }
+  em { font-style: normal; background: linear-gradient(transparent 62%, var(--accent-wash) 62%); font-weight: 700; padding: 0 1px; }
+
+  a { color: var(--accent-deep); text-underline-offset: 3px; }
+
+  ul, ol { padding-left: 1.3rem; }
+  li { margin: .35rem 0; }
+
+  /* ---- TOC ---- */
+  .toc {
+    background: var(--surface-2); border: 1px solid var(--line);
+    border-radius: var(--radius); padding: 1.1rem 1.3rem; margin: 2rem 0;
+  }
+  .toc h4 {
+    margin: 0 0 .6rem; font-size: .78rem; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--ink-faint); font-weight: 800;
+  }
+  .toc ol { margin: 0; padding-left: 1.2rem; }
+  .toc li { margin: .3rem 0; }
+  .toc a { color: var(--ink-soft); text-decoration: none; }
+  .toc a:hover { color: var(--accent-deep); text-decoration: underline; }
+
+  /* ---- figures / illustrations ---- */
+  .fig {
+    margin: 1.6rem 0; border: 1px solid var(--line);
+    border-radius: var(--radius); overflow: hidden;
+    background: #e9f5f6;
+  }
+  .fig svg { display: block; width: 100%; height: auto; }
+  .fig figcaption {
+    font-size: .78rem; color: var(--ink-faint); line-height: 1.6;
+    padding: .6rem .95rem; background: var(--surface); border-top: 1px solid var(--line);
+  }
+  .fig figcaption b { color: var(--accent-deep); }
+
+  /* ---- callout ---- */
+  .callout {
+    background: var(--accent-wash); border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--line));
+    border-radius: var(--radius); padding: 1rem 1.2rem; margin: 1.6rem 0;
+    font-size: .95rem; color: var(--ink-soft);
+  }
+  .callout.heat { background: var(--heat-wash); border-color: color-mix(in srgb, var(--heat) 35%, var(--line)); }
+  .callout strong { color: var(--ink); }
+
+  /* ---- table ---- */
+  .tablewrap { overflow-x: auto; margin: 1.4rem 0; border: 1px solid var(--line); border-radius: var(--radius); }
+  table { border-collapse: collapse; width: 100%; min-width: 460px; font-size: .9rem; }
+  caption { text-align: left; font-weight: 800; padding: .9rem 1rem .2rem; color: var(--ink); }
+  th, td { padding: .7rem .9rem; text-align: left; border-bottom: 1px solid var(--line); vertical-align: top; }
+  thead th { background: var(--surface-2); color: var(--accent-deep); font-size: .78rem; letter-spacing: .04em; }
+  tbody tr:last-child td { border-bottom: 0; }
+  td strong { color: var(--accent-deep); }
+
+  /* ---- 5-way grid ---- */
+  .ways { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin: 1.4rem 0; }
+  .way {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+    padding: .9rem 1rem;
+  }
+  .way b { display: block; color: var(--accent-deep); font-size: .95rem; margin-bottom: 2px; }
+  .way span { font-size: .84rem; color: var(--ink-soft); }
+
+  /* ---- FAQ ---- */
+  .faq { display: flex; flex-direction: column; gap: 10px; margin: 1.4rem 0; }
+  details {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+    padding: 0 1.1rem;
+  }
+  details[open] { border-color: color-mix(in srgb, var(--accent) 40%, var(--line)); }
+  summary {
+    cursor: pointer; list-style: none; padding: .95rem 0;
+    font-weight: 800; color: var(--ink); display: flex; gap: 10px; align-items: flex-start;
+  }
+  summary::-webkit-details-marker { display: none; }
+  summary .q { color: var(--accent); font-family: var(--serif); font-weight: 700; }
+  details p { margin: 0 0 1rem; padding-left: 1.7rem; color: var(--ink-soft); font-size: .94rem; }
+
+  /* ---- CTA ---- */
+  .cta {
+    margin: 3rem 0 1rem; padding: 1.6rem; border-radius: var(--radius);
+    background: linear-gradient(135deg, var(--accent-deep), var(--accent));
+    color: #fff; text-align: center;
+  }
+  .cta h3 { color: #fff; margin: 0 0 .4rem; }
+  .cta p { color: rgba(255,255,255,.9); margin: 0 0 1.1rem; font-size: .92rem; }
+  .btn {
+    display: inline-block; background: #fff; color: var(--accent-deep);
+    font-weight: 800; text-decoration: none; padding: .7rem 1.6rem;
+    border-radius: 100px; font-size: .95rem;
+  }
+
+  .media-note {
+    display: flex; gap: 12px; align-items: flex-start;
+    background: var(--surface); border: 1px solid var(--line);
+    border-left: 4px solid var(--heat); border-radius: var(--radius);
+    padding: 1rem 1.2rem; margin: 1.8rem 0; font-size: .92rem; color: var(--ink-soft);
+  }
+  .media-note .badge {
+    flex: none; background: var(--heat-wash); color: var(--heat);
+    font-weight: 800; font-size: .72rem; letter-spacing: .08em;
+    padding: 4px 9px; border-radius: 8px; white-space: nowrap;
+  }
+  .media-note b { color: var(--ink); }
+
+  .disclaimer { font-size: .78rem; color: var(--ink-faint); margin-top: 2rem; line-height: 1.7; }
+
+  footer {
+    max-width: var(--maxw); margin: 0 auto; padding: 2rem 20px 3rem;
+    border-top: 1px solid var(--line); color: var(--ink-faint); font-size: .8rem;
+    text-align: center;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    details { transition: border-color .2s ease; }
+    .btn { transition: transform .15s ease; }
+    .btn:hover { transform: translateY(-2px); }
+  }
+</style>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <span class="brand">Libetee<span class="brand-dot">.</span></span>
+    <span class="brand-sub">暑さ対策の読み物</span>
+  </div>
+</div>
+
+<main>
+  <span class="eyebrow">暑さ対策・季節家電</span>
+  <h1>ハンディファンの選び方2026<br><span class="hl">「買ったのに涼しくない」</span>を防ぐ5つのチェックポイント</h1>
+  <div class="meta">
+    <span class="tag">選び方ガイド</span>
+    <span>2026.07.27</span>
+    <span>・</span>
+    <span>読了めやす 約6分</span>
+  </div>
+
+  <div class="lead">
+    <p>猛暑日が当たり前になった今、街を歩けばハンディファンを手にした人をよく見かけます。</p>
+    <p>でも「安いのを買ったらすぐ壊れた」「風が弱くて汗が引かない」——そんな声も実は少なくありません。この記事では、季節家電を扱うLibeteeの編集チームが、<strong>後悔しないハンディファンの選び方</strong>を、仕組みの部分からやさしく解説します。</p>
+  </div>
+
+  <figure class="fig">
+    <svg viewBox="0 0 800 360" role="img" aria-label="夏の屋外でハンディファンを使う人物のイラスト">
+      <defs>
+        <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#bfe9ed"/><stop offset="1" stop-color="#eafafb"/>
+        </linearGradient>
+        <linearGradient id="sun" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#ffe08a"/><stop offset="1" stop-color="#f6c24f"/>
+        </linearGradient>
+      </defs>
+      <rect width="800" height="360" fill="url(#sky)"/>
+      <circle cx="662" cy="88" r="52" fill="url(#sun)"/>
+      <g stroke="#f6c24f" stroke-width="5" stroke-linecap="round" opacity=".7">
+        <line x1="662" y1="8" x2="662" y2="24"/><line x1="742" y1="88" x2="726" y2="88"/>
+        <line x1="720" y1="30" x2="709" y2="41"/><line x1="720" y1="146" x2="709" y2="135"/>
+      </g>
+      <!-- buildings -->
+      <g fill="#cfe7e9">
+        <rect x="40" y="150" width="90" height="150"/><rect x="150" y="120" width="70" height="180"/>
+        <rect x="560" y="140" width="80" height="160"/><rect x="660" y="170" width="70" height="130"/>
+      </g>
+      <g fill="#ffffff" opacity=".55">
+        <rect x="58" y="168" width="16" height="16"/><rect x="88" y="168" width="16" height="16"/>
+        <rect x="58" y="200" width="16" height="16"/><rect x="88" y="200" width="16" height="16"/>
+        <rect x="168" y="140" width="14" height="14"/><rect x="192" y="140" width="14" height="14"/>
+        <rect x="578" y="160" width="16" height="16"/><rect x="608" y="160" width="16" height="16"/>
+      </g>
+      <!-- ground -->
+      <rect x="0" y="300" width="800" height="60" fill="#dff2ec"/>
+      <!-- person -->
+      <g>
+        <ellipse cx="360" cy="326" rx="86" ry="12" fill="#000" opacity=".06"/>
+        <!-- body -->
+        <path d="M322 300 L322 214 Q322 196 342 196 L392 196 Q412 196 412 214 L412 300 Z" fill="#0c8f9b"/>
+        <rect x="330" y="300" width="20" height="24" rx="6" fill="#3a4a4c"/>
+        <rect x="384" y="300" width="20" height="24" rx="6" fill="#3a4a4c"/>
+        <!-- head -->
+        <circle cx="367" cy="168" r="30" fill="#f2cba6"/>
+        <path d="M338 160 Q340 132 367 132 Q394 132 396 160 Q384 150 367 152 Q350 150 338 160 Z" fill="#3a2f2a"/>
+        <!-- arm holding fan -->
+        <path d="M406 224 Q452 214 476 190" stroke="#0c8f9b" stroke-width="20" fill="none" stroke-linecap="round"/>
+        <circle cx="486" cy="184" r="12" fill="#f2cba6"/>
+      </g>
+      <!-- handy fan -->
+      <g transform="translate(500 150)">
+        <rect x="-8" y="30" width="16" height="40" rx="7" fill="#e8895c"/>
+        <circle cx="0" cy="8" r="30" fill="#ffffff" stroke="#0c8f9b" stroke-width="4"/>
+        <g fill="#8fd6dc">
+          <path d="M0 8 Q22 -6 26 6 Q12 10 0 8Z"/>
+          <path d="M0 8 Q6 30 -8 32 Q-6 16 0 8Z"/>
+          <path d="M0 8 Q-24 4 -22 -10 Q-8 -2 0 8Z"/>
+        </g>
+        <circle cx="0" cy="8" r="5" fill="#0c8f9b"/>
+      </g>
+      <!-- wind -->
+      <g stroke="#5cc1c9" stroke-width="4" fill="none" stroke-linecap="round" opacity=".8">
+        <path d="M436 150 Q400 150 388 160"/>
+        <path d="M446 172 Q404 176 392 186"/>
+        <path d="M440 196 Q408 200 398 208"/>
+      </g>
+    </svg>
+    <figcaption><b>図版①（記事トップ）</b>　夏の屋外でハンディファンを使うイメージ。※実写の商品・ライフスタイル写真に差し替え推奨</figcaption>
+  </figure>
+
+  <div class="toc">
+    <h4>この記事の内容</h4>
+    <ol>
+      <li><a href="#s1">「あまり涼しくない」その悩み</a></li>
+      <li><a href="#s2">なぜ涼しく感じないのか（仕組み）</a></li>
+      <li><a href="#s3">失敗しない選び方 5チェック</a></li>
+      <li><a href="#s4">多wayタイプという選択肢</a></li>
+      <li><a href="#s5">シーン別の使い方と小ワザ</a></li>
+      <li><a href="#s6">よくある質問（FAQ）</a></li>
+      <li><a href="#s7">まとめ</a></li>
+    </ol>
+  </div>
+
+  <h2 id="s1"><span class="num">1</span>「買ったのに、あまり涼しくない」その悩み、よくあります</h2>
+  <p>まず最初に、多くの人がつまずくポイントを整理してみましょう。</p>
+  <ul>
+    <li>風は出ているのに、汗が引かない</li>
+    <li>昼過ぎにはバッテリーが切れてしまう</li>
+    <li>思ったより音が大きく、電車内やオフィスで使いづらい</li>
+    <li>片手がふさがって、荷物が持てない</li>
+  </ul>
+  <p>「安かったから」と割り切れればいいのですが、暑い日に頼りにしていたものが役に立たないのは、地味にストレスですよね。</p>
+  <p>実はこれ、<strong>製品が悪いというより「選ぶ基準」がわからないまま買ってしまう</strong>ことが原因のケースがほとんどです。ここを理解するだけで、次の一台選びは大きく変わります。</p>
+
+  <figure class="fig">
+    <svg viewBox="0 0 800 300" role="img" aria-label="暑くて汗をかいている人物のイラスト">
+      <rect width="800" height="300" fill="#fbeee6"/>
+      <!-- heat waves -->
+      <g stroke="#e8895c" stroke-width="4" fill="none" stroke-linecap="round" opacity=".55">
+        <path d="M120 60 q10 12 0 24 q-10 12 0 24 q10 12 0 24"/>
+        <path d="M150 50 q10 12 0 24 q-10 12 0 24 q10 12 0 24"/>
+        <path d="M650 60 q10 12 0 24 q-10 12 0 24 q10 12 0 24"/>
+        <path d="M680 50 q10 12 0 24 q-10 12 0 24 q10 12 0 24"/>
+      </g>
+      <!-- sun -->
+      <circle cx="400" cy="70" r="42" fill="#f6c24f"/>
+      <g stroke="#f6c24f" stroke-width="6" stroke-linecap="round" opacity=".7">
+        <line x1="400" y1="6" x2="400" y2="20"/><line x1="330" y1="70" x2="344" y2="70"/>
+        <line x1="470" y1="70" x2="456" y2="70"/><line x1="352" y1="22" x2="362" y2="32"/>
+        <line x1="448" y1="22" x2="438" y2="32"/>
+      </g>
+      <!-- person -->
+      <g transform="translate(0 10)">
+        <ellipse cx="400" cy="286" rx="80" ry="10" fill="#000" opacity=".05"/>
+        <path d="M360 280 L360 206 Q360 188 380 188 L420 188 Q440 188 440 206 L440 280 Z" fill="#0c8f9b"/>
+        <circle cx="400" cy="158" r="30" fill="#f2cba6"/>
+        <path d="M371 150 Q373 122 400 122 Q427 122 429 150 Q416 140 400 142 Q384 140 371 150 Z" fill="#3a2f2a"/>
+        <!-- droopy hot eyes + open mouth -->
+        <path d="M386 156 q4 4 8 0" stroke="#3a2f2a" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <path d="M406 156 q4 4 8 0" stroke="#3a2f2a" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <ellipse cx="400" cy="172" rx="6" ry="5" fill="#c25a3a"/>
+        <!-- sweat drops -->
+        <path d="M430 150 q6 10 0 16 q-6 -6 0 -16Z" fill="#5cc1c9"/>
+        <path d="M436 168 q5 8 0 13 q-5 -5 0 -13Z" fill="#5cc1c9"/>
+        <!-- hand wiping forehead -->
+        <path d="M366 200 Q345 176 372 150" stroke="#0c8f9b" stroke-width="18" fill="none" stroke-linecap="round"/>
+        <circle cx="376" cy="146" r="11" fill="#f2cba6"/>
+      </g>
+    </svg>
+    <figcaption><b>図版②</b>　「風は出ているのに涼しくない」暑さのイメージ</figcaption>
+  </figure>
+
+  <h2 id="s2"><span class="num">2</span>なぜ「涼しく感じない」のか？体が涼しさを感じる仕組み</h2>
+
+  <h3>涼しさの正体は「風量」より「気化熱」</h3>
+  <p>人が涼しいと感じるのは、単に風が当たるからではありません。肌の表面にある汗や水分が蒸発するとき、体から熱を奪っていきます。これを<em>気化熱（きかねつ）</em>といいます。</p>
+  <p>つまり、扇風機の役割は「汗を効率よく蒸発させて、体温を下げる手伝いをすること」。ここで大切なのが次の2つです。</p>
+  <ol>
+    <li><strong>十分な風量（風の強さ）</strong>があること</li>
+    <li>その風を、<strong>必要な場所に届けられる</strong>こと</li>
+  </ol>
+  <p>風が弱いと汗が蒸発しきらず、「風は当たっているのに涼しくない」状態になります。</p>
+
+  <h3>気温が体温を超えると「送風だけ」では限界がくる</h3>
+  <p>近年の猛暑では、気温が35℃を超える日も珍しくありません。気温が体温（約36℃）に近づくと、<strong>温かい空気を送るだけ</strong>になり、送風だけでは涼しさを感じにくくなります。</p>
+  <div class="callout heat">
+    そこで注目されているのが、風とあわせて肌に<strong>ひんやりとした冷たさ</strong>を直接伝えるタイプ。近年のモデルに「瞬間冷却」機能が増えているのは、この暑さの底上げに対応するためです。
+  </div>
+
+  <figure class="fig">
+    <svg viewBox="0 0 800 340" role="img" aria-label="気化熱で体温が下がる仕組みの図解">
+      <rect width="800" height="340" fill="#eef7f8"/>
+      <text x="400" y="42" text-anchor="middle" font-family="sans-serif" font-size="22" font-weight="800" fill="#076570">気化熱で体温が下がる仕組み</text>
+      <!-- skin band -->
+      <rect x="60" y="250" width="680" height="60" rx="8" fill="#f2cba6"/>
+      <text x="80" y="288" font-family="sans-serif" font-size="18" font-weight="700" fill="#8a5a3a">肌の表面</text>
+      <!-- step 1: sweat -->
+      <g>
+        <path d="M200 250 q10 -22 0 -30 q-10 8 0 30Z" fill="#5cc1c9"/>
+        <path d="M300 250 q10 -22 0 -30 q-10 8 0 30Z" fill="#5cc1c9"/>
+        <text x="250" y="232" text-anchor="middle" font-family="sans-serif" font-size="16" font-weight="800" fill="#0c8f9b">① 汗が出る</text>
+      </g>
+      <!-- step 2: wind + evaporation -->
+      <g>
+        <g stroke="#0c8f9b" stroke-width="4" fill="none" stroke-linecap="round" opacity=".85">
+          <path d="M360 150 q40 -6 70 0"/><path d="M360 168 q40 -6 70 0"/><path d="M360 186 q40 -6 70 0"/>
+        </g>
+        <text x="360" y="130" text-anchor="middle" font-family="sans-serif" font-size="16" font-weight="800" fill="#0c8f9b">② 風で蒸発</text>
+        <!-- evaporating drops rising -->
+        <g fill="#8fd6dc">
+          <circle cx="470" cy="210" r="6"/><circle cx="500" cy="180" r="5"/><circle cx="525" cy="150" r="4"/>
+        </g>
+        <path d="M455 240 L520 130" stroke="#8fd6dc" stroke-width="2" stroke-dasharray="4 5"/>
+      </g>
+      <!-- step 3: heat leaves -->
+      <g>
+        <g transform="translate(600 90)">
+          <path d="M0 120 L0 30" stroke="#e8895c" stroke-width="6"/>
+          <path d="M-14 48 L0 22 L14 48Z" fill="#e8895c"/>
+          <text x="0" y="16" text-anchor="middle" font-family="sans-serif" font-size="15" font-weight="800" fill="#c25a3a">熱を奪う</text>
+        </g>
+        <text x="600" y="238" text-anchor="middle" font-family="sans-serif" font-size="16" font-weight="800" fill="#c25a3a">③ 体温が下がる</text>
+      </g>
+      <!-- flow arrows between steps -->
+      <g fill="#b9d4d6">
+        <path d="M300 300 L340 300 L340 292 L358 305 L340 318 L340 310 L300 310Z"/>
+        <path d="M470 300 L520 300 L520 292 L538 305 L520 318 L520 310 L470 310Z"/>
+      </g>
+    </svg>
+    <figcaption><b>図解①</b>　風が汗の蒸発を助け、そのとき体から熱が奪われて涼しくなります</figcaption>
+  </figure>
+
+  <h2 id="s3"><span class="num">3</span>失敗しない選び方【5つのチェックポイント】</h2>
+  <p>ここからが本題です。次の5点をおさえれば、大きな失敗はまず防げます。</p>
+
+  <h3>① 風量：段階調整できるか</h3>
+  <p>強すぎても弱すぎても使いづらいもの。<strong>3〜5段階で風量調整ができる</strong>モデルなら、屋外の猛暑では強風、室内やオフィスでは静音の弱風、と使い分けられます。</p>
+  <h3>② バッテリー：一日もつ容量か・充電規格は何か</h3>
+  <p>朝から夜まで使うなら<strong>連続使用時間</strong>は必ずチェック。充電端子は、スマホと共通で使える<strong>Type-C</strong>が便利です。専用ケーブルが必要なタイプは、いざというときに困りがちです。</p>
+  <h3>③ 静音性：使う場所に合っているか</h3>
+  <p>電車内・オフィス・図書館などで使うなら静音性は重要。一般的に<strong>弱風で30〜40dB前後</strong>なら、周囲を気にせず使いやすい目安です。</p>
+  <h3>④ 使い方の自由度：手ぶらになれるか</h3>
+  <p>長時間の移動やイベントでは、<strong>首かけ・卓上・クリップ・腰かけ</strong>など、手を離して使えるかが快適さを左右します。1台で複数の使い方に対応する「多wayタイプ」は、シーンを選びません。</p>
+  <h3>⑤ 重さ：毎日持ち歩けるか</h3>
+  <p>毎日カバンに入れるなら<strong>軽さ</strong>も大切。重いと持ち歩くのが億劫になり、結局使わなくなってしまいます。</p>
+
+  <div class="tablewrap">
+    <table>
+      <caption>ハンディファン選び 早見表</caption>
+      <thead>
+        <tr><th>チェック項目</th><th>見るべきポイント</th><th>おすすめの目安</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>風量</strong></td><td>段階調整の有無</td><td>3〜5段階＋強風モード</td></tr>
+        <tr><td><strong>バッテリー</strong></td><td>連続使用時間・充電規格</td><td>長時間対応／Type-C</td></tr>
+        <tr><td><strong>静音性</strong></td><td>弱風時の動作音</td><td>約30〜40dB</td></tr>
+        <tr><td><strong>使い方</strong></td><td>手ぶら対応</td><td>首かけ・卓上・クリップ等</td></tr>
+        <tr><td><strong>重さ</strong></td><td>携帯性</td><td>軽量タイプ</td></tr>
+        <tr><td><strong>冷却機能</strong></td><td>猛暑日への対応</td><td>瞬間冷却プレート付き</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2 id="s4"><span class="num">4</span>「多wayタイプ」という選択肢</h2>
+  <p>上の5つを満たそうとすると、「結局どれを選べばいいの？」と迷いがちです。そこで近年人気なのが、<strong>1台で複数の使い方に対応する多wayタイプ</strong>です。</p>
+  <p>たとえばLibeteeが取り扱う<strong>5wayハンディファン（2026最新モデル）</strong>は、次のように1台で使い分けられます。</p>
+
+  <div class="ways">
+    <div class="way"><b>手持ち</b><span>歩きながらサッと涼む</span></div>
+    <div class="way"><b>首かけ</b><span>両手を空けて通勤・作業</span></div>
+    <div class="way"><b>卓上</b><span>デスクやキッチンで</span></div>
+    <div class="way"><b>クリップ</b><span>ベビーカー・テントに固定</span></div>
+    <div class="way"><b>腰かけ</b><span>アウトドア・立ち仕事に</span></div>
+  </div>
+
+  <p>さらに、前述の「気温が体温に近づくと送風だけでは限界がくる」課題に対して、<strong>肌に触れる瞬間冷却プレート</strong>を備えているのが特徴です。風で汗を蒸発させながら、直接ひんやり感も得られる、という考え方に沿った設計になっています。</p>
+  <p>充電は<strong>Type-C</strong>、風量は段階調整に対応し、<strong>静音設計・軽量</strong>で毎日持ち歩きやすい点も、先ほどの5つのチェックポイントを一通り満たしています。</p>
+
+  <div class="callout">
+    ここでお伝えしたいのは「これを買うべき」ということではなく、<strong>『5つのチェックポイントを1台で満たせる選択肢が実際にある』</strong>という事実です。ご自身の使うシーンに照らして、判断の材料にしてみてください。
+  </div>
+
+  <figure class="fig">
+    <svg viewBox="0 0 800 260" role="img" aria-label="1台で5通りに使えるハンディファンの使い方の図解">
+      <rect width="800" height="260" fill="#eaf6f7"/>
+      <text x="400" y="40" text-anchor="middle" font-family="sans-serif" font-size="20" font-weight="800" fill="#076570">1台で5通りの使い方</text>
+      <g font-family="sans-serif" font-size="15" font-weight="700" fill="#0c8f9b" text-anchor="middle">
+        <!-- 手持ち -->
+        <g transform="translate(80 90)">
+          <circle cx="30" cy="30" r="34" fill="#ffffff" stroke="#8fd6dc" stroke-width="3"/>
+          <circle cx="30" cy="22" r="15" fill="#5cc1c9"/><rect x="26" y="36" width="8" height="22" rx="4" fill="#e8895c"/>
+          <text x="30" y="100">手持ち</text>
+        </g>
+        <!-- 首かけ -->
+        <g transform="translate(220 90)">
+          <circle cx="30" cy="30" r="34" fill="#ffffff" stroke="#8fd6dc" stroke-width="3"/>
+          <path d="M14 40 a16 16 0 1 1 32 0" fill="none" stroke="#5cc1c9" stroke-width="6"/>
+          <circle cx="16" cy="40" r="5" fill="#e8895c"/><circle cx="44" cy="40" r="5" fill="#e8895c"/>
+          <text x="30" y="100">首かけ</text>
+        </g>
+        <!-- 卓上 -->
+        <g transform="translate(360 90)">
+          <circle cx="30" cy="30" r="34" fill="#ffffff" stroke="#8fd6dc" stroke-width="3"/>
+          <circle cx="30" cy="24" r="13" fill="#5cc1c9"/><rect x="27" y="36" width="6" height="10" fill="#e8895c"/>
+          <rect x="18" y="46" width="24" height="6" rx="3" fill="#e8895c"/>
+          <text x="30" y="100">卓上</text>
+        </g>
+        <!-- クリップ -->
+        <g transform="translate(500 90)">
+          <circle cx="30" cy="30" r="34" fill="#ffffff" stroke="#8fd6dc" stroke-width="3"/>
+          <circle cx="34" cy="24" r="12" fill="#5cc1c9"/>
+          <path d="M14 34 q0 14 14 14 l6 0" fill="none" stroke="#e8895c" stroke-width="5"/>
+          <text x="30" y="100">クリップ</text>
+        </g>
+        <!-- 腰かけ -->
+        <g transform="translate(640 90)">
+          <circle cx="30" cy="30" r="34" fill="#ffffff" stroke="#8fd6dc" stroke-width="3"/>
+          <rect x="20" y="30" width="20" height="18" rx="4" fill="#e8895c"/><circle cx="30" cy="24" r="11" fill="#5cc1c9"/>
+          <text x="30" y="100">腰かけ</text>
+        </g>
+      </g>
+    </svg>
+    <figcaption><b>図版③</b>　手持ち・首かけ・卓上・クリップ・腰かけ。シーンに合わせて付け替え</figcaption>
+  </figure>
+
+  <h2 id="s5"><span class="num">5</span>使い方でこんなに変わる｜シーン別の活用と小ワザ</h2>
+
+  <h3>通勤・通学</h3>
+  <p>満員電車では<strong>首かけ＋弱風（静音）</strong>が快適。駅までの徒歩は<strong>手持ち＋強風</strong>で一気に汗を飛ばす、と切り替えるのがコツです。</p>
+  <h3>デスクワーク・キッチン</h3>
+  <p><strong>卓上モード</strong>にすれば、エアコンが効きにくい場所でも自分専用の風を確保できます。火を使うキッチンでも手ぶらで使えて便利です。</p>
+  <h3>アウトドア・レジャー・スポーツ観戦</h3>
+  <p>炎天下では<strong>腰かけ・クリップ</strong>で手ぶらに。テントやベビーカーに固定すれば、小さなお子さま連れでも安心です。</p>
+  <h3>涼しさを底上げする小ワザ</h3>
+  <ul>
+    <li><strong>首・手首など太い血管が通る場所</strong>に風を当てると、体感温度が下がりやすい</li>
+    <li><strong>少し肌を湿らせてから</strong>風を当てると、気化熱で効率よく涼める</li>
+    <li>屋外から室内に入ったら<strong>弱風に切り替え</strong>、電池も体も労わる</li>
+  </ul>
+
+  <figure class="fig">
+    <svg viewBox="0 0 800 300" role="img" aria-label="首元に風を当てて涼む人物のイラスト">
+      <rect width="800" height="300" fill="#e9f5f6"/>
+      <g transform="translate(300 20)">
+        <path d="M60 260 L60 150 Q60 128 90 128 L150 128 Q180 128 180 150 L180 260 Z" fill="#0c8f9b"/>
+        <circle cx="120" cy="86" r="40" fill="#f2cba6"/>
+        <path d="M82 78 Q84 40 120 40 Q156 40 158 78 Q140 64 120 66 Q100 64 82 78 Z" fill="#3a2f2a"/>
+        <path d="M104 82 q5 5 10 0" stroke="#3a2f2a" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <path d="M126 82 q5 5 10 0" stroke="#3a2f2a" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <path d="M110 100 q10 6 20 0" stroke="#c25a3a" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <!-- neck highlight (blood vessel zone) -->
+        <rect x="104" y="120" width="32" height="18" rx="6" fill="#f2cba6"/>
+        <ellipse cx="120" cy="128" rx="26" ry="10" fill="#e8895c" opacity=".22"/>
+      </g>
+      <!-- fan to the side blowing at neck -->
+      <g transform="translate(520 120)">
+        <rect x="-7" y="30" width="14" height="34" rx="6" fill="#e8895c"/>
+        <circle cx="0" cy="8" r="26" fill="#ffffff" stroke="#0c8f9b" stroke-width="4"/>
+        <g fill="#8fd6dc">
+          <path d="M0 8 Q19 -4 22 6 Q10 9 0 8Z"/><path d="M0 8 Q5 26 -7 27 Q-5 14 0 8Z"/><path d="M0 8 Q-21 4 -19 -8 Q-7 -1 0 8Z"/>
+        </g>
+        <circle cx="0" cy="8" r="4" fill="#0c8f9b"/>
+      </g>
+      <g stroke="#5cc1c9" stroke-width="4" fill="none" stroke-linecap="round" opacity=".85">
+        <path d="M488 140 q-40 4 -60 12"/><path d="M492 158 q-44 4 -66 12"/><path d="M488 176 q-40 4 -58 10"/>
+      </g>
+      <text x="120" y="292" text-anchor="middle" font-family="sans-serif" font-size="14" font-weight="700" fill="#c25a3a" transform="translate(300 0)">首すじ＝太い血管ゾーン</text>
+    </svg>
+    <figcaption><b>図版④</b>　首・手首など太い血管が通る場所に当てると、体感温度が下がりやすい</figcaption>
+  </figure>
+
+  <h2 id="s6"><span class="num">6</span>よくある質問（FAQ）</h2>
+  <div class="faq">
+    <details>
+      <summary><span class="q">Q.</span>ハンディファンだけで熱中症対策になりますか？</summary>
+      <p>補助的な役割と考えるのがおすすめです。こまめな水分・塩分補給、日陰の活用と組み合わせることで効果を発揮します。風による涼感は、暑さの負担を和らげる一つの手段としてお使いください。</p>
+    </details>
+    <details>
+      <summary><span class="q">Q.</span>「爆風」タイプは電池の減りが早いのでは？</summary>
+      <p>強風は消費が大きくなりますが、段階調整できるモデルなら、普段は弱〜中風で節約し、暑い場面だけ強風、と使い分けることで長く使えます。</p>
+    </details>
+    <details>
+      <summary><span class="q">Q.</span>瞬間冷却プレートは本当にひんやりしますか？</summary>
+      <p>金属製の冷却プレートに触れることで、風とは別に直接的な冷たさを感じられます。送風だけでは物足りない猛暑日の“もう一段の涼しさ”として役立ちます。</p>
+    </details>
+    <details>
+      <summary><span class="q">Q.</span>飛行機に持ち込めますか？</summary>
+      <p>リチウムイオン電池を内蔵する製品は、多くの場合「機内持ち込み」が基本です。利用の際は各航空会社の最新ルールを必ずご確認ください。</p>
+    </details>
+    <details>
+      <summary><span class="q">Q.</span>お手入れはどうすればいい？</summary>
+      <p>羽根やプレートのホコリを、乾いた柔らかい布で軽く拭き取るのが基本です。水洗い不可の製品が多いため、取扱説明書の指示に従ってください。</p>
+    </details>
+  </div>
+
+  <h2 id="s7"><span class="num">7</span>まとめ｜「なんとなく」で選ばず、使うシーンから逆算しよう</h2>
+  <ul>
+    <li>涼しさの正体は<strong>気化熱</strong>。だから「十分な風量」と「届ける工夫」が大切</li>
+    <li>猛暑日は送風だけでは限界がくるため、<strong>瞬間冷却</strong>などの機能が心強い</li>
+    <li>選ぶときは【風量・バッテリー・静音性・使い方・重さ】の<strong>5チェック</strong></li>
+    <li><strong>多wayタイプ</strong>なら、通勤からアウトドアまで1台でこなせる</li>
+    <li>使い方の小ワザで、同じ道具でも涼しさは変わる</li>
+  </ul>
+  <p>「暑い夏を、少しでも快適に」。その一助として、ご自身の生活シーンに合った一台を選んでいただければと思います。</p>
+
+  <div class="cta">
+    <h3>今回ご紹介した多wayタイプの実例</h3>
+    <p>「5つのチェックポイントを1台で満たせる例」として触れたモデルの、実際の仕様やレビューを商品ページで確認できます。選び方の“答え合わせ”にどうぞ。</p>
+    <a class="btn" href="https://item.rakuten.co.jp/libetee/handyfan202602/" target="_blank" rel="noopener">Libetee 5wayハンディファンの詳細を見る →</a>
+  </div>
+
+  <div class="media-note">
+    <span class="badge">メディア掲載</span>
+    <span>こちらのモデルは、<b>2026年7月27日放送の朝日放送テレビ「newsおかえり」</b>でご紹介いただきました。番組で取り上げられた背景には、猛暑が続く近年の「暑さ対策ニーズ」の高まりがあります。</span>
+  </div>
+
+  <figure class="fig">
+    <svg viewBox="0 0 800 320" role="img" aria-label="ハンディファン本体と主な特徴の図解">
+      <rect width="800" height="320" fill="#eef7f8"/>
+      <!-- product body -->
+      <g transform="translate(360 40)">
+        <!-- fan head -->
+        <circle cx="40" cy="70" r="66" fill="#ffffff" stroke="#0c8f9b" stroke-width="6"/>
+        <circle cx="40" cy="70" r="54" fill="#f3fbfb" stroke="#cfe7e9" stroke-width="2"/>
+        <g fill="#8fd6dc">
+          <path d="M40 70 Q86 44 92 72 Q64 78 40 70Z"/>
+          <path d="M40 70 Q60 116 32 120 Q30 88 40 70Z"/>
+          <path d="M40 70 Q-6 60 0 32 Q28 46 40 70Z"/>
+          <path d="M40 70 Q18 24 46 20 Q48 52 40 70Z"/>
+        </g>
+        <circle cx="40" cy="70" r="10" fill="#0c8f9b"/>
+        <!-- handle with cooling plate -->
+        <rect x="24" y="130" width="32" height="120" rx="15" fill="#0c8f9b"/>
+        <rect x="30" y="150" width="20" height="46" rx="6" fill="#dff3f4"/>
+        <rect x="34" y="214" width="12" height="6" rx="3" fill="#3a4a4c"/>
+      </g>
+      <!-- feature labels -->
+      <g font-family="sans-serif" font-size="15" font-weight="700">
+        <g>
+          <line x1="300" y1="110" x2="392" y2="110" stroke="#0c8f9b" stroke-width="2"/>
+          <circle cx="392" cy="110" r="4" fill="#0c8f9b"/>
+          <text x="292" y="115" text-anchor="end" fill="#076570">段階調整の風量</text>
+        </g>
+        <g>
+          <line x1="300" y1="200" x2="392" y2="200" stroke="#e8895c" stroke-width="2"/>
+          <circle cx="392" cy="200" r="4" fill="#e8895c"/>
+          <text x="292" y="205" text-anchor="end" fill="#c25a3a">瞬間冷却プレート</text>
+        </g>
+        <g>
+          <line x1="520" y1="150" x2="440" y2="150" stroke="#0c8f9b" stroke-width="2"/>
+          <circle cx="440" cy="150" r="4" fill="#0c8f9b"/>
+          <text x="528" y="145" fill="#076570">静音・軽量設計</text>
+        </g>
+        <g>
+          <line x1="520" y1="250" x2="430" y2="250" stroke="#0c8f9b" stroke-width="2"/>
+          <circle cx="430" cy="250" r="4" fill="#0c8f9b"/>
+          <text x="528" y="255" fill="#076570">Type-C 充電</text>
+        </g>
+      </g>
+    </svg>
+    <figcaption><b>図版⑤（記事末）</b>　主な特徴のイメージ。※実際の商品写真に差し替え推奨</figcaption>
+  </figure>
+
+  <p class="disclaimer">※本記事は一般的な暑さ対策・製品選びの情報提供を目的としています。体調に不安がある場合は無理をせず、医療機関にご相談ください。掲載の仕様は変更される場合があります。最新情報は各商品ページをご確認ください。</p>
+</main>
+
+<footer>
+  Libetee ブログ ｜ 暑さ対策の読み物
+</footer>
