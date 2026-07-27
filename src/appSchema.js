@@ -35,6 +35,35 @@ export const FIELDS = {
     unit: '個',
     unitPosition: 'AFTER',
   },
+  total_adcost: {
+    type: 'CALC',
+    code: 'total_adcost',
+    label: '合計広告費',
+    expression: 'SUM(ch_adcost)', // チャネル別実績の「広告費」列を合算
+    format: 'NUMBER',
+    displayScale: '0',
+    unit: '円',
+    unitPosition: 'AFTER',
+  },
+
+  // ── イベント（楽天/Amazon の販促イベント。予想チームの最重要インプット）──
+  event_platform: {
+    type: 'DROP_DOWN',
+    code: 'event_platform',
+    label: 'イベント区分',
+    options: {
+      なし: { label: 'なし', index: '0' },
+      楽天: { label: '楽天', index: '1' },
+      Amazon: { label: 'Amazon', index: '2' },
+      共通: { label: '共通', index: '3' },
+    },
+    defaultValue: 'なし',
+  },
+  event_name: {
+    type: 'SINGLE_LINE_TEXT',
+    code: 'event_name',
+    label: 'イベント名', // 例: お買い物マラソン / スーパーSALE / プライムデー / タイムセール祭り
+  },
 
   // ── チャネル別実績（テーブル）──
   results: {
@@ -56,6 +85,7 @@ export const FIELDS = {
         },
       },
       ch_sales: numberField('ch_sales', '売上', { unit: '円' }),
+      ch_adcost: numberField('ch_adcost', '広告費', { unit: '円' }),
       ch_units: numberField('ch_units', '売上個数', { unit: '個' }),
       ch_access: numberField('ch_access', 'アクセス数', {}),
       ch_cvr: numberField('ch_cvr', '転換率', { unit: '%', displayScale: '2' }),

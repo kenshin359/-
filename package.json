@@ -9,6 +9,8 @@
     "apps": "node src/listApps.js",
     "create-app": "node src/createApp.js",
     "migrate": "node src/migrate.js",
-    "analyze": "node src/analyze.js"
+    "analyze": "node src/analyze.js",
+    "forecast": "node src/forecast.js",
+    "calendar": "node src/calendar.js"
   }
 }
