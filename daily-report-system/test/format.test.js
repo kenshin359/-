@@ -14,6 +14,7 @@ import { formatCeoReport, formatLineReport, formatUrgentLine, toAiReportRecord }
 import { splitForLine } from '../lib/line.js';
 import { parseJsonFromModel } from '../lib/claude.js';
 import { normalizeReport, buildAnalysisInput } from '../lib/normalize.js';
+import { authHeadersFor } from '../lib/kintone.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
@@ -80,4 +81,33 @@ test('buildAnalysisInput: 件数を正しく数える', () => {
   const input = buildAnalysisInput('2026-07-28', [{ reporter: { value: 'a' } }, { reporter: { value: 'b' } }]);
   assert.equal(input.report_count, 2);
   assert.equal(input.reports.length, 2);
+});
+
+// ── Kintone 認証方式の選択 ────────────────────────────────
+// APIトークン（最小権限）が設定されていれば必ずそちらを優先すること。
+// パスワードは権限が広いので、フォールバックに留める。
+
+test('authHeadersFor: APIトークンがあればトークン認証を使う', () => {
+  process.env.KINTONE_USER = 'u';
+  process.env.KINTONE_PASSWORD = 'p';
+  const h = authHeadersFor('my-token');
+  assert.equal(h['X-Cybozu-API-Token'], 'my-token');
+  assert.ok(!h['X-Cybozu-Authorization'], 'トークンがある時はパスワードを送らない');
+});
+
+test('authHeadersFor: トークンが無ければパスワード認証にフォールバック', () => {
+  process.env.KINTONE_USER = 'user1';
+  process.env.KINTONE_PASSWORD = 'pass1';
+  const h = authHeadersFor(null);
+  assert.ok(!h['X-Cybozu-API-Token']);
+  assert.equal(
+    Buffer.from(h['X-Cybozu-Authorization'], 'base64').toString('utf8'),
+    'user1:pass1'
+  );
+});
+
+test('authHeadersFor: 認証情報が全く無ければ分かりやすいエラー', () => {
+  delete process.env.KINTONE_USER;
+  delete process.env.KINTONE_PASSWORD;
+  assert.throws(() => authHeadersFor(null), /認証情報がありません|npm run setup/);
 });

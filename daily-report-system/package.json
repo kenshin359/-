@@ -4,8 +4,12 @@
   "private": true,
   "type": "module",
   "description": "Libetee 向け AI 日報システム: Kintone → Claude → LINE を n8n で自動化。ローカル実行用の同等スクリプトも同梱。",
-  "engines": { "node": ">=18" },
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
+    "setup": "node scripts/setup.js",
+    "doctor": "node scripts/doctor.js",
     "apps": "node kintone/inspectApp.js",
     "inspect": "node kintone/inspectApp.js",
     "add-fields": "node kintone/addFields.js",

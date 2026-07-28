@@ -1,25 +1,59 @@
 // ============================================================
-//  Kintone REST API クライアント（APIトークン認証）
+//  Kintone REST API クライアント
 // ------------------------------------------------------------
-//  - スタッフ日報アプリ（読み取り）とAI経営日報アプリ（書き込み）で
-//    それぞれ別のトークンを使う設計。
-//  - すべての認証情報は環境変数から読み込みます（コードに書かない）。
+//  認証は2通りに対応（初心者はパスワード認証だけで動きます）：
+//
+//   ① APIトークン認証（推奨・最小権限）
+//      アプリごとに発行したトークンを使う。権限を細かく絞れて安全。
+//      → KINTONE_API_TOKEN_DAILY_REPORT / KINTONE_API_TOKEN_AI_REPORT
+//
+//   ② パスワード認証（かんたん・トークン発行が不要）
+//      ID/パスワードで全操作をまかなう。設定が1回で済むが権限は広い。
+//      → KINTONE_USER / KINTONE_PASSWORD
+//      ※ 社長個人のアカウントではなく「連携用アカウント」の作成を推奨。
+//
+//  トークンがあればトークンを優先し、無ければパスワードにフォールバックします。
+//  認証情報はすべて環境変数から読み込みます（コードには書きません）。
 // ============================================================
-import { required } from './env.js';
+import { required, optional } from './env.js';
 import { fetchWithRetry } from './httpRetry.js';
 
 function baseUrl() {
   return required('KINTONE_BASE_URL').replace(/\/$/, '');
 }
 
-// 汎用リクエスト。token はアプリごとのAPIトークン。
+/**
+ * 使用する認証ヘッダーを決める。
+ * @param {string|null} token アプリ用APIトークン（無ければ null）
+ * @returns {object} リクエストヘッダー
+ */
+export function authHeadersFor(token) {
+  // ① APIトークンがあればそれを使う（最小権限）
+  if (token) return { 'X-Cybozu-API-Token': token };
+
+  // ② 無ければパスワード認証にフォールバック
+  const user = optional('KINTONE_USER');
+  const pass = optional('KINTONE_PASSWORD');
+  if (user && pass) {
+    return { 'X-Cybozu-Authorization': Buffer.from(`${user}:${pass}`).toString('base64') };
+  }
+
+  throw new Error(
+    'Kintoneの認証情報がありません。\n' +
+      '  かんたん設定: KINTONE_USER と KINTONE_PASSWORD を .env に設定\n' +
+      '  または: KINTONE_API_TOKEN_DAILY_REPORT / KINTONE_API_TOKEN_AI_REPORT を設定\n' +
+      '  → 分からなければ `npm run setup` を実行してください。'
+  );
+}
+
+// 汎用リクエスト。token が null ならパスワード認証で実行される。
 async function api(method, apiPath, token, body) {
   const url = `${baseUrl()}${apiPath}`;
   const options = {
     method,
     headers: {
       'Content-Type': 'application/json',
-      'X-Cybozu-API-Token': token,
+      ...authHeadersFor(token),
     },
   };
   if (body !== undefined && method !== 'GET') options.body = JSON.stringify(body);
@@ -43,7 +77,7 @@ export function qs(params) {
  */
 export async function fetchDailyReports(dateISO) {
   const app = required('KINTONE_DAILY_REPORT_APP_ID');
-  const token = required('KINTONE_API_TOKEN_DAILY_REPORT');
+  const token = optional('KINTONE_API_TOKEN_DAILY_REPORT') || null; // 無ければパスワード認証
   // report_date が対象日 かつ 提出状況 が「提出済み」のレコードだけを対象にする
   const query = `report_date = "${dateISO}" and submit_status in ("提出済み") order by dept asc limit 500`;
   const path = `/k/v1/records.json?${qs({ app, query })}`;
@@ -58,7 +92,7 @@ export async function fetchDailyReports(dateISO) {
  */
 export async function createAiReport(record) {
   const app = required('KINTONE_AI_REPORT_APP_ID');
-  const token = required('KINTONE_API_TOKEN_AI_REPORT');
+  const token = optional('KINTONE_API_TOKEN_AI_REPORT') || null; // 無ければパスワード認証
   return api('POST', '/k/v1/record.json', token, { app, record });
 }
 
@@ -67,7 +101,7 @@ export async function createAiReport(record) {
  */
 export async function updateAiReport(id, record) {
   const app = required('KINTONE_AI_REPORT_APP_ID');
-  const token = required('KINTONE_API_TOKEN_AI_REPORT');
+  const token = optional('KINTONE_API_TOKEN_AI_REPORT') || null; // 無ければパスワード認証
   return api('PUT', '/k/v1/record.json', token, { app, id, record });
 }
 
@@ -77,7 +111,7 @@ export async function updateAiReport(id, record) {
  */
 export async function findAiReportByDate(dateISO) {
   const app = required('KINTONE_AI_REPORT_APP_ID');
-  const token = required('KINTONE_API_TOKEN_AI_REPORT');
+  const token = optional('KINTONE_API_TOKEN_AI_REPORT') || null; // 無ければパスワード認証
   const query = `target_date = "${dateISO}" limit 1`;
   const res = await api('GET', `/k/v1/records.json?${qs({ app, query })}`, token);
   return res.records?.[0] ?? null;

@@ -7,9 +7,10 @@
 | （リポジトリ直下 / `src/`） | **売上日報ツール**（下記）：「売上・転換率報告」アプリの自動構築・データ移行・分析 |
 | [`daily-report-system/`](./daily-report-system/) | **AI日報システム**：Kintone→Claude→LINE を n8n で自動化。社長・部長向け経営日報を毎日自動生成・通知。緊急案件は即時通知。 |
 
-> AI日報システム（Kintone×LINE×n8n×Claude）の導入は
-> [`daily-report-system/README.md`](./daily-report-system/README.md) と
-> [`daily-report-system/docs/setup-guide.md`](./daily-report-system/docs/setup-guide.md) を参照してください。
+> **AI日報システムをこれから導入する方へ**
+> パソコンが得意でなくても大丈夫です。まずは
+> **[`daily-report-system/docs/START-HERE.md`](./daily-report-system/docs/START-HERE.md)** を開いてください。
+> `npm run setup` の質問に答えるだけで設定が完了します。
 
 ---
 

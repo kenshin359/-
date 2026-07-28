@@ -19,21 +19,27 @@ Kintone の「AI経営日報アプリ」に保存し、LINE で通知します�
 
 ---
 
-## クイックスタート
+## クイックスタート（初めての方はこちら）
+
+**👉 パソコンが得意でない方は [`docs/START-HERE.md`](./docs/START-HERE.md) を読んでください。これだけでOKです。**
 
 ```bash
 cd daily-report-system
-cp .env.example .env         # 値を記入（未確定は TODO のまま）
-npm test                     # ① まずはオフラインのユニットテスト（9件）
 
-# ② Claude 分析をサンプルで試す（ANTHROPIC_API_KEY が必要）
-node scripts/callClaude.js --file=samples/sample-daily-reports.json
-
-# ③ 通し実行（Kintone/LINE の設定が済んだら）
-node scripts/runPipeline.js
+npm run setup       # ① 対話式セットアップ（質問に答えるだけ／接続テスト付き）
+npm run doctor      # ② 設定の総点検（NGなら日本語で直し方を表示）
+npm run pipeline    # ③ 実行（取得→AI分析→保存→LINE）
 ```
 
+`npm run setup` が自動でやること：
+
+- Kintone から**日報アプリを自動検出**
+- 不足フィールド（報告日・緊急度・提出状況など）を**確認のうえ自動追加**（既存項目・既存データは非変更）
+- **AI経営日報アプリを自動作成**
+- 入力値をその場で**実際に接続テスト**して `.env` を書き出し
+
 > `APP_ENV=test`（既定）の間、LINE は実送信されずプレビューのみ。安全に検証できます。
+> **APIトークンの発行は不要**です（KintoneのID/パスワードだけで動きます。トークンを設定すればそちらが優先されます）。
 
 ---
 
@@ -60,6 +66,8 @@ daily-report-system/
 │   ├── addFields.js              既存アプリに不足フィールドだけ追加
 │   └── createApps.js             2アプリを新規自動作成（要パスワード認証）
 ├── scripts/                      APIサンプル & 実行スクリプト
+│   ├── setup.js                  対話式セットアップウィザード（初心者向け）
+│   ├── doctor.js                 設定の総点検（接続テスト＋直し方の案内）
 │   ├── fetchDailyReports.js      日報取得
 │   ├── callClaude.js             Claude分析だけ
 │   ├── saveAiReport.js           保存だけ
@@ -96,7 +104,9 @@ daily-report-system/
 
 | コマンド | 内容 |
 |----------|------|
-| `npm test` | ユニットテスト（オフライン） |
+| `npm run setup` | **対話式セットアップ**（まずこれ） |
+| `npm run doctor` | **設定の総点検**（困ったらこれ） |
+| `npm test` | ユニットテスト（オフライン・12件） |
 | `npm run apps` | Kintone アプリ一覧とIDを表示 |
 | `npm run inspect -- <appId>` | 既存アプリの構成と不足フィールドを確認 |
 | `npm run add-fields -- <appId> --dry-run` | 既存アプリへ不足分を追加（まず dry-run） |
