@@ -56,7 +56,9 @@ daily-report-system/
 ├── kintone/
 │   ├── staffReportSchema.js      スタッフ日報アプリ フィールド定義
 │   ├── aiReportSchema.js         AI経営日報アプリ フィールド定義
-│   └── createApps.js             2アプリを自動作成（要パスワード認証）
+│   ├── inspectApp.js             既存アプリの構成を調査し過不足を判定
+│   ├── addFields.js              既存アプリに不足フィールドだけ追加
+│   └── createApps.js             2アプリを新規自動作成（要パスワード認証）
 ├── scripts/                      APIサンプル & 実行スクリプト
 │   ├── fetchDailyReports.js      日報取得
 │   ├── callClaude.js             Claude分析だけ
@@ -95,7 +97,10 @@ daily-report-system/
 | コマンド | 内容 |
 |----------|------|
 | `npm test` | ユニットテスト（オフライン） |
-| `npm run create-apps` | Kintone 2アプリを自動作成 |
+| `npm run apps` | Kintone アプリ一覧とIDを表示 |
+| `npm run inspect -- <appId>` | 既存アプリの構成と不足フィールドを確認 |
+| `npm run add-fields -- <appId> --dry-run` | 既存アプリへ不足分を追加（まず dry-run） |
+| `npm run create-apps` | Kintone 2アプリを新規自動作成 |
 | `npm run fetch` | スタッフ日報を取得 |
 | `npm run analyze` | Claude 分析（out/reports を入力） |
 | `npm run save` | AI経営日報へ保存 |
