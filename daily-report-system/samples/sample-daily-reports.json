@@ -1,0 +1,73 @@
+{
+  "dateISO": "2026-07-28",
+  "company": "株式会社リベティ (Libetee)",
+  "report_count": 3,
+  "previousIssues": [
+    "楽天の在庫連携エラーが3日連続で発生している"
+  ],
+  "reports": [
+    {
+      "report_date": "2026-07-28",
+      "reporter": "田中太郎",
+      "dept": "EC運営",
+      "planned_tasks": "楽天・Amazonの受注処理、在庫連携の不具合調査",
+      "done_tasks": "受注処理120件完了、在庫連携ログの解析",
+      "completion_rate": 80,
+      "kpi_actual": "楽天売上 527,430円 / Amazon売上 458,380円",
+      "undone_tasks": "在庫連携の恒久対応",
+      "undone_reason": "原因がAPI側にある可能性が高く、ベンダー確認待ち",
+      "problems": "楽天の在庫連携エラーが本日も発生。手動同期で対応中。",
+      "requests_to_dept": "商品部に在庫マスタの再確認を依頼したい",
+      "confirm_items": "ベンダー有償サポート契約の要否",
+      "approval_request": "在庫連携ツールの有償プラン(月2万円)への切替",
+      "tomorrow_plan": "ベンダー回答の反映、恒久対応の設計",
+      "urgency": "要確認",
+      "related_product": "多機能PCスタンド",
+      "related_deal": "",
+      "submit_status": "提出済み",
+      "attachments": ["error-log-0728.txt"]
+    },
+    {
+      "report_date": "2026-07-28",
+      "reporter": "佐藤花子",
+      "dept": "マーケティング",
+      "planned_tasks": "TikTok広告の運用、LP改善のABテスト設計",
+      "done_tasks": "TikTok広告のクリエイティブ差し替え、ABテスト開始",
+      "completion_rate": 100,
+      "kpi_actual": "TikTok CVR 1.8% (前日比+0.3pt) / 広告費 35,000円",
+      "undone_tasks": "",
+      "undone_reason": "",
+      "problems": "",
+      "requests_to_dept": "",
+      "confirm_items": "",
+      "approval_request": "",
+      "tomorrow_plan": "ABテスト経過観察、次回クリエイティブ制作",
+      "urgency": "通常",
+      "related_product": "スーツケースL",
+      "related_deal": "夏セール",
+      "submit_status": "提出済み",
+      "attachments": []
+    },
+    {
+      "report_date": "2026-07-28",
+      "reporter": "鈴木一郎",
+      "dept": "カスタマーサポート",
+      "planned_tasks": "問い合わせ対応、クレーム一次対応",
+      "done_tasks": "問い合わせ45件対応",
+      "completion_rate": 90,
+      "kpi_actual": "対応件数45件 / 平均一次回答2.1時間",
+      "undone_tasks": "重大クレーム1件のエスカレーション",
+      "undone_reason": "返金可否の判断が必要",
+      "problems": "商品(スーツケースL)の初期不良クレームが本日5件。ロット不良の疑い。",
+      "requests_to_dept": "商品部に該当ロットの検品を依頼",
+      "confirm_items": "該当商品の一時販売停止の要否",
+      "approval_request": "クレーム顧客への返金・交換対応の承認",
+      "tomorrow_plan": "商品部と連携しロット調査",
+      "urgency": "緊急",
+      "related_product": "スーツケースL",
+      "related_deal": "",
+      "submit_status": "提出済み",
+      "attachments": ["claim-photos.zip"]
+    }
+  ]
+}

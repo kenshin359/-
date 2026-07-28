@@ -1,0 +1,244 @@
+{
+  "name": "Libetee ②緊急 即時通知 (Webhook→Claude→LINE)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "libetee-urgent",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook",
+      "name": "Webhook 受信",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [-960, 300],
+      "webhookId": "libetee-urgent",
+      "notes": "Kintone Webhook / アプリのプロセス管理から呼び出す。URL は N8N_WEBHOOK_URL。認証は x-webhook-secret ヘッダで検証。"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "typeValidation": "loose" },
+          "combinator": "and",
+          "conditions": [
+            {
+              "leftValue": "={{ $json.headers['x-webhook-secret'] }}",
+              "rightValue": "={{ $env.WEBHOOK_SECRET }}",
+              "operator": { "type": "string", "operation": "equals" }
+            }
+          ]
+        }
+      },
+      "id": "if-auth",
+      "name": "シークレット検証",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [-740, 300],
+      "notes": "Webhook保護: 共有シークレットが一致しない場合は 401 を返す。"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 受信ボディを取り出し、緊急対象かどうか判定する\nconst body = $json.body || $json;\nconst urgentKinds = ['緊急','社長承認','重大クレーム','販売停止','欠品','広告異常','納期遅延','商品不良','法令','品質'];\nconst hay = JSON.stringify(body);\nconst isUrgent = (body.urgency === '緊急') || (body.type === 'urgent') || urgentKinds.some(k => hay.includes(k));\nreturn [{ json: { incident: body, isUrgent } }];"
+      },
+      "id": "classify",
+      "name": "緊急判定(条件分岐)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-520, 220]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "typeValidation": "loose" },
+          "combinator": "and",
+          "conditions": [
+            { "leftValue": "={{ $json.isUrgent }}", "rightValue": true, "operator": { "type": "boolean", "operation": "true", "singleValue": true } }
+          ]
+        }
+      },
+      "id": "if-urgent",
+      "name": "緊急か?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [-300, 220]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "x-api-key", "value": "={{ $env.ANTHROPIC_API_KEY }}" },
+            { "name": "anthropic-version", "value": "2023-06-01" },
+            { "name": "content-type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: $env.ANTHROPIC_MODEL || 'claude-sonnet-5', max_tokens: 1000, system: ($env.CLAUDE_URGENT_PROMPT || 'あなたはLibeteeの緊急連絡担当。緊急案件を要約しJSONのみ出力: {what,owner,deadline,current_action,decision_needed,severity}。不明は情報不足。'), messages: [ { role: 'user', content: '緊急案件データ:\\n```json\\n' + JSON.stringify($json.incident) + '\\n```' } ] }) }}",
+        "options": { "retry": { "retry": { "maxTries": 4, "waitBetweenTries": 2000 } }, "timeout": 60000 }
+      },
+      "id": "claude-urgent",
+      "name": "Claude 緊急要約",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [-80, 140]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Claude応答を整形し LINE 即時通知の messages を作る（失敗時は元データでフォールバック）\nconst incident = $('緊急判定(条件分岐)').first().json.incident;\nconst tz = $env.REPORT_TIMEZONE || 'Asia/Tokyo';\nconst dateISO = new Intl.DateTimeFormat('en-CA',{timeZone:tz,year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());\nlet a = incident;\ntry {\n  const content = ($json.content||[]).filter(c=>c.type==='text').map(c=>c.text).join('\\n');\n  let s=content.trim(); const f=s.match(/```(?:json)?\\s*([\\s\\S]*?)```/i); if(f)s=f[1].trim(); const i=s.indexOf('{'),j=s.lastIndexOf('}'); if(i>-1&&j>-1)s=s.slice(i,j+1); a=JSON.parse(s);\n} catch(e){ a = incident; }\nconst ln=(x)=> (x&&String(x).trim())?String(x).trim():'情報不足';\nconst text = `🚨 Libetee 緊急通知（${dateISO}）\\n\\n【内容】${ln(a.what)}\\n【担当者】${ln(a.owner)}\\n【期限】${ln(a.deadline)}\\n【現在の対応】${ln(a.current_action)}\\n【必要な判断】${ln(a.decision_needed)}\\n\\n至急ご確認ください。`;\nreturn [{ json: { messages: [{type:'text',text}], recordId: incident.recordId || incident.record_id || null } }];"
+      },
+      "id": "format-urgent",
+      "name": "緊急通知を整形",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [140, 140]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.line.me/v2/bot/message/push",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "=Bearer {{ $env.LINE_CHANNEL_ACCESS_TOKEN }}" },
+            { "name": "content-type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ to: ($env.LINE_TARGET_GROUP_ID || $env.LINE_TARGET_USER_ID), messages: $json.messages }) }}",
+        "options": { "retry": { "retry": { "maxTries": 4, "waitBetweenTries": 2000 } } }
+      },
+      "id": "line-urgent",
+      "name": "LINE 即時通知",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [360, 140]
+    },
+    {
+      "parameters": {
+        "jsCode": "// 通知済みフラグを立てるための更新ボディを作る（recordId がある場合のみ）\nconst recordId = $json.recordId;\nif (!recordId) return [{ json: { skip: true } }];\nreturn [{ json: { skip: false, app: $env.KINTONE_DAILY_REPORT_APP_ID, id: recordId, record: { urgency: { value: '緊急' } } } }];"
+      },
+      "id": "build-update",
+      "name": "通知済み更新ボディ",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [580, 140],
+      "notes": "重複送信防止: Kintone側に『緊急通知済み』チェックボックスを設けて更新するのが理想。ここでは例として urgency を確定。recordId が無ければスキップ。"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "typeValidation": "loose" },
+          "combinator": "and",
+          "conditions": [
+            { "leftValue": "={{ $json.skip }}", "rightValue": false, "operator": { "type": "boolean", "operation": "false", "singleValue": true } }
+          ]
+        }
+      },
+      "id": "if-update",
+      "name": "更新する?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [800, 140]
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "={{ $env.KINTONE_BASE_URL.replace(/\\/$/, '') }}/k/v1/record.json",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "X-Cybozu-API-Token", "value": "={{ $env.KINTONE_API_TOKEN_DAILY_REPORT }}" },
+            { "name": "content-type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ app: $json.app, id: $json.id, record: $json.record }) }}",
+        "options": { "retry": { "retry": { "maxTries": 4, "waitBetweenTries": 2000 } } }
+      },
+      "id": "kintone-update",
+      "name": "Kintone 通知済み更新",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1020, 60]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ ok: true, urgent: true }) }}",
+        "options": {}
+      },
+      "id": "respond-ok",
+      "name": "200 応答",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1240, 140]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseCode": 200,
+        "responseBody": "={{ JSON.stringify({ ok: true, urgent: false, note: 'not urgent - skipped' }) }}",
+        "options": {}
+      },
+      "id": "respond-skip",
+      "name": "200 応答(非緊急)",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [-80, 380]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseCode": 401,
+        "responseBody": "={{ JSON.stringify({ ok: false, error: 'unauthorized' }) }}",
+        "options": {}
+      },
+      "id": "respond-401",
+      "name": "401 応答",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [-520, 460]
+    }
+  ],
+  "connections": {
+    "Webhook 受信": { "main": [[{ "node": "シークレット検証", "type": "main", "index": 0 }]] },
+    "シークレット検証": {
+      "main": [
+        [{ "node": "緊急判定(条件分岐)", "type": "main", "index": 0 }],
+        [{ "node": "401 応答", "type": "main", "index": 0 }]
+      ]
+    },
+    "緊急判定(条件分岐)": { "main": [[{ "node": "緊急か?", "type": "main", "index": 0 }]] },
+    "緊急か?": {
+      "main": [
+        [{ "node": "Claude 緊急要約", "type": "main", "index": 0 }],
+        [{ "node": "200 応答(非緊急)", "type": "main", "index": 0 }]
+      ]
+    },
+    "Claude 緊急要約": { "main": [[{ "node": "緊急通知を整形", "type": "main", "index": 0 }]] },
+    "緊急通知を整形": { "main": [[{ "node": "LINE 即時通知", "type": "main", "index": 0 }]] },
+    "LINE 即時通知": { "main": [[{ "node": "通知済み更新ボディ", "type": "main", "index": 0 }]] },
+    "通知済み更新ボディ": { "main": [[{ "node": "更新する?", "type": "main", "index": 0 }]] },
+    "更新する?": {
+      "main": [
+        [{ "node": "Kintone 通知済み更新", "type": "main", "index": 0 }],
+        [{ "node": "200 応答", "type": "main", "index": 0 }]
+      ]
+    },
+    "Kintone 通知済み更新": { "main": [[{ "node": "200 応答", "type": "main", "index": 0 }]] }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Asia/Tokyo",
+    "saveDataErrorExecution": "all"
+  },
+  "staticData": null,
+  "meta": { "templateId": "libetee-urgent-2" },
+  "tags": [{ "name": "Libetee" }]
+}

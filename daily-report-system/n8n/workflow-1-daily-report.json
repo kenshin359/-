@@ -1,0 +1,245 @@
+{
+  "name": "Libetee ①定時 経営日報 (Kintone→Claude→LINE)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            { "field": "cronExpression", "expression": "0 19 * * *" }
+          ]
+        }
+      },
+      "id": "schedule-trigger",
+      "name": "定時トリガー (19:00 JST)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [-960, 300],
+      "notes": "REPORT_SEND_TIME に合わせて cron を調整。cron は UTC ではなく n8n サーバTZ基準のため GENERIC_TIMEZONE=Asia/Tokyo を推奨。"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 対象日(Asia/Tokyo の今日) と Kintone 取得URLを組み立てる\nconst tz = $env.REPORT_TIMEZONE || 'Asia/Tokyo';\nconst dateISO = new Intl.DateTimeFormat('en-CA', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());\nconst base = ($env.KINTONE_BASE_URL || '').replace(/\\/$/, '');\nconst app = $env.KINTONE_DAILY_REPORT_APP_ID;\nconst query = `report_date = \"${dateISO}\" and submit_status in (\"提出済み\") order by dept asc limit 500`;\nconst url = `${base}/k/v1/records.json?app=${app}&query=${encodeURIComponent(query)}`;\nreturn [{ json: { dateISO, url } }];"
+      },
+      "id": "build-fetch",
+      "name": "対象日と取得URLを作成",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-740, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $json.url }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "X-Cybozu-API-Token", "value": "={{ $env.KINTONE_API_TOKEN_DAILY_REPORT }}" }
+          ]
+        },
+        "options": {
+          "retry": { "retry": { "maxTries": 4, "waitBetweenTries": 2000 } },
+          "response": { "response": { "neverError": false } }
+        }
+      },
+      "id": "kintone-get",
+      "name": "Kintone 日報取得",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [-520, 300],
+      "notes": "認証: APIトークン(閲覧)。リトライ有効。4xxはエラーで停止→Error Trigger側で捕捉。"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "typeValidation": "loose" },
+          "combinator": "and",
+          "conditions": [
+            {
+              "leftValue": "={{ $json.records.length }}",
+              "rightValue": 0,
+              "operator": { "type": "number", "operation": "gt" }
+            }
+          ]
+        }
+      },
+      "id": "if-has-reports",
+      "name": "日報は1件以上?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [-300, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// kintoneレコードを正規化し、Claude へ送る messages を組み立てる\nconst records = $json.records || [];\nconst dateISO = $('対象日と取得URLを作成').first().json.dateISO;\nconst v = (r, c) => (r[c] && r[c].value !== '' ? r[c].value : null);\nconst reports = records.map((r) => ({\n  report_date: v(r,'report_date'), reporter: v(r,'reporter'), dept: v(r,'dept'),\n  planned_tasks: v(r,'planned_tasks'), done_tasks: v(r,'done_tasks'), completion_rate: v(r,'completion_rate'),\n  kpi_actual: v(r,'kpi_actual'), undone_tasks: v(r,'undone_tasks'), undone_reason: v(r,'undone_reason'),\n  problems: v(r,'problems'), requests_to_dept: v(r,'requests_to_dept'), confirm_items: v(r,'confirm_items'),\n  approval_request: v(r,'approval_request'), tomorrow_plan: v(r,'tomorrow_plan'), urgency: v(r,'urgency'),\n  related_product: v(r,'related_product'), related_deal: v(r,'related_deal'), submit_status: v(r,'submit_status')\n}));\nconst input = { dateISO, company: '株式会社リベティ (Libetee)', reports, previousIssues: [], report_count: reports.length };\n// system プロンプトは prompts/daily-report-system-prompt.md の内容を貼り付けてください（要設定）\nconst system = $env.CLAUDE_SYSTEM_PROMPT || 'あなたはLibeteeの業務分析アシスタント。日報を分析し指定JSONのみを出力する。情報不足は\"情報不足\"と書く。スキーマ: {conclusion:{status,headline},overall_rating,achievements[],problems[],delays[],approvals[],ceo_items[],manager_items[],tomorrow_priorities[],staff_summaries[{name,dept,text}],ai_analysis,urgent}';\nconst userText = '以下の日報データを分析し、JSONのみ出力してください。\\n```json\\n' + JSON.stringify(input, null, 2) + '\\n```';\nreturn [{ json: { dateISO, system, userText } }];"
+      },
+      "id": "build-claude",
+      "name": "Claude入力を作成",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-80, 200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "x-api-key", "value": "={{ $env.ANTHROPIC_API_KEY }}" },
+            { "name": "anthropic-version", "value": "2023-06-01" },
+            { "name": "content-type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: $env.ANTHROPIC_MODEL || 'claude-sonnet-5', max_tokens: 4000, system: $json.system, messages: [ { role: 'user', content: $json.userText } ] }) }}",
+        "options": {
+          "retry": { "retry": { "maxTries": 4, "waitBetweenTries": 2000 } },
+          "timeout": 120000
+        }
+      },
+      "id": "claude-api",
+      "name": "Claude API 分析",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [140, 200],
+      "notes": "429/5xxはリトライ。timeout 120s。認証: x-api-key(環境変数)。"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Claudeの応答からJSONを取り出し、Kintone保存レコード & LINE messages を作る\nconst dateISO = $('Claude入力を作成').first().json.dateISO;\nconst content = ($json.content || []).filter(c => c.type === 'text').map(c => c.text).join('\\n');\nfunction parseJson(t){ let s=t.trim(); const f=s.match(/```(?:json)?\\s*([\\s\\S]*?)```/i); if(f) s=f[1].trim(); const a=s.indexOf('{'),b=s.lastIndexOf('}'); if(a>-1&&b>-1) s=s.slice(a,b+1); return JSON.parse(s); }\nlet a; try { a = parseJson(content); } catch (e) { throw new Error('Claude応答のJSONパース失敗: ' + e.message + ' / raw=' + content.slice(0,300)); }\nconst DASH='情報不足';\nconst bul = (x)=> (Array.isArray(x)&&x.length)? x.map(y=>'・'+y).join('\\n'):DASH;\nconst ln = (x)=> (x&&String(x).trim())?String(x).trim():DASH;\nconst join = (x)=> (Array.isArray(x)&&x.length)? x.join('\\n'):DASH;\n// LINE本文（簡潔版）\nconst c=a.conclusion||{}; const action=[...(a.problems||[]),...(a.delays||[])];\nconst lineText = `📊 Libetee 日報（${dateISO}）\\n\\n【結論】${c.status||'🟡'} ${ln(c.headline)}\\n\\n【成果】\\n${bul(a.achievements)}\\n\\n【要対応】\\n${bul(action)}\\n\\n【承認】\\n${bul(a.approvals)}\\n\\n【明日の最優先】\\n${bul(a.tomorrow_priorities)}\\n\\n詳細はKintoneをご確認ください。`;\n// LINE分割（4800字/5吹き出し）\nconst MAX=4800; let rem=lineText; const bubbles=[];\nwhile(rem.length>0){ if(rem.length<=MAX){bubbles.push(rem);break;} let cut=rem.lastIndexOf('\\n',MAX); if(cut<MAX*0.5)cut=MAX; bubbles.push(rem.slice(0,cut)); rem=rem.slice(cut).replace(/^\\n/,''); }\nconst messages = bubbles.slice(0,5).map(t=>({type:'text',text:t}));\n// Kintone保存レコード\nconst record = {\n  target_date:{value:dateISO}, overall_rating:{value:ln(a.overall_rating||c.status)}, conclusion:{value:ln(c.headline)},\n  achievements:{value:join(a.achievements)}, problems:{value:join(a.problems)}, delays:{value:join(a.delays)},\n  approvals:{value:join(a.approvals)}, ceo_items:{value:join(a.ceo_items)}, manager_items:{value:join(a.manager_items)},\n  tomorrow_priorities:{value:join(a.tomorrow_priorities)},\n  staff_summaries:{value:(a.staff_summaries||[]).map(s=>`${s.name}(${s.dept||'-'}): ${s.text}`).join('\\n')||DASH},\n  ai_analysis:{value:ln(a.ai_analysis)}, line_body:{value:lineText}, gen_status:{value:'生成成功'}, error_log:{value:''}\n};\nreturn [{ json: { dateISO, record, messages, urgent: !!a.urgent } }];"
+      },
+      "id": "parse-claude",
+      "name": "応答を整形(保存/LINE)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [360, 200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.KINTONE_BASE_URL.replace(/\\/$/, '') }}/k/v1/record.json",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "X-Cybozu-API-Token", "value": "={{ $env.KINTONE_API_TOKEN_AI_REPORT }}" },
+            { "name": "content-type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ app: $env.KINTONE_AI_REPORT_APP_ID, record: $json.record }) }}",
+        "options": { "retry": { "retry": { "maxTries": 4, "waitBetweenTries": 2000 } } }
+      },
+      "id": "kintone-save",
+      "name": "Kintone AI日報 保存",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [580, 200],
+      "notes": "認証: APIトークン(追加/編集)。target_dateはunique設定のため重複時は400→重複送信防止。"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.line.me/v2/bot/message/push",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "=Bearer {{ $env.LINE_CHANNEL_ACCESS_TOKEN }}" },
+            { "name": "content-type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ to: ($env.LINE_TARGET_GROUP_ID || $env.LINE_TARGET_USER_ID), messages: $('応答を整形(保存/LINE)').first().json.messages }) }}",
+        "options": { "retry": { "retry": { "maxTries": 4, "waitBetweenTries": 2000 } } }
+      },
+      "id": "line-push",
+      "name": "LINE 通知",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [800, 200],
+      "notes": "宛先はグループ優先。5吹き出し以内に分割済み。"
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "={{ $env.KINTONE_BASE_URL.replace(/\\/$/, '') }}/k/v1/record.json",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "X-Cybozu-API-Token", "value": "={{ $env.KINTONE_API_TOKEN_AI_REPORT }}" },
+            { "name": "content-type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ app: $env.KINTONE_AI_REPORT_APP_ID, id: $('Kintone AI日報 保存').first().json.id, record: { line_result: { value: '送信成功' }, line_sent_at: { value: new Date().toISOString() } } }) }}",
+        "options": { "retry": { "retry": { "maxTries": 4, "waitBetweenTries": 2000 } } }
+      },
+      "id": "kintone-log",
+      "name": "送信結果を書き戻し(ログ)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1020, 200]
+    },
+    {
+      "parameters": {
+        "jsCode": "// 0件時: 未提出をLINE通知するための messages を作る\nconst dateISO = $('対象日と取得URLを作成').first().json.dateISO;\nconst text = `📊 Libetee 日報（${dateISO}）\\n\\n本日の日報提出はありませんでした。\\n提出状況をご確認ください。`;\nreturn [{ json: { messages: [{ type:'text', text }] } }];"
+      },
+      "id": "no-reports",
+      "name": "0件: 未提出メッセージ",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-80, 440]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.line.me/v2/bot/message/push",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "=Bearer {{ $env.LINE_CHANNEL_ACCESS_TOKEN }}" },
+            { "name": "content-type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ to: ($env.LINE_TARGET_GROUP_ID || $env.LINE_TARGET_USER_ID), messages: $json.messages }) }}",
+        "options": { "retry": { "retry": { "maxTries": 4, "waitBetweenTries": 2000 } } }
+      },
+      "id": "line-noreport",
+      "name": "LINE 未提出通知",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [140, 440]
+    }
+  ],
+  "connections": {
+    "定時トリガー (19:00 JST)": { "main": [[{ "node": "対象日と取得URLを作成", "type": "main", "index": 0 }]] },
+    "対象日と取得URLを作成": { "main": [[{ "node": "Kintone 日報取得", "type": "main", "index": 0 }]] },
+    "Kintone 日報取得": { "main": [[{ "node": "日報は1件以上?", "type": "main", "index": 0 }]] },
+    "日報は1件以上?": {
+      "main": [
+        [{ "node": "Claude入力を作成", "type": "main", "index": 0 }],
+        [{ "node": "0件: 未提出メッセージ", "type": "main", "index": 0 }]
+      ]
+    },
+    "Claude入力を作成": { "main": [[{ "node": "Claude API 分析", "type": "main", "index": 0 }]] },
+    "Claude API 分析": { "main": [[{ "node": "応答を整形(保存/LINE)", "type": "main", "index": 0 }]] },
+    "応答を整形(保存/LINE)": { "main": [[{ "node": "Kintone AI日報 保存", "type": "main", "index": 0 }]] },
+    "Kintone AI日報 保存": { "main": [[{ "node": "LINE 通知", "type": "main", "index": 0 }]] },
+    "LINE 通知": { "main": [[{ "node": "送信結果を書き戻し(ログ)", "type": "main", "index": 0 }]] },
+    "0件: 未提出メッセージ": { "main": [[{ "node": "LINE 未提出通知", "type": "main", "index": 0 }]] }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Asia/Tokyo",
+    "saveDataErrorExecution": "all",
+    "errorWorkflow": ""
+  },
+  "staticData": null,
+  "meta": { "templateId": "libetee-daily-report-1" },
+  "tags": [{ "name": "Libetee" }]
+}

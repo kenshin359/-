@@ -1,0 +1,18 @@
+{
+  "name": "libetee-ai-daily-report",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Libetee 向け AI 日報システム: Kintone → Claude → LINE を n8n で自動化。ローカル実行用の同等スクリプトも同梱。",
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "create-apps": "node kintone/createApps.js",
+    "fetch": "node scripts/fetchDailyReports.js",
+    "analyze": "node scripts/callClaude.js",
+    "save": "node scripts/saveAiReport.js",
+    "line": "node scripts/sendLine.js",
+    "pipeline": "node scripts/runPipeline.js",
+    "urgent": "node scripts/urgentNotify.js",
+    "test": "node --test \"test/*.test.js\""
+  }
+}
