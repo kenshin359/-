@@ -14,6 +14,7 @@ import {
   auditReply,
   formatForCs,
   csHeader,
+  isSuitcaseReview,
 } from '../lib/replyDraft.js';
 import { htmlToLines, parseReviews, reviewKey } from '../lib/rakutenReviews.js';
 
@@ -119,6 +120,45 @@ describe('返信文の組み立て', () => {
   test('話題は最大3つに絞る', () => {
     const many = { ...AI_OK, topics: ['a', 'b', 'c', 'd', 'e'] };
     assert.equal(assembleReply(many, review, cfg).topics.length, 3);
+  });
+});
+
+describe('結びと感謝文の出し分け', () => {
+  const ai = { body: 'テスト本文。', apology: '', needs_human: false, reason: '', topics: [] };
+
+  test('スーツケースの話なら「弊社キャリーケースを」で結ぶ', () => {
+    const r = { star: 5, body: 'キャスターが静かで満足です。旅行が楽しみ。' };
+    assert.equal(isSuitcaseReview(r, cfg), true);
+    assert.ok(assembleReply(ai, r, cfg).text.includes(cfg.blocks.closing_suitcase));
+  });
+
+  test('ファンなど他の商品なら「弊社商品を」で結ぶ（回帰テスト）', () => {
+    // 「キャリーケースを使ってください」はファン購入者に噛み合わない
+    const r = { star: 5, body: '季節商品なので暑い夏を乗り切るのに使用したい。' };
+    assert.equal(isSuitcaseReview(r, cfg), false);
+    const text = assembleReply(ai, r, cfg).text;
+    assert.ok(text.includes(cfg.blocks.closing_general));
+    assert.ok(!text.includes(cfg.blocks.closing_suitcase), 'ファンにキャリーケースの結びを使っている');
+  });
+
+  test('商品が判断できないときは無難な方を使う', () => {
+    const r = { star: 5, body: 'ありがとうございました。' };
+    assert.ok(assembleReply(ai, r, cfg).text.includes(cfg.blocks.closing_general));
+  });
+
+  test('謝罪があるときは「嬉しく思います」と言わない（回帰テスト）', () => {
+    // 不満のレビューに「嬉しく思います」と返すのは失礼
+    const withApology = { ...ai, apology: 'ご不快な思いをおかけし申し訳ございません。' };
+    const text = assembleReply(withApology, { star: 3, body: '外箱が傷んでいた' }, cfg).text;
+    assert.ok(text.includes(cfg.blocks.thanks_feedback));
+    assert.ok(!text.includes(cfg.blocks.thanks_short), '謝罪文なのに「嬉しく思います」が入っている');
+    assert.ok(!text.includes(cfg.blocks.thanks_detailed));
+  });
+
+  test('謝罪が無いときは通常の感謝文に戻る', () => {
+    const text = assembleReply(ai, { star: 5, body: '良かったです' }, cfg).text;
+    assert.ok(text.includes(cfg.blocks.thanks_short));
+    assert.ok(!text.includes(cfg.blocks.thanks_feedback));
   });
 });
 

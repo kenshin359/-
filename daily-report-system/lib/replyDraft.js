@@ -51,6 +51,16 @@ export function checkEscalation(review, cfg) {
 }
 
 /**
+ * スーツケース系のレビューかどうかを推定する。
+ * 結びの一文を出し分けるために使う。
+ */
+export function isSuitcaseReview(review, cfg) {
+  const words = cfg.suitcase_keywords ?? [];
+  const body = String(review?.body ?? '');
+  return words.some((w) => w && body.includes(w));
+}
+
+/**
  * AIの出力と固定文から、貼り付けられる返信文を組み立てる。
  *
  * @param {object} ai   { body, apology, needs_human, reason, topics }
@@ -66,10 +76,22 @@ export function assembleReply(ai, review, cfg) {
   const reasons = [...esc.reasons];
   if (ai?.needs_human && ai.reason) reasons.push(ai.reason);
 
-  // レビューが長ければ「詳細なレビュー」への感謝、短ければ簡潔な感謝
+  // 感謝の一文を選ぶ。
+  // ★不満が書かれているレビューに「嬉しく思います」と返すと失礼になる。
+  //   謝罪が入る場合は「貴重なご意見をお寄せいただき」に切り替える。
+  const hasApology = !!(ai?.apology ?? '').trim();
   const isDetailed = String(review.body ?? '').length >= 120;
+  const thanks = hasApology
+    ? (b.thanks_feedback ?? b.thanks_short)
+    : (isDetailed ? b.thanks_detailed : b.thanks_short);
 
-  const parts = [b.greeting, isDetailed ? b.thanks_detailed : b.thanks_short];
+  const parts = [b.greeting, thanks];
+
+  // 結びは商品に合わせて選ぶ。
+  // ★「弊社キャリーケースを〜」はスーツケース購入者にしか合わない。
+  //   ハンディファンやドライヤーの購入者に使うと噛み合わない文面になる。
+  //   判断がつかないときは、無難な general を使う。
+  const closingLine = isSuitcaseReview(review, cfg) ? b.closing_suitcase : b.closing_general;
 
   const body = (ai?.body ?? '').trim();
   if (body) parts.push(body);
@@ -77,7 +99,9 @@ export function assembleReply(ai, review, cfg) {
   const apology = (ai?.apology ?? '').trim();
   if (apology) parts.push(apology);
 
-  parts.push(b.invite, ...b.closing);
+  parts.push(b.invite);
+  if (closingLine) parts.push(closingLine);
+  parts.push(...b.closing);
 
   return {
     text: parts.filter(Boolean).join('\n'),
