@@ -13,6 +13,7 @@ import {
   assembleReply,
   auditReply,
   formatForCs,
+  csHeader,
 } from '../lib/replyDraft.js';
 import { htmlToLines, parseReviews, reviewKey } from '../lib/rakutenReviews.js';
 
@@ -158,26 +159,57 @@ describe('CS向けの表示', () => {
   const review = { star: 2, date: '2026/07/29', who: 'テストさん', body: '不良品が届きました。' };
   const item = { review, ...assembleReply(AI_OK, review, cfg), audit: [] };
 
-  test('要確認は目立つ印を付ける', () => {
-    assert.match(formatForCs(item), /⚠️ 要確認/);
+  test('要確認は「そのまま貼らないでください」と明示する', () => {
+    const t = formatForCs(item);
+    assert.match(t, /🔴/);
+    assert.match(t, /そのまま貼らないでください/);
   });
 
-  test('そのまま使えるものはその旨を書く', () => {
-    const ok = { review: { star: 5, date: 'x', who: 'y', body: '良い' }, ...assembleReply(AI_OK, { star: 5, body: '良い' }, cfg), audit: [] };
-    assert.match(formatForCs(ok), /✅ そのまま使えます/);
+  test('そのまま使えるものは「コピーして貼ってください」と書く', () => {
+    const okReview = { star: 5, date: '2026/07/29', who: 'テストさん', body: '良い' };
+    const ok = { review: okReview, ...assembleReply(AI_OK, okReview, cfg), audit: [] };
+    const t = formatForCs(ok);
+    assert.match(t, /🟢/);
+    assert.match(t, /そのままコピーして貼ってください/);
+    assert.ok(!t.includes('🔴'), '安全なものに赤印が付いている');
   });
 
   test('お客様のレビューと下書きの両方を載せる', () => {
     const t = formatForCs(item);
-    assert.match(t, /【お客様のレビュー】/);
-    assert.match(t, /【返信の下書き（ここからコピー）】/);
+    assert.match(t, /▼ お客様のレビュー/);
+    assert.match(t, /▼ 返信の下書き/);
     assert.match(t, /不良品が届きました/);
+  });
+
+  test('コピーする範囲を記号ではっきり示す', () => {
+    const t = formatForCs(item);
+    const marks = t.split('- - - - - - - - - -').length - 1;
+    assert.equal(marks, 2, 'コピー範囲の区切りが上下に無い');
+    assert.match(t, /ここまで .*をコピー/);
+  });
+
+  test('連番を付けて進捗が分かるようにする', () => {
+    assert.match(formatForCs(item, { index: 3, total: 8 }), /【3\/8】/);
   });
 
   test('点検で引っかかった点も隠さず載せる', () => {
     const t = formatForCs({ ...item, audit: ['送料の記載が誤っています'] });
-    assert.match(t, /点検で引っかかった点/);
+    assert.match(t, /自動点検で引っかかりました/);
     assert.match(t, /送料の記載が誤っています/);
+  });
+
+  test('見出しに作業手順と内訳を書く', () => {
+    const h = csHeader({ date: '2026/7/29', total: 8, needHuman: 2, flagged: 1 });
+    assert.match(h, /全8件/);
+    assert.match(h, /そのまま貼れる: 6件/);
+    assert.match(h, /社員の確認が必要: 2件/);
+    assert.match(h, /作業手順/);
+    assert.match(h, /レビューチェックツール/);
+    assert.match(h, /迷ったら投稿しないでください/);
+  });
+
+  test('指摘が0件なら、その行は出さない', () => {
+    assert.ok(!csHeader({ date: 'x', total: 3, needHuman: 0, flagged: 0 }).includes('自動点検で指摘あり'));
   });
 });
 

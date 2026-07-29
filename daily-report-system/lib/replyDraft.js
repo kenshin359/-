@@ -123,25 +123,65 @@ export function auditReply(text) {
   return problems;
 }
 
-/** CS担当が貼り付けやすい形に整える */
-export function formatForCs(item) {
+/**
+ * CS担当（アルバイトを含む）が迷わず作業できる形に整える。
+ *
+ * 意識していること:
+ *  ・1件ごとに「何をすればいいか」を最初に書く（判断を減らす）
+ *  ・コピーする範囲を記号で明示する
+ *  ・要確認のものは、なぜ確認が必要かを具体的に書く
+ *
+ * @param {object} item
+ * @param {object} opts { index, total }
+ */
+export function formatForCs(item, opts = {}) {
   const lines = [];
-  const mark = item.needsHuman ? '⚠️ 要確認' : '✅ そのまま使えます';
+  const no = opts.index && opts.total ? `【${opts.index}/${opts.total}】` : '';
+  const action = item.needsHuman
+    ? '🔴 そのまま貼らないでください（社員の確認が必要です）'
+    : '🟢 そのままコピーして貼ってください';
 
-  lines.push(`──────────────`);
-  lines.push(`★${item.review.star}　${item.review.date}　${item.review.who}　${mark}`);
-  if (item.reasons.length) lines.push(`理由: ${item.reasons.join(' / ')}`);
-  if (item.topics.length) lines.push(`話題: ${item.topics.join('・')}`);
+  lines.push('━━━━━━━━━━━━━━━━━━');
+  lines.push(`${no} ★${item.review.star}　${item.review.date}　${item.review.who}`);
+  lines.push(action);
+  if (item.reasons.length) lines.push(`　確認が必要な理由: ${item.reasons.join(' / ')}`);
   lines.push('');
-  lines.push('【お客様のレビュー】');
+  lines.push('▼ お客様のレビュー');
   lines.push(item.review.body.slice(0, 300));
   lines.push('');
-  lines.push('【返信の下書き（ここからコピー）】');
+  lines.push('▼ 返信の下書き（ここから ↓↓↓ ）');
+  lines.push('- - - - - - - - - -');
   lines.push(item.text);
+  lines.push('- - - - - - - - - -');
+  lines.push('（ここまで ↑↑↑ をコピー）');
+
   if (item.audit?.length) {
     lines.push('');
-    lines.push('【点検で引っかかった点】');
-    for (const p of item.audit) lines.push(`・${p}`);
+    lines.push('⚠️ 自動点検で引っかかりました。貼る前に社員へ確認してください:');
+    for (const p of item.audit) lines.push(`　・${p}`);
   }
   return lines.join('\n');
+}
+
+/** 作業手順の見出し（アルバイト向け） */
+export function csHeader({ date, total, needHuman, flagged }) {
+  const auto = total - needHuman;
+  return [
+    `📝 楽天レビュー返信（${date}分・全${total}件）`,
+    '',
+    `🟢 そのまま貼れる: ${auto}件`,
+    `🔴 社員の確認が必要: ${needHuman}件`,
+    flagged ? `⚠️ 自動点検で指摘あり: ${flagged}件` : '',
+    '',
+    '【作業手順】',
+    '1. RMS →「レビュー・注文サポート」→「レビューチェックツール」を開く',
+    '2. 下の順番どおりに、対象のレビューを探す',
+    '3. 🟢 は下書きをそのままコピーして貼り、投稿する',
+    '4. 🔴 は投稿せず、このグループで社員に声をかける',
+    '5. 投稿できたら、このメッセージに 👍 を付ける',
+    '',
+    '※ 迷ったら投稿しないでください。あとで直すより聞くほうが早いです。',
+  ]
+    .filter((l) => l !== '')
+    .join('\n');
 }

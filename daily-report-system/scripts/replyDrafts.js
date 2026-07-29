@@ -27,9 +27,10 @@ import {
   configuredItemIds,
   reviewKey,
 } from '../lib/rakutenReviews.js';
-import { loadBlocks, assembleReply, auditReply, formatForCs } from '../lib/replyDraft.js';
+import { loadBlocks, assembleReply, auditReply, formatForCs, csHeader } from '../lib/replyDraft.js';
 import { callClaudeRaw, parseJsonFromModel } from '../lib/claude.js';
 import { notify, describeResults, resolveChannels } from '../lib/notify.js';
+import { pushChatwork } from '../lib/chatwork.js';
 import { required, optional } from '../lib/env.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -63,6 +64,8 @@ async function main() {
   const limit = Number(arg('limit', '10'));
   const isDry = process.argv.includes('--dry-run');
   const isInit = process.argv.includes('--init');
+  // 何日ぶんのレビューを対象にするか（既定1日＝当日と前日ぶん）
+  const days = Number(arg('days', '1'));
 
   console.log('楽天のレビューを取得します…');
 
@@ -76,8 +79,19 @@ async function main() {
   const state = loadState();
   const handled = new Set(state.handled);
 
+  // 対象の期間を決める（楽天の日付は 2026/07/29 形式）
+  const since = new Date();
+  since.setDate(since.getDate() - days);
+  const inPeriod = (r) => {
+    const m = String(r.date).match(/^(\d{4})\/(\d{1,2})\/(\d{1,2})$/);
+    if (!m) return true; // 日付が読めないものは落とさない
+    return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3])) >= since;
+  };
+
   // まだ返信しておらず、こちらでも下書きを作っていないもの
-  const targets = reviews.filter((r) => !r.shopReply && !handled.has(reviewKey(r)));
+  const targets = reviews
+    .filter((r) => !r.shopReply && !handled.has(reviewKey(r)))
+    .filter(inPeriod);
   console.log(`  ショップ返信済み: ${reviews.filter((r) => r.shopReply).length}件`);
   console.log(`  下書きが必要: ${targets.length}件`);
 
@@ -108,7 +122,9 @@ async function main() {
       const raw = await callClaudeRaw({
         system,
         userText:
-          '### 事実（ここに無いことは書かないでください）\n```json\n' +
+          '### 文体の見本（この言い回しに寄せてください）\n```json\n' +
+          JSON.stringify(cfg.style_examples ?? [], null, 2) +
+          '\n```\n\n### 事実（ここに無いことは書かないでください）\n```json\n' +
           JSON.stringify(cfg.facts, null, 2) +
           '\n```\n\n### お客様のレビュー\n' +
           `星: ${review.star}\n投稿日: ${review.date}\n本文:\n${review.body}\n`,
@@ -131,29 +147,37 @@ async function main() {
   const needHuman = drafts.filter((d) => d.needsHuman);
   const flagged = drafts.filter((d) => d.audit.length);
 
-  const header = [
-    `📝 楽天レビュー返信の下書き（${drafts.length}件）`,
-    '',
-    `そのまま使える: ${drafts.length - needHuman.length}件　/　要確認: ${needHuman.length}件`,
-    flagged.length ? `点検で引っかかった下書き: ${flagged.length}件` : '',
-    '',
-    'RMS →「レビューチェックツール」から貼り付けてください。',
-    '⚠️ が付いたものは、必ず内容を確認してから投稿してください。',
-    '',
-  ]
-    .filter((l) => l !== '')
-    .join('\n');
+  const header = csHeader({
+    date: new Date().toLocaleDateString('ja-JP'),
+    total: drafts.length,
+    needHuman: needHuman.length,
+    flagged: flagged.length,
+  });
 
-  const bodies = drafts.map(formatForCs).join('\n\n');
+  const bodies = drafts
+    .map((d, i) => formatForCs(d, { index: i + 1, total: drafts.length }))
+    .join('\n\n');
 
   if (isDry) {
     console.log('\n--- [dry-run] 送信内容 ---\n' + header + '\n\n' + bodies);
     return;
   }
 
-  console.log(`\n通知先: ${resolveChannels().join(' + ') || '（未設定）'}`);
-  const { results, anySent } = await notify(header + '\n\n' + bodies);
-  console.log(describeResults(results));
+  // CS専用グループが設定されていれば、そちらだけに送る（経営向けの通知と混ぜない）
+  const csRoom = optional('CHATWORK_CS_ROOM_ID');
+  let anySent = false;
+  if (csRoom) {
+    console.log(`\n通知先: Chatwork CS専用グループ (${csRoom})`);
+    const r = await pushChatwork(header + '\n\n' + bodies, { roomId: csRoom, decorate: false });
+    anySent = !r.skipped;
+    console.log(r.skipped ? 'テストモードのため未送信' : `送信成功（${r.parts}通）`);
+  } else {
+    console.log(`\n通知先: ${resolveChannels().join(' + ') || '（未設定）'}`);
+    console.log('  ※ CHATWORK_CS_ROOM_ID を設定すると、CS専用グループだけに送れます。');
+    const res = await notify(header + '\n\n' + bodies);
+    anySent = res.anySent;
+    console.log(describeResults(res.results));
+  }
 
   // 送信できたものだけ処理済みにする（失敗したら次回また作る）
   if (anySent) {
