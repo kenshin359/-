@@ -1,0 +1,438 @@
+{
+  "name": "Libetee ⑤日次まとめ (全員分を1通・毎日19:00)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 19 * * *"
+            }
+          ]
+        }
+      },
+      "id": "cron",
+      "name": "毎日19:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -1000,
+        300
+      ],
+      "notes": "時刻を変えるなら 0 19 * * * の 19 を変更。"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.KINTONE_BASE_URL.replace(/\\/$/, '') }}/k/v1/records.json?app={{ $env.KINTONE_DAILY_REPORT_APP_ID }}&query={{ encodeURIComponent('order by $id asc limit 500') }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Cybozu-Authorization",
+              "value": "={{ Buffer.from($env.KINTONE_USER + ':' + $env.KINTONE_PASSWORD).toString('base64') }}"
+            }
+          ]
+        },
+        "options": {
+          "retry": {
+            "retry": {
+              "maxTries": 3,
+              "waitBetweenTries": 2000
+            }
+          }
+        }
+      },
+      "id": "fetch",
+      "name": "日報アプリを取得",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -780,
+        300
+      ],
+      "notes": "★GETにContent-Typeを付けないこと。読み取りのみ。"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 当日の提出者と、直近14日の対象者から未提出者を割り出す\nconst tz=$env.REPORT_TIMEZONE||'Asia/Tokyo';\nconst dateISO=new Intl.DateTimeFormat('en-CA',{timeZone:tz,year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());\nconst recs=$json.records||[];\nconst pk=c=>{const m=c.match(/_(\\d+)$/);return m?m[1]:'';};\nconst isSub=f=>f&&Array.isArray(f.value)&&f.value[0]&&f.value[0].value&&typeof f.value[0].value==='object';\nconst norm=s=>s?String(s).replace(/[\\s　]/g,''):null;\nconst items=[];\nfor(const rec of recs){let team=null;\n  for(const[,f]of Object.entries(rec))if(f&&f.type==='DROP_DOWN'&&f.value){team=f.value;break;}\n  for(const[,f]of Object.entries(rec)){if(!isSub(f))continue;\n    for(const row of f.value){let date=null;const names={},files={};\n      for(const[code,cell]of Object.entries(row.value)){if(!cell)continue;\n        if(cell.type==='DATETIME'&&cell.value)date=String(cell.value).slice(0,10);\n        else if(cell.type==='SINGLE_LINE_TEXT')names[pk(code)]=cell.value||null;\n        else if(cell.type==='FILE')files[pk(code)]=Array.isArray(cell.value)?cell.value:[];}\n      for(const k of Object.keys(files)){const fl=files[k]||[];if(!fl.length)continue;\n        items.push({date,reporter:names[k]||null,team,fileKey:fl[0].fileKey,contentType:fl[0].contentType});}}}}\nconst today=items.filter(x=>x.date===dateISO);\n// 対象者 = 直近14日に提出した人\nconst t=new Date(dateISO+'T00:00:00Z').getTime(), from=t-14*864e5;\nconst roster=new Map();\nfor(const x of items){if(!x.date||!x.reporter)continue;\n  const d=new Date(x.date+'T00:00:00Z').getTime();\n  if(d>=from&&d<=t)roster.set(norm(x.reporter),x.reporter);}\nconst sub=new Set(today.map(x=>norm(x.reporter)).filter(Boolean));\nconst missing=[...roster.entries()].filter(([n])=>!sub.has(n)).map(([,d])=>d);\nif(!today.length)return[{json:{dateISO,empty:true,missing,rosterSize:roster.size}}];\nreturn today.map((x,i)=>({json:{...x,dateISO,idx:i,total:today.length,missing,rosterSize:roster.size}}));"
+      },
+      "id": "prep",
+      "name": "当日分と未提出者を集計",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -560,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "loose"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "leftValue": "={{ $json.fileKey }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ]
+        }
+      },
+      "id": "if",
+      "name": "提出あり?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -340,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.KINTONE_BASE_URL.replace(/\\/$/, '') }}/k/v1/file.json?fileKey={{ encodeURIComponent($json.fileKey) }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Cybozu-Authorization",
+              "value": "={{ Buffer.from($env.KINTONE_USER + ':' + $env.KINTONE_PASSWORD).toString('base64') }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file",
+              "outputPropertyName": "data"
+            }
+          },
+          "retry": {
+            "retry": {
+              "maxTries": 3,
+              "waitBetweenTries": 2000
+            }
+          }
+        }
+      },
+      "id": "dl",
+      "name": "日報画像を取得",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -120,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "binaryToPropery",
+        "binaryPropertyName": "data",
+        "destinationKey": "imageBase64",
+        "options": {}
+      },
+      "id": "b64",
+      "name": "画像をbase64に変換",
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        100,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-api-key",
+              "value": "={{ $env.ANTHROPIC_API_KEY }}"
+            },
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: $env.ANTHROPIC_MODEL || 'claude-sonnet-5', max_tokens: 800, system: ($env.CLAUDE_REPORT_PROMPT || 'あなたはLibeteeの日報を読むアシスタント。画像はExcelの業務日報。画像に書かれたことだけを使い推測しない。JSONのみ出力: {summary:60字以内, tomorrow:[最大2件], urgent:true/false, urgent_reason:理由or空文字}。発煙/発火/クレーム/PSE/販売停止/欠品/納期遅延/配送遅延/至急/緊急/承認要求 があれば urgent=true。'), messages: [ { role: 'user', content: [ { type: 'image', source: { type: 'base64', media_type: ($('当日分と未提出者を集計').item.json.contentType || 'image/png'), data: $json.imageBase64 } }, { type: 'text', text: '報告者: ' + ($('当日分と未提出者を集計').item.json.reporter || '不明') + '。JSONのみ出力。' } ] } ] }) }}",
+        "options": {
+          "retry": {
+            "retry": {
+              "maxTries": 3,
+              "waitBetweenTries": 2000
+            }
+          },
+          "timeout": 60000
+        }
+      },
+      "id": "claude",
+      "name": "Claudeが1人分を読む",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        320,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// 全員分を1通にまとめる（最後の1件が来たときに送信用データを作る）\nconst info=$('当日分と未提出者を集計').item.json;\nlet a=null;\ntry{const t=($json.content||[]).filter(c=>c.type==='text').map(c=>c.text).join('\\n');\n  let s=t.trim();const f=s.match(/```(?:json)?\\s*([\\s\\S]*?)```/i);if(f)s=f[1].trim();\n  const i=s.indexOf('{'),j=s.lastIndexOf('}');if(i>-1&&j>-1)s=s.slice(i,j+1);a=JSON.parse(s);}catch(e){a=null;}\nconst store=$getWorkflowStaticData('node');\nif(!store.buf||store.date!==info.dateISO){store.buf=[];store.date=info.dateISO;}\nstore.buf.push({who:info.reporter||'（氏名不明）',team:info.team,a});\nif(store.buf.length<info.total)return[];\nconst rows=store.buf;store.buf=[];\nconst L=[`📊 Libetee 日報まとめ（${info.dateISO}）`,'',`提出 ${rows.length}件 / 対象 ${info.rosterSize}名`,''];\nlet anyUrgent=false;\nfor(const r of rows){const mark=r.a&&r.a.urgent?'🚨 ':'';if(r.a&&r.a.urgent)anyUrgent=true;\n  L.push(`${mark}■ ${r.who}さん${r.team?'（'+r.team+'）':''}`);\n  L.push('  '+((r.a&&r.a.summary)||'（要約なし）'));\n  if(r.a&&r.a.urgent&&r.a.urgent_reason)L.push('  ⚠️ '+r.a.urgent_reason);\n  if(r.a&&Array.isArray(r.a.tomorrow)&&r.a.tomorrow.length)L.push('  → 明日: '+r.a.tomorrow.join('、'));\n  L.push('');}\nif(info.missing&&info.missing.length){L.push('【未提出】',...info.missing.map(n=>'・'+n+'さん'),'');}\nelse L.push('【未提出】なし（全員提出済み）','');\nL.push('詳細はKintoneをご確認ください。');\nconst text=L.join('\\n').slice(0,4000);\nreturn[{json:{text,urgent:anyUrgent,title:L[0],body:L.slice(1).join('\\n').trim()}}];"
+      },
+      "id": "merge",
+      "name": "全員分を1通にまとめる",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        540,
+        200
+      ],
+      "notes": "人数分の実行を貯めて、最後の1人が終わったら1通にまとめて出力します。"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.line.me/v2/bot/message/push",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.LINE_CHANNEL_ACCESS_TOKEN }}"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ to: ($env.LINE_TARGET_GROUP_ID || $env.LINE_TARGET_USER_ID), messages: [{ type:'text', text: $json.text }] }) }}",
+        "options": {
+          "retry": {
+            "retry": {
+              "maxTries": 3,
+              "waitBetweenTries": 2000
+            }
+          }
+        }
+      },
+      "id": "line",
+      "name": "LINEに通知",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        760,
+        200
+      ],
+      "onError": "continueRegularOutput",
+      "notes": "未設定でも止まらず次へ進みます。"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.chatwork.com/v2/rooms/{{ $env.CHATWORK_ROOM_ID }}/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-ChatWorkToken",
+              "value": "={{ $env.CHATWORK_API_TOKEN }}"
+            },
+            {
+              "name": "content-type",
+              "value": "application/x-www-form-urlencoded"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/x-www-form-urlencoded",
+        "body": "={{ 'body=' + encodeURIComponent(($('全員分を1通にまとめる').item.json.urgent ? '[toall]\\n' : '') + '[info][title]' + $('全員分を1通にまとめる').item.json.title + '[/title]' + $('全員分を1通にまとめる').item.json.body + '[/info]') + '&self_unread=0' }}",
+        "options": {
+          "retry": {
+            "retry": {
+              "maxTries": 3,
+              "waitBetweenTries": 2000
+            }
+          }
+        }
+      },
+      "id": "cw",
+      "name": "Chatworkに通知",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        980,
+        200
+      ],
+      "onError": "continueRegularOutput",
+      "notes": "未設定でも止まりません。"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 提出0件の日も「誰も出していない」ことを知らせる\nconst i=$json;\nconst L=[`📊 Libetee 日報まとめ（${i.dateISO}）`,'','本日の提出はありません。',''];\nif(i.missing&&i.missing.length)L.push('【未提出】',...i.missing.map(n=>'・'+n+'さん'),'');\nL.push('詳細はKintoneをご確認ください。');\nconst text=L.join('\\n');\nreturn[{json:{text,urgent:false,title:L[0],body:L.slice(1).join('\\n').trim()}}];"
+      },
+      "id": "none",
+      "name": "提出0件のまとめ",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -120,
+        440
+      ]
+    }
+  ],
+  "connections": {
+    "毎日19:00": {
+      "main": [
+        [
+          {
+            "node": "日報アプリを取得",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "日報アプリを取得": {
+      "main": [
+        [
+          {
+            "node": "当日分と未提出者を集計",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "当日分と未提出者を集計": {
+      "main": [
+        [
+          {
+            "node": "提出あり?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "提出あり?": {
+      "main": [
+        [
+          {
+            "node": "日報画像を取得",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "提出0件のまとめ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "日報画像を取得": {
+      "main": [
+        [
+          {
+            "node": "画像をbase64に変換",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "画像をbase64に変換": {
+      "main": [
+        [
+          {
+            "node": "Claudeが1人分を読む",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claudeが1人分を読む": {
+      "main": [
+        [
+          {
+            "node": "全員分を1通にまとめる",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "全員分を1通にまとめる": {
+      "main": [
+        [
+          {
+            "node": "LINEに通知",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LINEに通知": {
+      "main": [
+        [
+          {
+            "node": "Chatworkに通知",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "提出0件のまとめ": {
+      "main": [
+        [
+          {
+            "node": "LINEに通知",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Asia/Tokyo",
+    "saveDataErrorExecution": "all"
+  },
+  "staticData": null,
+  "meta": {
+    "templateId": "libetee-digest-5"
+  },
+  "tags": [
+    {
+      "name": "Libetee"
+    }
+  ]
+}
