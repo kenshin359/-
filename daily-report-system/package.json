@@ -10,6 +10,7 @@
   "scripts": {
     "setup": "node scripts/setup.js",
     "doctor": "node scripts/doctor.js",
+    "backup": "node scripts/backup.js",
     "apps": "node kintone/inspectApp.js",
     "inspect": "node kintone/inspectApp.js",
     "add-fields": "node kintone/addFields.js",

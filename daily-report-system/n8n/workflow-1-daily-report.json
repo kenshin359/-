@@ -5,7 +5,10 @@
       "parameters": {
         "rule": {
           "interval": [
-            { "field": "cronExpression", "expression": "0 19 * * *" }
+            {
+              "field": "cronExpression",
+              "expression": "0 19 * * *"
+            }
           ]
         }
       },
@@ -13,18 +16,24 @@
       "name": "定時トリガー (19:00 JST)",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
-      "position": [-960, 300],
+      "position": [
+        -960,
+        300
+      ],
       "notes": "REPORT_SEND_TIME に合わせて cron を調整。cron は UTC ではなく n8n サーバTZ基準のため GENERIC_TIMEZONE=Asia/Tokyo を推奨。"
     },
     {
       "parameters": {
-        "jsCode": "// 対象日(Asia/Tokyo の今日) と Kintone 取得URLを組み立てる\nconst tz = $env.REPORT_TIMEZONE || 'Asia/Tokyo';\nconst dateISO = new Intl.DateTimeFormat('en-CA', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());\nconst base = ($env.KINTONE_BASE_URL || '').replace(/\\/$/, '');\nconst app = $env.KINTONE_DAILY_REPORT_APP_ID;\nconst query = `report_date = \"${dateISO}\" and submit_status in (\"提出済み\") order by dept asc limit 500`;\nconst url = `${base}/k/v1/records.json?app=${app}&query=${encodeURIComponent(query)}`;\nreturn [{ json: { dateISO, url } }];"
+        "jsCode": "// 対象日(Asia/Tokyo の今日) と Kintone 取得URLを組み立てる\n// 日報アプリは日付がサブテーブル内にあるため、kintoneのクエリでは絞り込めない。\n// 全件取得して、次のノードでコード側で展開・絞り込みを行う。\nconst tz = $env.REPORT_TIMEZONE || 'Asia/Tokyo';\nconst dateISO = new Intl.DateTimeFormat('en-CA', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());\nconst base = ($env.KINTONE_BASE_URL || '').replace(/\\/$/, '');\nconst app = $env.KINTONE_DAILY_REPORT_APP_ID;\nconst query = 'order by $id desc limit 500';\nconst url = `${base}/k/v1/records.json?app=${app}&query=${encodeURIComponent(query)}`;\nreturn [{ json: { dateISO, url } }];"
       },
       "id": "build-fetch",
       "name": "対象日と取得URLを作成",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [-740, 300]
+      "position": [
+        -740,
+        300
+      ]
     },
     {
       "parameters": {
@@ -33,31 +42,52 @@
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            { "name": "X-Cybozu-API-Token", "value": "={{ $env.KINTONE_API_TOKEN_DAILY_REPORT }}" }
+            {
+              "name": "X-Cybozu-API-Token",
+              "value": "={{ $env.KINTONE_API_TOKEN_DAILY_REPORT }}"
+            }
           ]
         },
         "options": {
-          "retry": { "retry": { "maxTries": 4, "waitBetweenTries": 2000 } },
-          "response": { "response": { "neverError": false } }
+          "retry": {
+            "retry": {
+              "maxTries": 4,
+              "waitBetweenTries": 2000
+            }
+          },
+          "response": {
+            "response": {
+              "neverError": false
+            }
+          }
         }
       },
       "id": "kintone-get",
       "name": "Kintone 日報取得",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [-520, 300],
+      "position": [
+        -520,
+        300
+      ],
       "notes": "認証: APIトークン(閲覧)。リトライ有効。4xxはエラーで停止→Error Trigger側で捕捉。"
     },
     {
       "parameters": {
         "conditions": {
-          "options": { "caseSensitive": true, "typeValidation": "loose" },
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "loose"
+          },
           "combinator": "and",
           "conditions": [
             {
-              "leftValue": "={{ $json.records.length }}",
+              "leftValue": "={{ $json.count }}",
               "rightValue": 0,
-              "operator": { "type": "number", "operation": "gt" }
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
             }
           ]
         }
@@ -66,17 +96,23 @@
       "name": "日報は1件以上?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
-      "position": [-300, 300]
+      "position": [
+        -300,
+        300
+      ]
     },
     {
       "parameters": {
-        "jsCode": "// kintoneレコードを正規化し、Claude へ送る messages を組み立てる\nconst records = $json.records || [];\nconst dateISO = $('対象日と取得URLを作成').first().json.dateISO;\nconst v = (r, c) => (r[c] && r[c].value !== '' ? r[c].value : null);\nconst reports = records.map((r) => ({\n  report_date: v(r,'report_date'), reporter: v(r,'reporter'), dept: v(r,'dept'),\n  planned_tasks: v(r,'planned_tasks'), done_tasks: v(r,'done_tasks'), completion_rate: v(r,'completion_rate'),\n  kpi_actual: v(r,'kpi_actual'), undone_tasks: v(r,'undone_tasks'), undone_reason: v(r,'undone_reason'),\n  problems: v(r,'problems'), requests_to_dept: v(r,'requests_to_dept'), confirm_items: v(r,'confirm_items'),\n  approval_request: v(r,'approval_request'), tomorrow_plan: v(r,'tomorrow_plan'), urgency: v(r,'urgency'),\n  related_product: v(r,'related_product'), related_deal: v(r,'related_deal'), submit_status: v(r,'submit_status')\n}));\nconst input = { dateISO, company: '株式会社リベティ (Libetee)', reports, previousIssues: [], report_count: reports.length };\n// system プロンプトは prompts/daily-report-system-prompt.md の内容を貼り付けてください（要設定）\nconst system = $env.CLAUDE_SYSTEM_PROMPT || 'あなたはLibeteeの業務分析アシスタント。日報を分析し指定JSONのみを出力する。情報不足は\"情報不足\"と書く。スキーマ: {conclusion:{status,headline},overall_rating,achievements[],problems[],delays[],approvals[],ceo_items[],manager_items[],tomorrow_priorities[],staff_summaries[{name,dept,text}],ai_analysis,urgent}';\nconst userText = '以下の日報データを分析し、JSONのみ出力してください。\\n```json\\n' + JSON.stringify(input, null, 2) + '\\n```';\nreturn [{ json: { dateISO, system, userText } }];"
+        "jsCode": "// 抽出済みの日報からClaudeへの入力を組み立てる\nconst dateISO = $json.dateISO;\nconst reports = ($json.reports || []).map(r => ({\n  report_date: r.date, reporter: r.reporter || '（氏名不明）', team: r.team || null, body: r.text\n}));\nconst input = { dateISO, company: '株式会社リベティ (Libetee)', reports, previousIssues: [], report_count: reports.length,\n  note: '各日報は自由記述の本文です。項目が分かれていないため、本文から成果・問題・依頼などを読み取ってください。' };\nconst system = $env.CLAUDE_SYSTEM_PROMPT || 'あなたはLibeteeの業務分析アシスタント。日報を分析し指定JSONのみを出力する。情報不足は\"情報不足\"と書く。bodyは自由記述の本文なので読み取って判断する。スキーマ: {conclusion:{status,headline},overall_rating,achievements[],problems[],delays[],approvals[],ceo_items[],manager_items[],tomorrow_priorities[],staff_summaries[{name,dept,text}],ai_analysis,urgent}';\nconst userText = '以下の日報データを分析し、JSONのみ出力してください。\\n```json\\n' + JSON.stringify(input, null, 2) + '\\n```';\nreturn [{ json: { dateISO, system, userText } }];"
       },
       "id": "build-claude",
       "name": "Claude入力を作成",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [-80, 200]
+      "position": [
+        -80,
+        200
+      ]
     },
     {
       "parameters": {
@@ -85,16 +121,30 @@
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            { "name": "x-api-key", "value": "={{ $env.ANTHROPIC_API_KEY }}" },
-            { "name": "anthropic-version", "value": "2023-06-01" },
-            { "name": "content-type", "value": "application/json" }
+            {
+              "name": "x-api-key",
+              "value": "={{ $env.ANTHROPIC_API_KEY }}"
+            },
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
           ]
         },
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify({ model: $env.ANTHROPIC_MODEL || 'claude-sonnet-5', max_tokens: 4000, system: $json.system, messages: [ { role: 'user', content: $json.userText } ] }) }}",
         "options": {
-          "retry": { "retry": { "maxTries": 4, "waitBetweenTries": 2000 } },
+          "retry": {
+            "retry": {
+              "maxTries": 4,
+              "waitBetweenTries": 2000
+            }
+          },
           "timeout": 120000
         }
       },
@@ -102,7 +152,10 @@
       "name": "Claude API 分析",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [140, 200],
+      "position": [
+        140,
+        200
+      ],
       "notes": "429/5xxはリトライ。timeout 120s。認証: x-api-key(環境変数)。"
     },
     {
@@ -113,7 +166,10 @@
       "name": "応答を整形(保存/LINE)",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [360, 200]
+      "position": [
+        360,
+        200
+      ]
     },
     {
       "parameters": {
@@ -122,20 +178,36 @@
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            { "name": "X-Cybozu-API-Token", "value": "={{ $env.KINTONE_API_TOKEN_AI_REPORT }}" },
-            { "name": "content-type", "value": "application/json" }
+            {
+              "name": "X-Cybozu-API-Token",
+              "value": "={{ $env.KINTONE_API_TOKEN_AI_REPORT }}"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
           ]
         },
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify({ app: $env.KINTONE_AI_REPORT_APP_ID, record: $json.record }) }}",
-        "options": { "retry": { "retry": { "maxTries": 4, "waitBetweenTries": 2000 } } }
+        "options": {
+          "retry": {
+            "retry": {
+              "maxTries": 4,
+              "waitBetweenTries": 2000
+            }
+          }
+        }
       },
       "id": "kintone-save",
       "name": "Kintone AI日報 保存",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [580, 200],
+      "position": [
+        580,
+        200
+      ],
       "notes": "認証: APIトークン(追加/編集)。target_dateはunique設定のため重複時は400→重複送信防止。"
     },
     {
@@ -145,20 +217,36 @@
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            { "name": "Authorization", "value": "=Bearer {{ $env.LINE_CHANNEL_ACCESS_TOKEN }}" },
-            { "name": "content-type", "value": "application/json" }
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.LINE_CHANNEL_ACCESS_TOKEN }}"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
           ]
         },
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify({ to: ($env.LINE_TARGET_GROUP_ID || $env.LINE_TARGET_USER_ID), messages: $('応答を整形(保存/LINE)').first().json.messages }) }}",
-        "options": { "retry": { "retry": { "maxTries": 4, "waitBetweenTries": 2000 } } }
+        "options": {
+          "retry": {
+            "retry": {
+              "maxTries": 4,
+              "waitBetweenTries": 2000
+            }
+          }
+        }
       },
       "id": "line-push",
       "name": "LINE 通知",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [800, 200],
+      "position": [
+        800,
+        200
+      ],
       "notes": "宛先はグループ優先。5吹き出し以内に分割済み。"
     },
     {
@@ -168,20 +256,36 @@
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            { "name": "X-Cybozu-API-Token", "value": "={{ $env.KINTONE_API_TOKEN_AI_REPORT }}" },
-            { "name": "content-type", "value": "application/json" }
+            {
+              "name": "X-Cybozu-API-Token",
+              "value": "={{ $env.KINTONE_API_TOKEN_AI_REPORT }}"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
           ]
         },
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify({ app: $env.KINTONE_AI_REPORT_APP_ID, id: $('Kintone AI日報 保存').first().json.id, record: { line_result: { value: '送信成功' }, line_sent_at: { value: new Date().toISOString() } } }) }}",
-        "options": { "retry": { "retry": { "maxTries": 4, "waitBetweenTries": 2000 } } }
+        "options": {
+          "retry": {
+            "retry": {
+              "maxTries": 4,
+              "waitBetweenTries": 2000
+            }
+          }
+        }
       },
       "id": "kintone-log",
       "name": "送信結果を書き戻し(ログ)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [1020, 200]
+      "position": [
+        1020,
+        200
+      ]
     },
     {
       "parameters": {
@@ -191,7 +295,10 @@
       "name": "0件: 未提出メッセージ",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [-80, 440]
+      "position": [
+        -80,
+        440
+      ]
     },
     {
       "parameters": {
@@ -200,38 +307,181 @@
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            { "name": "Authorization", "value": "=Bearer {{ $env.LINE_CHANNEL_ACCESS_TOKEN }}" },
-            { "name": "content-type", "value": "application/json" }
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.LINE_CHANNEL_ACCESS_TOKEN }}"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
           ]
         },
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify({ to: ($env.LINE_TARGET_GROUP_ID || $env.LINE_TARGET_USER_ID), messages: $json.messages }) }}",
-        "options": { "retry": { "retry": { "maxTries": 4, "waitBetweenTries": 2000 } } }
+        "options": {
+          "retry": {
+            "retry": {
+              "maxTries": 4,
+              "waitBetweenTries": 2000
+            }
+          }
+        }
       },
       "id": "line-noreport",
       "name": "LINE 未提出通知",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [140, 440]
+      "position": [
+        140,
+        440
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// 取得したレコードから『日付・氏名・本文』を取り出し、対象日で絞り込む。\n// lib/extractReports.js と同じ判定ロジック（フィールドコードに依存しない）。\nconst dateISO = $('対象日と取得URLを作成').first().json.dateISO;\nconst records = $json.records || [];\nconst TEXT_MIN = 25, NAME_MAX = 20;\nconst isDate = (v) => typeof v === 'string' && /^\\d{4}-\\d{2}-\\d{2}/.test(v.trim());\nconst toISO  = (v) => (String(v).trim().match(/^(\\d{4}-\\d{2}-\\d{2})/) || [])[1] || null;\nconst isBody = (v) => typeof v === 'string' && (v.includes('\\n') || v.trim().length >= TEXT_MIN);\nconst isName = (v) => typeof v === 'string' && v.trim().length > 0 && v.trim().length <= NAME_MAX && !v.includes('\\n') && !isDate(v);\nfunction plain(f){ if(!f||typeof f!=='object') return null; const v=f.value;\n  if(v===undefined||v===null||v==='') return null;\n  if(Array.isArray(v)){ const n=v.map(x=>(x&&typeof x==='object')?(x.name||x.code||''):String(x)).filter(Boolean); return n.length?n.join(', '):null; }\n  if(typeof v==='object') return null; return String(v); }\nfunction fromRow(row, team){ const out=[]; let date=null, name=null;\n  for(const [code,f] of Object.entries(row)){ if(code.startsWith('$')) continue;\n    const v=plain(f); if(v===null) continue;\n    if(isDate(v)){ date=toISO(v); continue; }\n    if(isBody(v)){ out.push({date, reporter:name, team, text:v.trim()}); name=null; continue; }\n    if(isName(v)) name=v.trim(); }\n  return out; }\nfunction isSub(f){ return f && Array.isArray(f.value) && f.value[0] && f.value[0].value && typeof f.value[0].value==='object'; }\nconst all=[];\nfor(const rec of records){ if(!rec||typeof rec!=='object') continue;\n  let team=null;\n  for(const [code,f] of Object.entries(rec)){ if(!code.startsWith('$') && /team|チーム/i.test(code)){ const v=plain(f); if(v){ team=v; break; } } }\n  const top={};\n  for(const [code,f] of Object.entries(rec)){ if(code.startsWith('$')) continue;\n    if(isSub(f)){ for(const row of f.value) all.push(...fromRow(row.value, team)); } else { top[code]=f; } }\n  all.push(...fromRow(top, team)); }\nconst reports = all.filter(r=>r.text).filter(r=>r.date===dateISO);\nreturn [{ json: { dateISO, reports, count: reports.length } }];"
+      },
+      "id": "extract-reports",
+      "name": "日報を抽出(対象日で絞込)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -410,
+        300
+      ],
+      "notes": "日付がサブテーブル内にあるため、コード側で展開して対象日を絞る。lib/extractReports.js と同じロジック。"
     }
   ],
   "connections": {
-    "定時トリガー (19:00 JST)": { "main": [[{ "node": "対象日と取得URLを作成", "type": "main", "index": 0 }]] },
-    "対象日と取得URLを作成": { "main": [[{ "node": "Kintone 日報取得", "type": "main", "index": 0 }]] },
-    "Kintone 日報取得": { "main": [[{ "node": "日報は1件以上?", "type": "main", "index": 0 }]] },
-    "日報は1件以上?": {
+    "定時トリガー (19:00 JST)": {
       "main": [
-        [{ "node": "Claude入力を作成", "type": "main", "index": 0 }],
-        [{ "node": "0件: 未提出メッセージ", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "対象日と取得URLを作成",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
-    "Claude入力を作成": { "main": [[{ "node": "Claude API 分析", "type": "main", "index": 0 }]] },
-    "Claude API 分析": { "main": [[{ "node": "応答を整形(保存/LINE)", "type": "main", "index": 0 }]] },
-    "応答を整形(保存/LINE)": { "main": [[{ "node": "Kintone AI日報 保存", "type": "main", "index": 0 }]] },
-    "Kintone AI日報 保存": { "main": [[{ "node": "LINE 通知", "type": "main", "index": 0 }]] },
-    "LINE 通知": { "main": [[{ "node": "送信結果を書き戻し(ログ)", "type": "main", "index": 0 }]] },
-    "0件: 未提出メッセージ": { "main": [[{ "node": "LINE 未提出通知", "type": "main", "index": 0 }]] }
+    "対象日と取得URLを作成": {
+      "main": [
+        [
+          {
+            "node": "Kintone 日報取得",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Kintone 日報取得": {
+      "main": [
+        [
+          {
+            "node": "日報を抽出(対象日で絞込)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "日報は1件以上?": {
+      "main": [
+        [
+          {
+            "node": "Claude入力を作成",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "0件: 未提出メッセージ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claude入力を作成": {
+      "main": [
+        [
+          {
+            "node": "Claude API 分析",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claude API 分析": {
+      "main": [
+        [
+          {
+            "node": "応答を整形(保存/LINE)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "応答を整形(保存/LINE)": {
+      "main": [
+        [
+          {
+            "node": "Kintone AI日報 保存",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Kintone AI日報 保存": {
+      "main": [
+        [
+          {
+            "node": "LINE 通知",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LINE 通知": {
+      "main": [
+        [
+          {
+            "node": "送信結果を書き戻し(ログ)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "0件: 未提出メッセージ": {
+      "main": [
+        [
+          {
+            "node": "LINE 未提出通知",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "日報を抽出(対象日で絞込)": {
+      "main": [
+        [
+          {
+            "node": "日報は1件以上?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
   },
   "settings": {
     "executionOrder": "v1",
@@ -240,6 +490,12 @@
     "errorWorkflow": ""
   },
   "staticData": null,
-  "meta": { "templateId": "libetee-daily-report-1" },
-  "tags": [{ "name": "Libetee" }]
+  "meta": {
+    "templateId": "libetee-daily-report-1"
+  },
+  "tags": [
+    {
+      "name": "Libetee"
+    }
+  ]
 }

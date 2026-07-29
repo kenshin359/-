@@ -15,7 +15,8 @@ Kintone の「AI経営日報アプリ」に保存し、LINE で通知します�
 - ✅ **n8n インポート用 JSON 同梱**（定時＋緊急の2本）
 - ✅ **安全設計**：APIキーは環境変数 / 最小権限 / 重複送信防止 / リトライ / 本番・テスト分離
 - ✅ **初心者向けドキュメント**：導入・テスト・エラー対応マニュアルを完備
-- ✅ **ネットワーク不要のユニットテスト**：`npm test`
+- ✅ **ネットワーク不要のユニットテスト**：`npm test`（24件）
+- ✅ **元データは読むだけ**：日報アプリへ書き込まないことをテストで自動保証
 
 ---
 
@@ -89,6 +90,7 @@ daily-report-system/
 │   └── sample-claude-output.json
 ├── docs/                         ドキュメント
 │   ├── START-HERE.md             ど素人向け導入ガイド（まずこれ）
+│   ├── backup-and-safety.md      バックアップと安全性（元データ非変更の保証）★
 │   ├── actual-kintone-structure.md  実際のKintone構造と対応方針 ★
 │   ├── setup-guide.md            導入マニュアル（最短ルート）
 │   ├── phases.md                 実装順 Phase 1〜8
@@ -109,7 +111,8 @@ daily-report-system/
 |----------|------|
 | `npm run setup` | **対話式セットアップ**（まずこれ） |
 | `npm run doctor` | **設定の総点検**（困ったらこれ） |
-| `npm test` | ユニットテスト（オフライン・19件） |
+| `npm run backup` | **元データのバックアップ**（読み取りのみ） |
+| `npm test` | ユニットテスト（オフライン・24件） |
 | `npm run apps` | Kintone アプリ一覧とIDを表示 |
 | `npm run inspect -- <appId>` | 既存アプリの構成と不足フィールドを確認 |
 | `npm run add-fields -- <appId> --dry-run` | 既存アプリへ不足分を追加（まず dry-run） |
