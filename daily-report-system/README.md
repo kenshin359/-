@@ -20,9 +20,13 @@ Kintone の「AI経営日報アプリ」に保存し、LINE で通知します�
 
 ---
 
-## クイックスタート（初めての方はこちら）
+## クイックスタート
 
-**👉 パソコンが得意でない方は [`docs/START-HERE.md`](./docs/START-HERE.md) を読んでください。これだけでOKです。**
+**👉 ターミナル（黒い画面）を使いたくない方は
+[`docs/n8n-only-setup.md`](./docs/n8n-only-setup.md) を読んでください。
+ブラウザだけで完結します。これが一番おすすめです。**
+
+パソコン操作に抵抗がない方は下記、またはより丁寧な [`docs/START-HERE.md`](./docs/START-HERE.md) へ。
 
 ```bash
 cd daily-report-system
@@ -82,6 +86,7 @@ daily-report-system/
 │   ├── daily-report-user-template.md
 │   └── urgent-summary-prompt.md
 ├── n8n/                          n8n インポート用 JSON
+│   ├── workflow-0-setup.json             ⓪初期設定: AI経営日報アプリを自動作成（1回だけ）★
 │   ├── workflow-1-daily-report.json      ①定時: Schedule→Kintone→Claude→保存→LINE→ログ
 │   └── workflow-2-urgent-webhook.json    ②緊急: Webhook→分岐→Claude→LINE→更新
 ├── samples/                      サンプルデータ
@@ -90,6 +95,7 @@ daily-report-system/
 │   └── sample-claude-output.json
 ├── docs/                         ドキュメント
 │   ├── START-HERE.md             ど素人向け導入ガイド（まずこれ）
+│   ├── n8n-only-setup.md         ブラウザだけで完結する導入手順（ターミナル不要）★
 │   ├── backup-and-safety.md      バックアップと安全性（元データ非変更の保証）★
 │   ├── actual-kintone-structure.md  実際のKintone構造と対応方針 ★
 │   ├── setup-guide.md            導入マニュアル（最短ルート）
