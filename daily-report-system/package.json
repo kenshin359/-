@@ -34,6 +34,7 @@
     "create-business-apps": "node kintone/createBusinessApps.js",
     "brief": "node scripts/boardBrief.js",
     "sheet": "node scripts/exportDashboardData.js && python3 scripts/buildSalesSheet.py",
-    "sheet:send": "node scripts/sendSalesSheet.js"
+    "sheet:send": "node scripts/sendSalesSheet.js",
+    "replies": "node scripts/replyDrafts.js"
   }
 }

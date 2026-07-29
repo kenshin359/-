@@ -122,11 +122,14 @@ daily-report-system/
 | `npm run setup` | **対話式セットアップ**（まずこれ） |
 | `npm run doctor` | **設定の総点検**（困ったらこれ） |
 | `npm run backup` | **元データのバックアップ**（読み取りのみ） |
-| `npm test` | ユニットテスト（オフライン・184件） |
+| `npm test` | ユニットテスト（オフライン・228件） |
 | `npm run sales` | **売上レポート**（CSV から・Amazon/楽天/自社/Meta/RPP・費用ゼロ） |
 | `npm run monthly` | **月次売上レポート**（Kintone売上アプリから・費用ゼロ） |
 | `npm run dashboard` | **販売ダッシュボード**を生成（グラフ＋商品ドリルダウン・費用ゼロ） |
 | `npm run brief` | **経営ブリーフィング**（AI経営チームを実行） |
+| `npm run replies` | **楽天レビュー返信の下書き**を作りCSへ配信 |
+| `npm run sheet` | 売上管理シート(Excel)を生成 |
+| `npm run sheet:send` | 売上管理シートをChatworkへ送信 |
 | `npm run create-business-apps` | 在庫数・広告費アプリをKintoneに作成 |
 | `npm run build:n8n` | 売上ワークフローJSONを再生成 |
 | `npm run apps` | Kintone アプリ一覧とIDを表示 |
