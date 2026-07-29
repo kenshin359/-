@@ -197,7 +197,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Claudeの応答を整形してLINEメッセージを作る。失敗しても通知はする。\nconst info = $('新規提出を検出').item.json;\nlet a = null;\ntry {\n  const t = ($json.content || []).filter(c => c.type === 'text').map(c => c.text).join('\\n');\n  let s = t.trim();\n  const f = s.match(/```(?:json)?\\s*([\\s\\S]*?)```/i); if (f) s = f[1].trim();\n  const i = s.indexOf('{'), j = s.lastIndexOf('}'); if (i > -1 && j > -1) s = s.slice(i, j + 1);\n  a = JSON.parse(s);\n} catch (e) { a = null; }\n\nconst who = info.reporter || '（氏名不明）';\nconst team = info.team ? `（${info.team}）` : '';\nconst head = a && a.urgent ? '🚨 要対応の日報が届きました' : '📝 日報が届きました';\nconst L = [`${head}（${info.date}）`, '', `${who}さん${team}`, ''];\nif (a) {\n  L.push(`【要点】${a.summary || '情報不足'}`);\n  if (Array.isArray(a.done) && a.done.length) L.push('', '【完了】', ...a.done.map(x => '・' + x));\n  if (Array.isArray(a.tomorrow) && a.tomorrow.length) L.push('', '【明日】', ...a.tomorrow.map(x => '・' + x));\n  if (a.urgent && a.urgent_reason) L.push('', '⚠️ ' + a.urgent_reason);\n} else {\n  L.push('（内容の自動要約に失敗しました）');\n}\nL.push('', '詳細はKintoneをご確認ください。');\nconst text = L.join('\\n').slice(0, 4800);\nreturn [{ json: { id: info.id, messages: [{ type: 'text', text }] } }];"
+        "jsCode": "// Claudeの応答を整形してLINEメッセージを作る。失敗しても通知はする。\nconst info = $('新規提出を検出').item.json;\nlet a = null;\ntry {\n  const t = ($json.content || []).filter(c => c.type === 'text').map(c => c.text).join('\\n');\n  let s = t.trim();\n  const f = s.match(/```(?:json)?\\s*([\\s\\S]*?)```/i); if (f) s = f[1].trim();\n  const i = s.indexOf('{'), j = s.lastIndexOf('}'); if (i > -1 && j > -1) s = s.slice(i, j + 1);\n  a = JSON.parse(s);\n} catch (e) { a = null; }\n\nconst who = info.reporter || '（氏名不明）';\nconst team = info.team ? `（${info.team}）` : '';\nconst head = a && a.urgent ? '🚨 要対応の日報が届きました' : '📝 日報が届きました';\nconst L = [`${head}（${info.date}）`, '', `${who}さん${team}`, ''];\nif (a) {\n  L.push(`【要点】${a.summary || '情報不足'}`);\n  if (Array.isArray(a.done) && a.done.length) L.push('', '【完了】', ...a.done.map(x => '・' + x));\n  if (Array.isArray(a.tomorrow) && a.tomorrow.length) L.push('', '【明日】', ...a.tomorrow.map(x => '・' + x));\n  if (a.urgent && a.urgent_reason) L.push('', '⚠️ ' + a.urgent_reason);\n} else {\n  L.push('（内容の自動要約に失敗しました）');\n}\nL.push('', '詳細はKintoneをご確認ください。');\nconst text = L.join('\\n').slice(0, 4800);\n// LINE用(messages) と Chatwork用(title/body) の両方を返す\nconst title = L[0];\nconst body = L.slice(1).join('\\n').trim().slice(0, 3800);\nreturn [{ json: { id: info.id, urgent: !!(a && a.urgent), title, body, messages: [{ type: 'text', text }] } }];"
       },
       "id": "format",
       "name": "通知文を作成",
@@ -244,7 +244,9 @@
       "position": [
         760,
         200
-      ]
+      ],
+      "onError": "continueRegularOutput",
+      "notes": "LINE_CHANNEL_ACCESS_TOKEN が未設定なら失敗しますが、次のChatworkへ進みます。LINEを使わない場合はこのノードを削除してもOK。"
     },
     {
       "parameters": {
@@ -271,6 +273,47 @@
         -120,
         420
       ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.chatwork.com/v2/rooms/{{ $env.CHATWORK_ROOM_ID }}/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-ChatWorkToken",
+              "value": "={{ $env.CHATWORK_API_TOKEN }}"
+            },
+            {
+              "name": "content-type",
+              "value": "application/x-www-form-urlencoded"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/x-www-form-urlencoded",
+        "body": "={{ 'body=' + encodeURIComponent(($('通知文を作成').item.json.urgent ? '[toall]\\n' : '') + '[info][title]' + $('通知文を作成').item.json.title + '[/title]' + $('通知文を作成').item.json.body + '[/info]') + '&self_unread=0' }}",
+        "options": {
+          "retry": {
+            "retry": {
+              "maxTries": 3,
+              "waitBetweenTries": 2000
+            }
+          }
+        }
+      },
+      "id": "chatwork",
+      "name": "Chatworkに通知",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        760,
+        380
+      ],
+      "onError": "continueRegularOutput",
+      "notes": "CHATWORK_API_TOKEN と CHATWORK_ROOM_ID が必要。緊急時は [toall] で全員宛てになります。Chatworkを使わない場合はこのノードを削除してもOK。"
     }
   ],
   "connections": {
@@ -370,6 +413,17 @@
       ]
     },
     "LINEに通知": {
+      "main": [
+        [
+          {
+            "node": "Chatworkに通知",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chatworkに通知": {
       "main": [
         [
           {

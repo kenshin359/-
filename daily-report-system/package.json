@@ -11,6 +11,7 @@
     "setup": "node scripts/setup.js",
     "doctor": "node scripts/doctor.js",
     "watch": "node scripts/watchNewReports.js",
+    "notify-test": "node scripts/sendTest.js",
     "backup": "node scripts/backup.js",
     "apps": "node kintone/inspectApp.js",
     "inspect": "node kintone/inspectApp.js",

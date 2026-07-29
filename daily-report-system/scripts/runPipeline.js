@@ -16,7 +16,7 @@ import { fetchAllDailyReportRecords, createAiReport, updateAiReport, findAiRepor
 import { extractReports, filterByDate, buildInputFromExtracted } from '../lib/extractReports.js';
 import { analyzeReports } from '../lib/claude.js';
 import { formatCeoReport, formatLineReport, toAiReportRecord } from '../lib/format.js';
-import { pushLine } from '../lib/line.js';
+import { notify, describeResults } from '../lib/notify.js';
 import { resolveTargetDate } from '../lib/date.js';
 import { isProduction } from '../lib/env.js';
 
@@ -41,7 +41,7 @@ async function main() {
   // 1.5) 日報0件のハンドリング
   if (records.length === 0) {
     console.log('⚠ 本日の提出はありません。');
-    await pushLine(`📊 Libetee 日報（${dateISO}）\n\n本日の日報提出はありませんでした。\n提出状況をご確認ください。`);
+    await notify(`📊 Libetee 日報（${dateISO}）\n\n本日の日報提出はありませんでした。\n提出状況をご確認ください。`);
     // 記録だけ残す
     await createAiReport({
       target_date: { value: dateISO },
@@ -86,10 +86,12 @@ async function main() {
   let lineResult = '未送信';
   let sentAt = '';
   try {
-    const r = await pushLine(lineText);
-    lineResult = r.sent ? '送信成功' : '未送信';
-    sentAt = r.sent ? new Date().toISOString() : '';
-    console.log(`④ LINE通知: ${r.sent ? '送信成功' : 'スキップ(test)'} / ${r.requests} リクエスト`);
+    const { results, anySent } = await notify(lineText, { urgent: !!analysis.urgent });
+    const reallySent = results.some((r) => r.ok && !r.skipped);
+    lineResult = reallySent ? '送信成功' : '未送信';
+    sentAt = reallySent ? new Date().toISOString() : '';
+    console.log(`④ 通知: ${describeResults(results)}`);
+    if (!anySent) throw new Error('すべての通知先で送信に失敗しました');
   } catch (e) {
     lineResult = '送信失敗';
     console.error('④ LINE通知に失敗:', e.message);

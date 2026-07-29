@@ -62,6 +62,8 @@ daily-report-system/
 │   ├── kintone.js                Kintone 取得・保存・重複チェック
 │   ├── claude.js                 Claude API 呼び出し / JSON 抽出
 │   ├── line.js                   LINE push / 文字数・吹き出し分割 / test分離
+│   ├── chatwork.js               Chatwork 送信 / 装飾 / 分割 ★
+│   ├── notify.js                 通知先の集約（LINE / Chatwork / 両方）★
 │   ├── normalize.js              Kintoneレコード → Claude入力（構造化アプリ用）
 │   ├── extractReports.js         実際の日報アプリ構造から日付/氏名/本文を抽出 ★
 │   └── format.js                 Claude出力 → 経営日報/LINE本文/保存レコード
@@ -118,7 +120,7 @@ daily-report-system/
 | `npm run setup` | **対話式セットアップ**（まずこれ） |
 | `npm run doctor` | **設定の総点検**（困ったらこれ） |
 | `npm run backup` | **元データのバックアップ**（読み取りのみ） |
-| `npm test` | ユニットテスト（オフライン・24件） |
+| `npm test` | ユニットテスト（オフライン・41件） |
 | `npm run apps` | Kintone アプリ一覧とIDを表示 |
 | `npm run inspect -- <appId>` | 既存アプリの構成と不足フィールドを確認 |
 | `npm run add-fields -- <appId> --dry-run` | 既存アプリへ不足分を追加（まず dry-run） |
@@ -126,7 +128,8 @@ daily-report-system/
 | `npm run fetch` | スタッフ日報を取得 |
 | `npm run analyze` | Claude 分析（out/reports を入力） |
 | `npm run save` | AI経営日報へ保存 |
-| `npm run line` | LINE 送信テスト |
+| `npm run notify-test` | 通知テスト（LINE / Chatwork） |
+| `npm run watch` | 新規提出を検知して通知 |
 | `npm run pipeline` | 定時パイプライン通し実行 |
 | `npm run urgent` | 緊急即時通知 |
 

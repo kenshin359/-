@@ -12,7 +12,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { summarizeUrgent } from '../lib/claude.js';
 import { formatUrgentLine } from '../lib/format.js';
-import { pushLine } from '../lib/line.js';
+import { notify, describeResults } from '../lib/notify.js';
 import { todayISO } from '../lib/date.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -45,8 +45,9 @@ async function main() {
   }
 
   const text = formatUrgentLine(summary, todayISO());
-  const r = await pushLine(text);
-  console.log(r.skipped ? '（test のため未送信。本文は上に表示）' : `緊急通知 送信完了 ✅ 宛先=${r.to}`);
+  const { results, anySent } = await notify(text, { urgent: true });
+  console.log(`緊急通知: ${describeResults(results)}`);
+  if (!anySent) process.exitCode = 1;
 }
 
 main().catch((e) => {

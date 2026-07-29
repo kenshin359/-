@@ -27,7 +27,7 @@ import { fetchAllDailyReportRecords } from '../lib/kintone.js';
 import { extractImageReports } from '../lib/extractImages.js';
 import { downloadFileAsBase64, toMediaType } from '../lib/kintoneFile.js';
 import { summarizeReportImage } from '../lib/claude.js';
-import { pushLine } from '../lib/line.js';
+import { notify, describeResults, resolveChannels } from '../lib/notify.js';
 import { optional } from '../lib/env.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -126,6 +126,10 @@ async function main() {
     console.log(`  （今回は ${MAX_NOTIFY_PER_RUN} 件まで通知し、残りは次回に回します）`);
   }
 
+  // 送信先の確認（LINE / Chatwork / 両方）
+  const channels = resolveChannels();
+  console.log(`  通知先: ${channels.length ? channels.join(' + ') : '（未設定）'}`);
+
   const hasClaude = !!optional('ANTHROPIC_API_KEY');
   if (!hasClaude) {
     console.log('  ⚠️ ANTHROPIC_API_KEY が未設定のため、要約なしで通知します。');
@@ -159,12 +163,11 @@ async function main() {
     if (isDry) {
       console.log('  --- [dry-run] 送信内容 ---\n' + text.replace(/^/gm, '  '));
     } else {
-      try {
-        const r = await pushLine(text);
-        console.log(r.skipped ? '  （テストモードのため未送信）' : '  ✅ LINE送信しました');
-      } catch (e) {
-        console.error(`  ❌ LINE送信に失敗: ${e.message}`);
-        continue; // 送れなかったものは「通知済み」にしない（次回再送）
+      const { results, anySent } = await notify(text, { urgent: !!summary?.urgent });
+      console.log(`  ${describeResults(results)}`);
+      if (!anySent) {
+        console.error('  ❌ どこにも送信できませんでした（次回再送します）');
+        continue; // 送れなかったものは「通知済み」にしない
       }
     }
 
