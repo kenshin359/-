@@ -93,7 +93,7 @@ async function checkKintone() {
     try {
       const res = await fetchWithRetry(
         `${base}/k/v1/records.json?app=${dailyApp}&query=${encodeURIComponent('limit 1')}`,
-        { method: 'GET', headers: { 'Content-Type': 'application/json', ...headers } },
+        { method: 'GET', headers: { ...headers } },
         { label: 'kintone', retries: 1 }
       );
       ok(`日報アプリ(ID ${dailyApp})に接続できました`, `レコード取得テスト: 成功`);
@@ -121,7 +121,7 @@ async function checkKintone() {
       const aiHeaders = authHeadersFor(optional('KINTONE_API_TOKEN_AI_REPORT') || null);
       await fetchWithRetry(
         `${base}/k/v1/records.json?app=${aiApp}&query=${encodeURIComponent('limit 1')}`,
-        { method: 'GET', headers: { 'Content-Type': 'application/json', ...aiHeaders } },
+        { method: 'GET', headers: { ...aiHeaders } },
         { label: 'kintone', retries: 1 }
       );
       ok(`AI経営日報アプリ(ID ${aiApp})に接続できました`);
@@ -137,7 +137,7 @@ async function checkExtraction(base, headers, appId) {
   try {
     const res = await fetchWithRetry(
       `${base}/k/v1/records.json?app=${appId}&query=${encodeURIComponent('order by $id desc limit 100')}`,
-      { method: 'GET', headers: { 'Content-Type': 'application/json', ...headers } },
+      { method: 'GET', headers: { ...headers } },
       { label: 'kintone', retries: 1 }
     );
     const records = res.json?.records ?? [];

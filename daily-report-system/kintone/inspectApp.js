@@ -64,7 +64,7 @@ function authHeaders() {
 async function call(path) {
   const res = await fetchWithRetry(
     `${baseUrl()}${path}`,
-    { method: 'GET', headers: { 'Content-Type': 'application/json', ...authHeaders() } },
+    { method: 'GET', headers: { ...authHeaders() } },
     { label: `kintone GET ${path}` }
   );
   return res.json ?? {};

@@ -40,7 +40,8 @@ async function call(method, path, body) {
     `${baseUrl()}${path}`,
     {
       method,
-      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      // GET に Content-Type を付けると kintone が 400 を返すため、GET では付けない
+      headers: method === 'GET' ? { ...authHeaders() } : { 'Content-Type': 'application/json', ...authHeaders() },
       body: body !== undefined && method !== 'GET' ? JSON.stringify(body) : undefined,
     },
     { label: `kintone ${method} ${path}` }

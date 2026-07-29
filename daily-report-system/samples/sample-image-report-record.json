@@ -1,0 +1,43 @@
+{
+  "_comment": "実際の日報アプリ(ID 6)の構造を再現した架空データ。氏名・チーム名はダミー。実データは含みません（リポジトリが公開設定のため）。氏名と日報画像はフィールドコード末尾の番号で対応します。",
+  "records": [
+    {
+      "$id": { "type": "__ID__", "value": "1" },
+      "レコード番号": { "type": "RECORD_NUMBER", "value": "1" },
+      "ドロップダウン": { "type": "DROP_DOWN", "value": "TeamA" },
+      "テーブル_0": {
+        "type": "SUBTABLE",
+        "value": [
+          {
+            "id": "100",
+            "value": {
+              "日時": { "type": "DATETIME", "value": "2026-07-01T10:37:00Z" },
+              "文字列__1行__5": { "type": "SINGLE_LINE_TEXT", "value": "山田太郎" },
+              "添付ファイル_5": { "type": "FILE", "value": [
+                { "fileKey": "key-a", "name": "nippou_a.png", "contentType": "image/png", "size": "12345" } ] },
+              "文字列__1行__6": { "type": "SINGLE_LINE_TEXT", "value": "鈴木花子" },
+              "添付ファイル_6": { "type": "FILE", "value": [
+                { "fileKey": "key-b", "name": "nippou_b.jpg", "contentType": "image/jpeg", "size": "23456" } ] },
+              "文字列__1行__7": { "type": "SINGLE_LINE_TEXT", "value": "未提出者" },
+              "添付ファイル_7": { "type": "FILE", "value": [] }
+            }
+          }
+        ]
+      },
+      "テーブル_1": {
+        "type": "SUBTABLE",
+        "value": [
+          {
+            "id": "101",
+            "value": {
+              "日時_1": { "type": "DATETIME", "value": "2026-07-02T10:37:00Z" },
+              "文字列__1行__8": { "type": "SINGLE_LINE_TEXT", "value": "山田太郎" },
+              "添付ファイル_8": { "type": "FILE", "value": [
+                { "fileKey": "key-c", "name": "nippou_c.png", "contentType": "image/png", "size": "34567" } ] }
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

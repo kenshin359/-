@@ -46,7 +46,7 @@ async function fetchAll(appId, headers) {
     const url = `${baseUrl()}/k/v1/records.json?app=${encodeURIComponent(appId)}&query=${encodeURIComponent(query)}`;
     const res = await fetchWithRetry(
       url,
-      { method: 'GET', headers: { 'Content-Type': 'application/json', ...headers } },
+      { method: 'GET', headers: { ...headers } },
       { label: `backup app${appId}` }
     );
     const records = res.json?.records ?? [];
@@ -66,7 +66,7 @@ async function fetchFields(appId, headers) {
     const url = `${baseUrl()}/k/v1/app/form/fields.json?app=${encodeURIComponent(appId)}`;
     const res = await fetchWithRetry(
       url,
-      { method: 'GET', headers: { 'Content-Type': 'application/json', ...headers } },
+      { method: 'GET', headers: { ...headers } },
       { label: `fields app${appId}`, retries: 1 }
     );
     return res.json?.properties ?? null;

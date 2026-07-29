@@ -108,7 +108,8 @@ async function kintoneCall(method, apiPath, body) {
     `${answers.KINTONE_BASE_URL.replace(/\/$/, '')}${apiPath}`,
     {
       method,
-      headers: { 'Content-Type': 'application/json', ...kintoneAuth() },
+      // GET に Content-Type を付けると kintone が 400 を返すため、GET では付けない
+      headers: method === 'GET' ? { ...kintoneAuth() } : { 'Content-Type': 'application/json', ...kintoneAuth() },
       body: body !== undefined && method !== 'GET' ? JSON.stringify(body) : undefined,
     },
     { label: `kintone ${method}`, retries: 1 }

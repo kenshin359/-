@@ -47,15 +47,15 @@ export function authHeadersFor(token) {
 }
 
 // 汎用リクエスト。token が null ならパスワード認証で実行される。
+//
+// ★重要★ GET に Content-Type を付けると kintone は 400 (CB_IL02 Invalid request)
+//   を返します。実機で確認済みの挙動です。GET では付けないこと。
 async function api(method, apiPath, token, body) {
   const url = `${baseUrl()}${apiPath}`;
-  const options = {
-    method,
-    headers: {
-      'Content-Type': 'application/json',
-      ...authHeadersFor(token),
-    },
-  };
+  const headers = { ...authHeadersFor(token) };
+  if (method !== 'GET') headers['Content-Type'] = 'application/json';
+
+  const options = { method, headers };
   if (body !== undefined && method !== 'GET') options.body = JSON.stringify(body);
 
   const res = await fetchWithRetry(url, options, { label: `kintone ${method} ${apiPath}` });
