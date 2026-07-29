@@ -34,7 +34,7 @@ function section(text, name) {
 
 // ■mall〜次の■ までのモール別ブロックを取り出す
 function mallBlock(sectionText, mall) {
-  const re = new RegExp(`■\\s*${mall}([\\s\\S]*?)(?=■|$)`);
+  const re = new RegExp(`[■▪]\uFE0F?\\s*${mall}([\\s\\S]*?)(?=[■▪]|$)`);
   const m = sectionText.match(re);
   return m ? m[1] : '';
 }
@@ -92,7 +92,7 @@ export function parseReport(text) {
     for (const m of blk.matchAll(/([^\n：:]+?)\s*[:：]\s*([^\n]+)/g)) {
       const product = m[1].trim();
       const val = m[2].trim();
-      if (!product || product.startsWith('■')) continue;
+      if (!product || /^[■▪]/.test(product)) continue;
       const outOfRank = /ランキング外|圏外/.test(val);
       out.ranking.push({ mall, product, rank: outOfRank ? null : num(val), outOfRank });
     }

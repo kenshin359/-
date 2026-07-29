@@ -26,6 +26,7 @@
     "pipeline": "node scripts/runPipeline.js",
     "urgent": "node scripts/urgentNotify.js",
     "test": "node --test \"test/*.test.js\"",
-    "build:n8n": "node scripts/buildN8nSales.js"
+    "build:n8n": "node scripts/buildN8nSales.js",
+    "monthly": "node scripts/monthlySalesReport.js"
   }
 }

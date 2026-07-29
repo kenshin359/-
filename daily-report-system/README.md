@@ -122,8 +122,9 @@ daily-report-system/
 | `npm run setup` | **対話式セットアップ**（まずこれ） |
 | `npm run doctor` | **設定の総点検**（困ったらこれ） |
 | `npm run backup` | **元データのバックアップ**（読み取りのみ） |
-| `npm test` | ユニットテスト（オフライン・120件） |
-| `npm run sales` | **売上レポート**（Amazon/楽天/自社/Meta/RPP・費用ゼロ） |
+| `npm test` | ユニットテスト（オフライン・149件） |
+| `npm run sales` | **売上レポート**（CSV から・Amazon/楽天/自社/Meta/RPP・費用ゼロ） |
+| `npm run monthly` | **月次売上レポート**（Kintone売上アプリから・費用ゼロ） |
 | `npm run build:n8n` | 売上ワークフローJSONを再生成 |
 | `npm run apps` | Kintone アプリ一覧とIDを表示 |
 | `npm run inspect -- <appId>` | 既存アプリの構成と不足フィールドを確認 |
