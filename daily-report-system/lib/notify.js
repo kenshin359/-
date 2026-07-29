@@ -18,7 +18,7 @@
 // ============================================================
 import { optional } from './env.js';
 import { pushLine } from './line.js';
-import { pushChatwork } from './chatwork.js';
+import { pushChatwork, uploadChatworkFile } from './chatwork.js';
 
 /** 設定と実際のトークン有無から、送信先を決める */
 export function resolveChannels() {
@@ -84,6 +84,64 @@ export async function notify(text, opts = {}) {
   return { results, anySent, allFailed: !anySent };
 }
 
+/**
+ * 本文と一緒に画像（日報のスクリーンショット）も送る。
+ *
+ * ・Chatwork … ファイル添付APIで画像を直接アップロードできる
+ * ・LINE     … 画像を送るには「誰でもアクセスできる公開URL」が必要。
+ *              Kintoneの画像は認証が要るため直接は送れない。
+ *              そのため LINE には本文のみを送る（画像は割愛）。
+ *
+ * @param {string} text   本文
+ * @param {object|null} image { buffer, fileName, contentType }
+ * @param {object} opts   { urgent }
+ */
+export async function notifyWithImage(text, image, opts = {}) {
+  const channels = resolveChannels();
+  if (!channels.length) return notify(text, opts); // 未設定時の案内は notify に任せる
+
+  const results = [];
+  for (const ch of channels) {
+    try {
+      if (ch === 'line') {
+        // LINEは公開URLが無いと画像を送れないため本文のみ
+        const r = await pushLine(text);
+        results.push({ channel: 'line', ok: true, imageSent: false, ...r });
+      } else if (image?.buffer) {
+        // Chatworkは画像＋本文をまとめて1件で投稿できる
+        const r = await uploadChatworkFile({
+          buffer: image.buffer,
+          fileName: image.fileName,
+          contentType: image.contentType,
+          message: text,
+        });
+        results.push({ channel: 'chatwork', ok: true, imageSent: !r.skipped, ...r });
+      } else {
+        const mentionAll =
+          !!opts.urgent && optional('CHATWORK_MENTION_ALL_ON_URGENT', 'true') !== 'false';
+        const r = await pushChatwork(text, { mentionAll });
+        results.push({ channel: 'chatwork', ok: true, imageSent: false, ...r });
+      }
+    } catch (e) {
+      console.error(`  ❌ ${ch} への送信に失敗: ${e.message}`);
+      // 画像送信に失敗したら、本文だけでも届くよう再試行する
+      if (ch === 'chatwork' && image?.buffer) {
+        try {
+          const r = await pushChatwork(text, { mentionAll: !!opts.urgent });
+          results.push({ channel: 'chatwork', ok: true, imageSent: false, ...r });
+          continue;
+        } catch (e2) {
+          console.error(`  ❌ chatwork 本文のみの再送も失敗: ${e2.message}`);
+        }
+      }
+      results.push({ channel: ch, ok: false, error: e.message });
+    }
+  }
+
+  const anySent = results.some((r) => r.ok);
+  return { results, anySent, allFailed: !anySent };
+}
+
 /** 通知結果を1行で説明する（ログ表示用） */
 export function describeResults(results) {
   if (!results.length) return '通知先なし';
@@ -91,7 +149,7 @@ export function describeResults(results) {
     .map((r) => {
       if (!r.ok) return `${r.channel}:失敗`;
       if (r.skipped) return `${r.channel}:テスト(未送信)`;
-      return `${r.channel}:送信成功`;
+      return `${r.channel}:送信成功${r.imageSent ? '(画像あり)' : ''}`;
     })
     .join(' / ');
 }

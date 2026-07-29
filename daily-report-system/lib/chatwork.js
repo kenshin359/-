@@ -55,6 +55,51 @@ export function decorate(text, opts = {}) {
 }
 
 /**
+ * Chatwork へファイル（日報画像）を本文つきで投稿する。
+ *
+ * Chatwork のファイル投稿は multipart/form-data。
+ * Node 18+ の FormData / Blob をそのまま fetch に渡せる。
+ *
+ * @param {object} opts { buffer, fileName, contentType, message, roomId }
+ * @returns {Promise<{sent:boolean, skipped?:boolean, roomId:string, fileName:string}>}
+ */
+export async function uploadChatworkFile({ buffer, fileName, contentType, message, roomId }) {
+  const room = roomId || optional('CHATWORK_ROOM_ID');
+  if (!room) throw new Error('Chatwork の送信先が未設定です（CHATWORK_ROOM_ID）');
+
+  // Chatwork のファイル上限は 5MB。超える場合は本文だけ送る判断を呼び出し側に委ねる。
+  const MAX_BYTES = 5 * 1024 * 1024;
+  if (buffer.length > MAX_BYTES) {
+    throw new Error(`ファイルが大きすぎます（${Math.round(buffer.length / 1024)}KB / 上限5MB）`);
+  }
+
+  if (!isProduction()) {
+    console.log('── [TEST] Chatwork ファイル送信スキップ（APP_ENV=test）──');
+    console.log(`ルーム: ${room} / ${fileName} (${Math.round(buffer.length / 1024)}KB)`);
+    if (message) console.log('── 添える本文 ──\n' + message);
+    return { sent: false, skipped: true, roomId: room, fileName };
+  }
+
+  const token = required('CHATWORK_API_TOKEN');
+  const form = new FormData();
+  form.append('file', new Blob([buffer], { type: contentType || 'image/png' }), fileName);
+  // ファイルに添える説明文（4000字上限に合わせて切る）
+  if (message) form.append('message', message.slice(0, 4000));
+
+  await fetchWithRetry(
+    `${API_BASE}/rooms/${encodeURIComponent(room)}/files`,
+    {
+      method: 'POST',
+      headers: { 'X-ChatWorkToken': token }, // Content-Type は FormData が自動設定
+      body: form,
+    },
+    { label: 'chatwork-file', retries: 3, baseDelayMs: 2000 }
+  );
+
+  return { sent: true, roomId: room, fileName };
+}
+
+/**
  * Chatwork へメッセージを送信する。
  * @param {string} text  本文（長ければ自動分割）
  * @param {object} opts  { roomId?, mentionAll?, decorate? }

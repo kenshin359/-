@@ -27,7 +27,7 @@ import { fetchAllDailyReportRecords } from '../lib/kintone.js';
 import { extractImageReports } from '../lib/extractImages.js';
 import { downloadFileAsBase64, toMediaType } from '../lib/kintoneFile.js';
 import { summarizeReportImage } from '../lib/claude.js';
-import { notify, describeResults, resolveChannels } from '../lib/notify.js';
+import { notify, notifyWithImage, describeResults, resolveChannels } from '../lib/notify.js';
 import { optional } from '../lib/env.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -73,6 +73,10 @@ function buildMessage(report, summary) {
     }
     if (summary.urgent && summary.urgent_reason) {
       lines.push('', `⚠️ ${summary.urgent_reason}`);
+    }
+    // AIとしての気づき・助言（特記事項が無いときは載せない）
+    if (summary.comment && summary.comment !== '特記事項なし') {
+      lines.push('', `🤖 AIコメント`, summary.comment);
     }
   } else {
     // Claude が使えない場合でも、提出された事実だけは知らせる
@@ -139,11 +143,23 @@ async function main() {
     const who = x.report.reporter ?? '（氏名不明）';
     console.log(`\n── ${x.report.date} ${who} ──`);
 
-    // 1) 画像を読んで要約（失敗しても通知自体は行う）
+    // 1) 画像を取得して要約（失敗しても通知自体は行う）
     let summary = null;
-    if (hasClaude) {
+    let image = null;
+    try {
+      const dl = await downloadFileAsBase64(x.file.key);
+      image = {
+        buffer: Buffer.from(dl.base64, 'base64'),
+        fileName: x.file.name || 'nippou.png',
+        contentType: x.file.type || 'image/png',
+      };
+    } catch (e) {
+      console.warn(`  ⚠️ 画像の取得に失敗（本文のみ送信）: ${e.message}`);
+    }
+
+    if (hasClaude && image) {
       try {
-        const { base64 } = await downloadFileAsBase64(x.file.key);
+        const base64 = image.buffer.toString('base64');
         summary = await summarizeReportImage({
           base64,
           mediaType: toMediaType(x.file.type),
@@ -152,6 +168,7 @@ async function main() {
           date: x.report.date,
         });
         console.log(`  要約: ${summary.summary}`);
+        if (summary.comment && summary.comment !== '特記事項なし') console.log(`  🤖 ${summary.comment}`);
         if (summary.urgent) console.log(`  🚨 要対応: ${summary.urgent_reason}`);
       } catch (e) {
         console.warn(`  ⚠️ 要約に失敗（通知は続行）: ${e.message}`);
@@ -163,7 +180,7 @@ async function main() {
     if (isDry) {
       console.log('  --- [dry-run] 送信内容 ---\n' + text.replace(/^/gm, '  '));
     } else {
-      const { results, anySent } = await notify(text, { urgent: !!summary?.urgent });
+      const { results, anySent } = await notifyWithImage(text, image, { urgent: !!summary?.urgent });
       console.log(`  ${describeResults(results)}`);
       if (!anySent) {
         console.error('  ❌ どこにも送信できませんでした（次回再送します）');

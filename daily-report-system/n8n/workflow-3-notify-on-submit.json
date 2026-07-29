@@ -175,7 +175,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ model: $env.ANTHROPIC_MODEL || 'claude-sonnet-5', max_tokens: 1000, system: ($env.CLAUDE_REPORT_PROMPT || 'あなたはLibeteeの日報を読むアシスタント。画像はExcelの業務日報(日付/部署/氏名/体調/上長、時間帯・業務内容・進捗成果・所感、明日の予定)。画像に書かれたことだけを使い、推測しない。JSONのみ出力: {summary:60字以内の要点, done:[最大3件], tomorrow:[最大2件], urgent:true/false, urgent_reason:理由or空文字}。発煙/発火/クレーム/PSE/販売停止/欠品/納期遅延/至急/緊急/承認要求 があれば urgent=true。'), messages: [ { role: 'user', content: [ { type: 'image', source: { type: 'base64', media_type: ($('新規提出を検出').item.json.contentType || 'image/png'), data: $json.imageBase64 } }, { type: 'text', text: 'この画像は ' + $('新規提出を検出').item.json.date + ' の業務日報です(報告者: ' + ($('新規提出を検出').item.json.reporter || '不明') + ')。JSONのみ出力してください。' } ] } ] }) }}",
+        "jsonBody": "={{ JSON.stringify({ model: $env.ANTHROPIC_MODEL || 'claude-sonnet-5', max_tokens: 1000, system: ($env.CLAUDE_REPORT_PROMPT || 'あなたはLibeteeの日報を読むアシスタント。画像はExcelの業務日報(日付/部署/氏名/体調/上長、時間帯・業務内容・進捗成果・所感、明日の予定)。画像に書かれたことだけを使い、推測しない。JSONのみ出力: {summary:60字以内の要点, done:[最大3件], tomorrow:[最大2件], comment:AIとしての気づき・助言80字以内(無ければ\\'特記事項なし\\'), urgent:true/false, urgent_reason:理由or空文字}。commentは事実から言えることだけ書き、中身の無い感想は書かない。発煙/発火/クレーム/PSE/販売停止/欠品/納期遅延/至急/緊急/承認要求 があれば urgent=true。'), messages: [ { role: 'user', content: [ { type: 'image', source: { type: 'base64', media_type: ($('新規提出を検出').item.json.contentType || 'image/png'), data: $json.imageBase64 } }, { type: 'text', text: 'この画像は ' + $('新規提出を検出').item.json.date + ' の業務日報です(報告者: ' + ($('新規提出を検出').item.json.reporter || '不明') + ')。JSONのみ出力してください。' } ] } ] }) }}",
         "options": {
           "retry": {
             "retry": {
@@ -197,7 +197,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Claudeの応答を整形してLINEメッセージを作る。失敗しても通知はする。\nconst info = $('新規提出を検出').item.json;\nlet a = null;\ntry {\n  const t = ($json.content || []).filter(c => c.type === 'text').map(c => c.text).join('\\n');\n  let s = t.trim();\n  const f = s.match(/```(?:json)?\\s*([\\s\\S]*?)```/i); if (f) s = f[1].trim();\n  const i = s.indexOf('{'), j = s.lastIndexOf('}'); if (i > -1 && j > -1) s = s.slice(i, j + 1);\n  a = JSON.parse(s);\n} catch (e) { a = null; }\n\nconst who = info.reporter || '（氏名不明）';\nconst team = info.team ? `（${info.team}）` : '';\nconst head = a && a.urgent ? '🚨 要対応の日報が届きました' : '📝 日報が届きました';\nconst L = [`${head}（${info.date}）`, '', `${who}さん${team}`, ''];\nif (a) {\n  L.push(`【要点】${a.summary || '情報不足'}`);\n  if (Array.isArray(a.done) && a.done.length) L.push('', '【完了】', ...a.done.map(x => '・' + x));\n  if (Array.isArray(a.tomorrow) && a.tomorrow.length) L.push('', '【明日】', ...a.tomorrow.map(x => '・' + x));\n  if (a.urgent && a.urgent_reason) L.push('', '⚠️ ' + a.urgent_reason);\n} else {\n  L.push('（内容の自動要約に失敗しました）');\n}\nL.push('', '詳細はKintoneをご確認ください。');\nconst text = L.join('\\n').slice(0, 4800);\n// LINE用(messages) と Chatwork用(title/body) の両方を返す\nconst title = L[0];\nconst body = L.slice(1).join('\\n').trim().slice(0, 3800);\nreturn [{ json: { id: info.id, urgent: !!(a && a.urgent), title, body, messages: [{ type: 'text', text }] } }];"
+        "jsCode": "// Claudeの応答を整形してLINEメッセージを作る。失敗しても通知はする。\nconst info = $('新規提出を検出').item.json;\nlet a = null;\ntry {\n  const t = ($json.content || []).filter(c => c.type === 'text').map(c => c.text).join('\\n');\n  let s = t.trim();\n  const f = s.match(/```(?:json)?\\s*([\\s\\S]*?)```/i); if (f) s = f[1].trim();\n  const i = s.indexOf('{'), j = s.lastIndexOf('}'); if (i > -1 && j > -1) s = s.slice(i, j + 1);\n  a = JSON.parse(s);\n} catch (e) { a = null; }\n\nconst who = info.reporter || '（氏名不明）';\nconst team = info.team ? `（${info.team}）` : '';\nconst head = a && a.urgent ? '🚨 要対応の日報が届きました' : '📝 日報が届きました';\nconst L = [`${head}（${info.date}）`, '', `${who}さん${team}`, ''];\nif (a) {\n  L.push(`【要点】${a.summary || '情報不足'}`);\n  if (Array.isArray(a.done) && a.done.length) L.push('', '【完了】', ...a.done.map(x => '・' + x));\n  if (Array.isArray(a.tomorrow) && a.tomorrow.length) L.push('', '【明日】', ...a.tomorrow.map(x => '・' + x));\n  if (a.urgent && a.urgent_reason) L.push('', '⚠️ ' + a.urgent_reason);\n  if (a.comment && a.comment !== '特記事項なし') L.push('', '🤖 AIコメント', a.comment);\n} else {\n  L.push('（内容の自動要約に失敗しました）');\n}\nL.push('', '↑ 日報の原本を添付しています。');\nconst text = L.join('\\n').slice(0, 4800);\n// LINE用(messages) と Chatwork用(title/body) の両方を返す\nconst title = L[0];\nconst body = L.slice(1).join('\\n').trim().slice(0, 3800);\n// 画像(バイナリ)を引き継いで、次のChatworkノードで添付できるようにする\nconst bin = $('日報画像を取得').first().binary;\nreturn [{ json: { id: info.id, urgent: !!(a && a.urgent), title, body, text, messages: [{ type: 'text', text }] }, binary: bin }];"
       },
       "id": "format",
       "name": "通知文を作成",
@@ -277,24 +277,31 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "=https://api.chatwork.com/v2/rooms/{{ $env.CHATWORK_ROOM_ID }}/messages",
+        "url": "=https://api.chatwork.com/v2/rooms/{{ $env.CHATWORK_ROOM_ID }}/files",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
             {
               "name": "X-ChatWorkToken",
               "value": "={{ $env.CHATWORK_API_TOKEN }}"
-            },
-            {
-              "name": "content-type",
-              "value": "application/x-www-form-urlencoded"
             }
           ]
         },
         "sendBody": true,
-        "contentType": "raw",
-        "rawContentType": "application/x-www-form-urlencoded",
-        "body": "={{ 'body=' + encodeURIComponent(($('通知文を作成').item.json.urgent ? '[toall]\\n' : '') + '[info][title]' + $('通知文を作成').item.json.title + '[/title]' + $('通知文を作成').item.json.body + '[/info]') + '&self_unread=0' }}",
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "message",
+              "value": "={{ ($json.urgent ? '[toall]\\n' : '') + $json.text }}"
+            },
+            {
+              "parameterType": "formBinaryData",
+              "name": "file",
+              "inputDataFieldName": "data"
+            }
+          ]
+        },
         "options": {
           "retry": {
             "retry": {
@@ -305,7 +312,7 @@
         }
       },
       "id": "chatwork",
-      "name": "Chatworkに通知",
+      "name": "Chatworkに通知(画像つき)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
@@ -313,7 +320,7 @@
         380
       ],
       "onError": "continueRegularOutput",
-      "notes": "CHATWORK_API_TOKEN と CHATWORK_ROOM_ID が必要。緊急時は [toall] で全員宛てになります。Chatworkを使わない場合はこのノードを削除してもOK。"
+      "notes": "日報画像を添付して投稿します（Chatworkは5MBまで）。緊急時は[toall]付き。使わない場合は削除可。"
     }
   ],
   "connections": {
@@ -416,14 +423,14 @@
       "main": [
         [
           {
-            "node": "Chatworkに通知",
+            "node": "Chatworkに通知(画像つき)",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Chatworkに通知": {
+    "Chatworkに通知(画像つき)": {
       "main": [
         [
           {

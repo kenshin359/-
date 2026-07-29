@@ -87,3 +87,44 @@ test('describeResults: 結果を1行で説明する', () => {
   assert.equal(describeResults([{ channel: 'line', ok: true, skipped: true }]), 'line:テスト(未送信)');
   assert.equal(describeResults([]), '通知先なし');
 });
+
+// ── 画像添付の扱い ────────────────────────────────────────
+// LINEは公開URLが必要なため画像を送れない（本文のみ）。
+// Chatworkはファイル添付APIで画像を送れる。この違いを固定する。
+import { uploadChatworkFile } from '../lib/chatwork.js';
+
+test('Chatwork: 5MBを超える画像は明示的にエラーになる', async () => {
+  process.env.CHATWORK_ROOM_ID = '1';
+  process.env.APP_ENV = 'production';
+  process.env.CHATWORK_API_TOKEN = 'dummy';
+  await assert.rejects(
+    () => uploadChatworkFile({
+      buffer: Buffer.alloc(6 * 1024 * 1024),
+      fileName: 'big.png',
+      contentType: 'image/png',
+    }),
+    /大きすぎます|5MB/
+  );
+  delete process.env.APP_ENV;
+});
+
+test('Chatwork: テストモードでは画像を送信しない', async () => {
+  process.env.CHATWORK_ROOM_ID = '1';
+  process.env.APP_ENV = 'test';
+  const r = await uploadChatworkFile({
+    buffer: Buffer.from('dummy'),
+    fileName: 'a.png',
+    contentType: 'image/png',
+    message: 'テスト',
+  });
+  assert.equal(r.sent, false);
+  assert.equal(r.skipped, true);
+});
+
+test('Chatwork: 宛先未設定なら分かりやすいエラー', async () => {
+  delete process.env.CHATWORK_ROOM_ID;
+  await assert.rejects(
+    () => uploadChatworkFile({ buffer: Buffer.from('x'), fileName: 'a.png' }),
+    /送信先が未設定/
+  );
+});
