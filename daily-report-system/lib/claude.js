@@ -63,6 +63,65 @@ export async function callClaudeRaw({ system, userText, maxTokens = 3000 }) {
 }
 
 /**
+ * 画像（日報のスクリーンショット）を Claude に読ませる。
+ *
+ * リベティの日報は Excel のスクリーンショット画像なので、
+ * 文章ではなく画像として送る必要がある。
+ *
+ * @param {object} opts { system, userText, images: [{base64, mediaType}], maxTokens }
+ * @returns {Promise<string>} テキスト
+ */
+export async function callClaudeWithImages({ system, userText, images = [], maxTokens = 1500 }) {
+  const apiKey = required('ANTHROPIC_API_KEY');
+  const model = optional('ANTHROPIC_MODEL', 'claude-sonnet-5');
+
+  // content は「画像 → 指示文」の順に並べるのが読み取り精度に有利
+  const content = [
+    ...images.map((img) => ({
+      type: 'image',
+      source: { type: 'base64', media_type: img.mediaType, data: img.base64 },
+    })),
+    { type: 'text', text: userText },
+  ];
+
+  const res = await fetchWithRetry(
+    ANTHROPIC_URL,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': ANTHROPIC_VERSION,
+      },
+      body: JSON.stringify({ model, max_tokens: maxTokens, system, messages: [{ role: 'user', content }] }),
+    },
+    { label: 'claude-vision', retries: 4, baseDelayMs: 2000 }
+  );
+
+  const text = (res.json?.content ?? [])
+    .filter((c) => c.type === 'text')
+    .map((c) => c.text)
+    .join('\n')
+    .trim();
+  if (!text) throw new Error('Claude から空の応答が返りました');
+  return text;
+}
+
+/**
+ * 日報画像1枚を読んで、通知用の要約を返す。
+ * @param {object} opts { base64, mediaType, reporter, team, date }
+ * @returns {Promise<{summary, urgent, urgent_reason, done, tomorrow}>}
+ */
+export async function summarizeReportImage({ base64, mediaType, reporter, team, date }) {
+  const system = readPrompt('single-report-prompt.md');
+  const userText =
+    `この画像は ${date} の業務日報です（報告者: ${reporter ?? '不明'} / チーム: ${team ?? '不明'}）。\n` +
+    '読み取って、指定のJSONだけを出力してください。';
+  const raw = await callClaudeWithImages({ system, userText, images: [{ base64, mediaType }], maxTokens: 1000 });
+  return parseJsonFromModel(raw);
+}
+
+/**
  * 日報群を分析して、構造化された経営日報オブジェクトを返す。
  * Claude には「必ず JSON だけを返す」よう指示し、パースする。
  * @param {object} input { dateISO, reports: [...正規化済み日報], previousIssues?: [...] }

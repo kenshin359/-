@@ -1,0 +1,398 @@
+{
+  "name": "Libetee ③日報の提出を即時通知 (10分ごと)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 10
+            }
+          ]
+        }
+      },
+      "id": "trigger",
+      "name": "10分ごとにチェック",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -1000,
+        300
+      ],
+      "notes": "10分間隔。もっと早くしたい場合は minutesInterval を 5 などに変更。"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.KINTONE_BASE_URL.replace(/\\/$/, '') }}/k/v1/records.json?app={{ $env.KINTONE_DAILY_REPORT_APP_ID }}&query={{ encodeURIComponent('order by $id asc limit 500') }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Cybozu-Authorization",
+              "value": "={{ Buffer.from($env.KINTONE_USER + ':' + $env.KINTONE_PASSWORD).toString('base64') }}"
+            }
+          ]
+        },
+        "options": {
+          "retry": {
+            "retry": {
+              "maxTries": 3,
+              "waitBetweenTries": 2000
+            }
+          }
+        }
+      },
+      "id": "fetch",
+      "name": "日報アプリを取得",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -780,
+        300
+      ],
+      "notes": "★GETにContent-Typeを付けないこと（kintoneが400を返します）。読み取りのみ。"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 日報（画像）を取り出し、まだ通知していないものだけを返す。\n// 通知済みリストはワークフローの静的データに保存されるため、\n// n8nを再起動しても重複通知しません。\nconst store = $getWorkflowStaticData('global');\nstore.seen = store.seen || [];\nconst seen = new Set(store.seen);\n\nconst records = $json.records || [];\nconst pairKey = (code) => { const m = code.match(/_(\\d+)$/); return m ? m[1] : ''; };\nconst isSub = (f) => f && Array.isArray(f.value) && f.value[0] && f.value[0].value && typeof f.value[0].value === 'object';\n\nconst items = [];\nfor (const rec of records) {\n  let team = null;\n  for (const [, f] of Object.entries(rec)) if (f && f.type === 'DROP_DOWN' && f.value) { team = f.value; break; }\n  for (const [, f] of Object.entries(rec)) {\n    if (!isSub(f)) continue;\n    for (const row of f.value) {\n      let date = null; const names = {}, files = {};\n      for (const [code, cell] of Object.entries(row.value)) {\n        if (!cell) continue;\n        if (cell.type === 'DATETIME' && cell.value) date = String(cell.value).slice(0, 10);\n        else if (cell.type === 'SINGLE_LINE_TEXT') names[pairKey(code)] = cell.value || null;\n        else if (cell.type === 'FILE') files[pairKey(code)] = Array.isArray(cell.value) ? cell.value : [];\n      }\n      for (const k of Object.keys(files)) for (const file of (files[k] || [])) {\n        items.push({ id: file.fileKey, date, reporter: names[k] || null, team,\n                     fileName: file.name, contentType: file.contentType });\n      }\n    }\n  }\n}\n\n// 初回実行時は既存分を通知しない（LINEが埋まるのを防ぐ）\nif (!store.initialized) {\n  store.initialized = true;\n  store.seen = items.map(x => x.id);\n  return [{ json: { firstRun: true, count: items.length, fresh: [] } }];\n}\n\nconst fresh = items.filter(x => !seen.has(x.id)).slice(0, 5); // 1回5件まで\nreturn fresh.length ? fresh.map(x => ({ json: x })) : [{ json: { none: true } }];"
+      },
+      "id": "detect",
+      "name": "新規提出を検出",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -560,
+        300
+      ],
+      "notes": "初回実行では通知しません（既存分を通知済みとして記録）。2回目以降の新規のみ通知。"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "loose"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "leftValue": "={{ $json.id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ]
+        }
+      },
+      "id": "if-new",
+      "name": "新規あり?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -340,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.KINTONE_BASE_URL.replace(/\\/$/, '') }}/k/v1/file.json?fileKey={{ encodeURIComponent($json.id) }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Cybozu-Authorization",
+              "value": "={{ Buffer.from($env.KINTONE_USER + ':' + $env.KINTONE_PASSWORD).toString('base64') }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file",
+              "outputPropertyName": "data"
+            }
+          },
+          "retry": {
+            "retry": {
+              "maxTries": 3,
+              "waitBetweenTries": 2000
+            }
+          }
+        }
+      },
+      "id": "download",
+      "name": "日報画像を取得",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -120,
+        200
+      ],
+      "notes": "日報は画像。Claudeに読ませるためバイナリで取得します。"
+    },
+    {
+      "parameters": {
+        "operation": "binaryToPropery",
+        "binaryPropertyName": "data",
+        "destinationKey": "imageBase64",
+        "options": {}
+      },
+      "id": "tob64",
+      "name": "画像をbase64に変換",
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        100,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-api-key",
+              "value": "={{ $env.ANTHROPIC_API_KEY }}"
+            },
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: $env.ANTHROPIC_MODEL || 'claude-sonnet-5', max_tokens: 1000, system: ($env.CLAUDE_REPORT_PROMPT || 'あなたはLibeteeの日報を読むアシスタント。画像はExcelの業務日報(日付/部署/氏名/体調/上長、時間帯・業務内容・進捗成果・所感、明日の予定)。画像に書かれたことだけを使い、推測しない。JSONのみ出力: {summary:60字以内の要点, done:[最大3件], tomorrow:[最大2件], urgent:true/false, urgent_reason:理由or空文字}。発煙/発火/クレーム/PSE/販売停止/欠品/納期遅延/至急/緊急/承認要求 があれば urgent=true。'), messages: [ { role: 'user', content: [ { type: 'image', source: { type: 'base64', media_type: ($('新規提出を検出').item.json.contentType || 'image/png'), data: $json.imageBase64 } }, { type: 'text', text: 'この画像は ' + $('新規提出を検出').item.json.date + ' の業務日報です(報告者: ' + ($('新規提出を検出').item.json.reporter || '不明') + ')。JSONのみ出力してください。' } ] } ] }) }}",
+        "options": {
+          "retry": {
+            "retry": {
+              "maxTries": 3,
+              "waitBetweenTries": 2000
+            }
+          },
+          "timeout": 60000
+        }
+      },
+      "id": "claude",
+      "name": "Claudeが日報を読む",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        320,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Claudeの応答を整形してLINEメッセージを作る。失敗しても通知はする。\nconst info = $('新規提出を検出').item.json;\nlet a = null;\ntry {\n  const t = ($json.content || []).filter(c => c.type === 'text').map(c => c.text).join('\\n');\n  let s = t.trim();\n  const f = s.match(/```(?:json)?\\s*([\\s\\S]*?)```/i); if (f) s = f[1].trim();\n  const i = s.indexOf('{'), j = s.lastIndexOf('}'); if (i > -1 && j > -1) s = s.slice(i, j + 1);\n  a = JSON.parse(s);\n} catch (e) { a = null; }\n\nconst who = info.reporter || '（氏名不明）';\nconst team = info.team ? `（${info.team}）` : '';\nconst head = a && a.urgent ? '🚨 要対応の日報が届きました' : '📝 日報が届きました';\nconst L = [`${head}（${info.date}）`, '', `${who}さん${team}`, ''];\nif (a) {\n  L.push(`【要点】${a.summary || '情報不足'}`);\n  if (Array.isArray(a.done) && a.done.length) L.push('', '【完了】', ...a.done.map(x => '・' + x));\n  if (Array.isArray(a.tomorrow) && a.tomorrow.length) L.push('', '【明日】', ...a.tomorrow.map(x => '・' + x));\n  if (a.urgent && a.urgent_reason) L.push('', '⚠️ ' + a.urgent_reason);\n} else {\n  L.push('（内容の自動要約に失敗しました）');\n}\nL.push('', '詳細はKintoneをご確認ください。');\nconst text = L.join('\\n').slice(0, 4800);\nreturn [{ json: { id: info.id, messages: [{ type: 'text', text }] } }];"
+      },
+      "id": "format",
+      "name": "通知文を作成",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        540,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.line.me/v2/bot/message/push",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.LINE_CHANNEL_ACCESS_TOKEN }}"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ to: ($env.LINE_TARGET_GROUP_ID || $env.LINE_TARGET_USER_ID), messages: $json.messages }) }}",
+        "options": {
+          "retry": {
+            "retry": {
+              "maxTries": 3,
+              "waitBetweenTries": 2000
+            }
+          }
+        }
+      },
+      "id": "line",
+      "name": "LINEに通知",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        760,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// 送信できたものだけを通知済みに記録する（失敗分は次回再送される）\nconst store = $getWorkflowStaticData('global');\nstore.seen = store.seen || [];\nconst id = $('通知文を作成').item.json.id;\nif (id && !store.seen.includes(id)) store.seen.push(id);\n// 記録が増えすぎないよう直近1000件に保つ\nif (store.seen.length > 1000) store.seen = store.seen.slice(-1000);\nreturn [{ json: { recorded: id, total: store.seen.length } }];"
+      },
+      "id": "mark",
+      "name": "通知済みに記録",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        980,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{ json: { message: '新規の提出はありません' } }];"
+      },
+      "id": "none",
+      "name": "新規なし（終了）",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -120,
+        420
+      ]
+    }
+  ],
+  "connections": {
+    "10分ごとにチェック": {
+      "main": [
+        [
+          {
+            "node": "日報アプリを取得",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "日報アプリを取得": {
+      "main": [
+        [
+          {
+            "node": "新規提出を検出",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "新規提出を検出": {
+      "main": [
+        [
+          {
+            "node": "新規あり?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "新規あり?": {
+      "main": [
+        [
+          {
+            "node": "日報画像を取得",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "新規なし（終了）",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "日報画像を取得": {
+      "main": [
+        [
+          {
+            "node": "画像をbase64に変換",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "画像をbase64に変換": {
+      "main": [
+        [
+          {
+            "node": "Claudeが日報を読む",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claudeが日報を読む": {
+      "main": [
+        [
+          {
+            "node": "通知文を作成",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "通知文を作成": {
+      "main": [
+        [
+          {
+            "node": "LINEに通知",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LINEに通知": {
+      "main": [
+        [
+          {
+            "node": "通知済みに記録",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Asia/Tokyo",
+    "saveDataErrorExecution": "all"
+  },
+  "staticData": null,
+  "meta": {
+    "templateId": "libetee-watch-3"
+  },
+  "tags": [
+    {
+      "name": "Libetee"
+    }
+  ]
+}
