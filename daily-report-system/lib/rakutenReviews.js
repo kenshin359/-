@@ -93,6 +93,10 @@ export function parseReviews(lines) {
       // 表示上のボタン類は本文ではない
       if (/^(さらに表示|参考になった|カラー:|注文日：)/.test(l)) continue;
       if (/^\d+人$/.test(l) || l === 'が参考になったと回答') continue;
+      // 投稿者の属性（性別・年代）は本文ではない
+      if (/^(男性|女性)$/.test(l) || /^\d+代(以上)?$/.test(l)) continue;
+      // 購入用途のタグ（自分用｜プレゼント｜はじめて など）
+      if (/^[^\s]{2,10}(｜[^\s]{2,10}){1,3}$/.test(l)) continue;
       body.push(l);
     }
 
@@ -101,10 +105,91 @@ export function parseReviews(lines) {
       date: lines[i + 1],
       who: lines[i + 2],
       shopReply,
+      bodyLines: body,
       body: body.join(' ').trim(),
     });
   }
   return out;
+}
+
+/**
+ * ページ内で繰り返し出てくる定型文（商品名など）を本文から取り除く。
+ *
+ * ★商品レビューのページでは、各レビューの前に商品名が入る。
+ *   長い商品名がそのまま本文に混ざると、下書きの精度が落ちる。
+ *   同じ長い行が3件以上のレビューに現れたら、それは本文ではなく
+ *   ページの定型文とみなして落とす。
+ */
+/**
+ * ページの商品名を取り出す。
+ * レビューページの <title> は「【楽天市場】<商品名>(ショップ名) | みんなのレビュー…」の形。
+ */
+export function extractProductTitle(html) {
+  const m = html.match(/<title>([\s\S]*?)<\/title>/);
+  if (!m) return '';
+  return m[1]
+    .replace(/^【楽天市場】/, '')
+    .replace(/\s*\|\s*みんなのレビュー.*$/, '')
+    .replace(/\([^)]*\)\s*$/, '')
+    .trim();
+}
+
+/**
+ * 商品名の行を本文から取り除く。
+ *
+ * ★楽天の商品レビューでは、各レビューの前に商品名が入る。
+ *   しかも「★4H限定2,000円OFF★」のような期間限定の文言が頭に付くため、
+ *   同じ文字列の繰り返しとしては検出できない（毎回違う文字列になる）。
+ *   そこでページの商品名から特徴語を取り出し、
+ *   それを多く含む長い行を商品名とみなして落とす。
+ */
+export function stripProductTitle(rows, productTitle) {
+  const tokens = String(productTitle || '')
+    .split(/[\s　]+/)
+    .map((s) => s.replace(/[【】★（）()]/g, '').trim())
+    .filter((s) => s.length >= 3);
+  if (tokens.length < 4) return rows;
+
+  const looksLikeTitle = (line) => {
+    if (line.length < 40) return false;
+    const hits = tokens.filter((tk) => line.includes(tk)).length;
+    return hits >= 4;
+  };
+
+  return rows.map((r) => {
+    const lines = r.bodyLines ?? [];
+    const kept = [];
+    for (const l of lines) {
+      if (!looksLikeTitle(l)) {
+        kept.push(l);
+        continue;
+      }
+      // 商品名の直後に感想が続いている場合があるので、末尾だけ残す
+      // 例）「…出張 最高の質感！」→「最高の質感！」
+      const tail = l.split(/[\s　]+/).slice(-1)[0];
+      if (tail && tail.length >= 4 && !tokens.includes(tail)) kept.push(tail);
+    }
+    return { ...r, bodyLines: kept, body: kept.join(' ').trim() };
+  });
+}
+
+export function stripBoilerplate(rows, minLen = 40, minRepeat = 3) {
+  const count = new Map();
+  for (const r of rows) {
+    const lines = r.bodyLines ?? [];
+    for (const l of new Set(lines)) {
+      if (l.length >= minLen) count.set(l, (count.get(l) ?? 0) + 1);
+    }
+  }
+  const boiler = new Set(
+    [...count.entries()].filter(([, n]) => n >= minRepeat).map(([l]) => l)
+  );
+  if (!boiler.size) return rows;
+
+  return rows.map((r) => {
+    const kept = (r.bodyLines ?? []).filter((l) => !boiler.has(l));
+    return { ...r, bodyLines: kept, body: kept.join(' ').trim() };
+  });
 }
 
 /** 同じレビューを二重に扱わないためのキー */
@@ -132,9 +217,12 @@ export async function fetchItemReviews(itemId, pages = 2) {
   const all = [];
   for (let p = 1; p <= pages; p++) {
     if (p > 1) await sleep(POLITE_DELAY_MS);
-    const rows = parseReviews(htmlToLines(await fetchHtml(itemReviewUrl(itemId, p))));
+    const html = await fetchHtml(itemReviewUrl(itemId, p));
+    const rows = parseReviews(htmlToLines(html));
     if (!rows.length) break;
-    all.push(...rows.map((r) => ({ ...r, source: `item:${itemId}` })));
+    // 商品名やページ共通の定型文を落としてから積む
+    const cleaned = stripBoilerplate(stripProductTitle(rows, extractProductTitle(html)));
+    all.push(...cleaned.map((r) => ({ ...r, source: `item:${itemId}` })));
   }
   return dedupe(all);
 }

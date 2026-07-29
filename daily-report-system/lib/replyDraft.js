@@ -166,7 +166,8 @@ export function formatForCs(item, opts = {}) {
     : '🟢 そのままコピーして貼ってください';
 
   lines.push('━━━━━━━━━━━━━━━━━━');
-  lines.push(`${no} ★${item.review.star}　${item.review.date}　${item.review.who}`);
+  lines.push(`${no} 【${sourceLabel(item.review)}】`);
+  lines.push(`★${item.review.star}　${item.review.date}　${item.review.who}`);
   lines.push(action);
   if (item.reasons.length) lines.push(`　確認が必要な理由: ${item.reasons.join(' / ')}`);
   lines.push('');
@@ -187,11 +188,27 @@ export function formatForCs(item, opts = {}) {
   return lines.join('\n');
 }
 
+/**
+ * レビューの種類を、貼る場所が分かる言葉にする。
+ * ショップレビューと商品レビューは RMS の貼り付け先が違うため、
+ * 作業者が迷わないよう1件ごとに明示する。
+ */
+export function sourceLabel(review) {
+  const s = String(review?.source ?? '');
+  if (s.startsWith('item')) return '商品レビュー';
+  if (s === 'shop') return 'ショップレビュー';
+  return 'レビュー';
+}
+
 /** 作業手順の見出し（アルバイト向け） */
-export function csHeader({ date, total, needHuman, flagged }) {
+export function csHeader({ date, total, needHuman, flagged, bySource }) {
   const auto = total - needHuman;
+  const breakdown = bySource
+    ? Object.entries(bySource).map(([k, v]) => `${k} ${v}件`).join(' / ')
+    : '';
   return [
     `📝 楽天レビュー返信（${date}分・全${total}件）`,
+    breakdown ? `内訳: ${breakdown}` : '',
     '',
     `🟢 そのまま貼れる: ${auto}件`,
     `🔴 社員の確認が必要: ${needHuman}件`,

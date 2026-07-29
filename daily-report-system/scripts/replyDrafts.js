@@ -27,7 +27,7 @@ import {
   configuredItemIds,
   reviewKey,
 } from '../lib/rakutenReviews.js';
-import { loadBlocks, assembleReply, auditReply, formatForCs, csHeader } from '../lib/replyDraft.js';
+import { loadBlocks, assembleReply, auditReply, formatForCs, csHeader, sourceLabel } from '../lib/replyDraft.js';
 import { callClaudeRaw, parseJsonFromModel } from '../lib/claude.js';
 import { notify, describeResults, resolveChannels } from '../lib/notify.js';
 import { pushChatwork } from '../lib/chatwork.js';
@@ -147,11 +147,19 @@ async function main() {
   const needHuman = drafts.filter((d) => d.needsHuman);
   const flagged = drafts.filter((d) => d.audit.length);
 
+  // 種類ごとの内訳（ショップレビュー / 商品レビューで貼り付け先が違う）
+  const bySource = {};
+  for (const d of drafts) {
+    const k = sourceLabel(d.review);
+    bySource[k] = (bySource[k] ?? 0) + 1;
+  }
+
   const header = csHeader({
     date: new Date().toLocaleDateString('ja-JP'),
     total: drafts.length,
     needHuman: needHuman.length,
     flagged: flagged.length,
+    bySource,
   });
 
   const bodies = drafts

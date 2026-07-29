@@ -15,8 +15,16 @@ import {
   formatForCs,
   csHeader,
   isSuitcaseReview,
+  sourceLabel,
 } from '../lib/replyDraft.js';
-import { htmlToLines, parseReviews, reviewKey } from '../lib/rakutenReviews.js';
+import {
+  htmlToLines,
+  parseReviews,
+  reviewKey,
+  stripProductTitle,
+  extractProductTitle,
+  stripBoilerplate,
+} from '../lib/rakutenReviews.js';
 
 const cfg = loadBlocks();
 
@@ -250,6 +258,84 @@ describe('CS向けの表示', () => {
 
   test('指摘が0件なら、その行は出さない', () => {
     assert.ok(!csHeader({ date: 'x', total: 3, needHuman: 0, flagged: 0 }).includes('自動点検で指摘あり'));
+  });
+});
+
+describe('レビューの種類の表示', () => {
+  test('ショップレビューと商品レビューを見分ける', () => {
+    assert.equal(sourceLabel({ source: 'shop' }), 'ショップレビュー');
+    assert.equal(sourceLabel({ source: 'item:10000012' }), '商品レビュー');
+  });
+
+  test('種類が分からないときは無難な表記にする', () => {
+    assert.equal(sourceLabel({}), 'レビュー');
+    assert.equal(sourceLabel(null), 'レビュー');
+  });
+
+  test('1件ごとに種類を表示する（貼り付け先が違うため）', () => {
+    const r = { star: 5, date: '2026/07/29', who: 'テストさん', body: '良い', source: 'item:1' };
+    const item = { review: r, ...assembleReply(AI_OK, r, cfg), audit: [] };
+    assert.match(formatForCs(item), /【商品レビュー】/);
+  });
+
+  test('見出しに種類ごとの内訳を出す', () => {
+    const h = csHeader({ date: 'x', total: 5, needHuman: 1, flagged: 0,
+      bySource: { 'ショップレビュー': 3, '商品レビュー': 2 } });
+    assert.match(h, /内訳: ショップレビュー 3件 \/ 商品レビュー 2件/);
+  });
+
+  test('内訳が無ければその行は出さない', () => {
+    assert.ok(!csHeader({ date: 'x', total: 5, needHuman: 1, flagged: 0 }).includes('内訳'));
+  });
+});
+
+describe('商品レビューの本文そうじ', () => {
+  const TITLE = '【楽天1位 ヒルナンデス放送】スーツケース キャリーケース キャリーバッグ 機内持ち込み '
+    + 'フロントオープン 多機能 軽量 静音キャスター TSAロック USBポート Libetee リベティ 出張';
+
+  test('ページの<title>から商品名を取り出す', () => {
+    const html = `<title>【楽天市場】${TITLE}(Libetee) | みんなのレビュー·口コミ・評判</title>`;
+    const got = extractProductTitle(html);
+    assert.ok(got.includes('スーツケース'));
+    assert.ok(!got.includes('【楽天市場】'));
+    assert.ok(!got.includes('みんなのレビュー'));
+  });
+
+  test('本文に混ざった商品名を落とし、感想だけ残す（回帰テスト）', () => {
+    // 商品名の頭に毎回違う販促文が付くため、繰り返し検出では取れない
+    const rows = [
+      { bodyLines: ['★4H限定2,000円OFF★' + TITLE + ' 最高の質感！'], body: '' },
+    ];
+    const out = stripProductTitle(rows, TITLE);
+    assert.equal(out[0].body, '最高の質感！');
+  });
+
+  test('普通の感想は消さない', () => {
+    const rows = [{ bodyLines: ['キャスターが静かでとても満足しています。'], body: '' }];
+    assert.equal(stripProductTitle(rows, TITLE)[0].body, 'キャスターが静かでとても満足しています。');
+  });
+
+  test('商品名が取れないときは何もしない', () => {
+    const rows = [{ bodyLines: ['本文です'], body: '本文です' }];
+    assert.equal(stripProductTitle(rows, '')[0].body, '本文です');
+  });
+
+  test('3件以上に共通する長い定型文は落とす', () => {
+    // 40文字以上でないと定型文として扱われない（短い共通句を誤って消さないため）
+    const boiler = 'これは全レビューに共通して入ってしまう長い定型文の行です。しきい値の40文字を超えています。';
+    const rows = [1, 2, 3].map((i) => ({ bodyLines: [boiler, `感想${i}`], body: '' }));
+    const out = stripBoilerplate(rows);
+    assert.equal(out[0].body, '感想1');
+  });
+
+  test('投稿者の属性（性別・年代）は本文に入れない', () => {
+    const html = `
+      <div>5</div><div>2026/07/29</div><div>テストさん</div>
+      <div>男性</div><div>40代</div>
+      <div>キャスターが静かです。</div>
+      <div>不適切レビュー報告</div>`;
+    const r = parseReviews(htmlToLines(html))[0];
+    assert.equal(r.body, 'キャスターが静かです。');
   });
 });
 
