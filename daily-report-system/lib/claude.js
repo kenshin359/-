@@ -154,6 +154,31 @@ export async function summarizeUrgent(incident) {
   return parseJsonFromModel(raw);
 }
 
+/**
+ * 集計済みの売上サマリーに「気づきの一言」を付ける。
+ *
+ * ★ 計算はプログラム側で済ませ、AIには完成した数字だけを渡します。
+ *   （AIに大量の足し算をさせると金額がずれるため。費用も最小になります）
+ *
+ * @param {object} summary buildDailySummary の結果
+ * @returns {Promise<{comment: string}>}
+ */
+export async function commentOnSales(summary) {
+  const system = readPrompt('sales-comment-prompt.md');
+  // 商品名の羅列は費用がかさむので上位3件だけ渡す
+  const compact = {
+    date: summary.date,
+    prevDate: summary.prevDate,
+    totals: summary.totals,
+    salesChannels: summary.salesChannels,
+    adChannels: summary.adChannels,
+    topProducts: (summary.topProducts ?? []).slice(0, 3),
+  };
+  const userText = '### 集計済み売上データ(JSON)\n```json\n' + JSON.stringify(compact, null, 2) + '\n```\n';
+  const raw = await callClaudeRaw({ system, userText, maxTokens: 400 });
+  return parseJsonFromModel(raw);
+}
+
 // モデル出力から JSON を安全に取り出す（```json フェンスや前後の文章を許容）
 export function parseJsonFromModel(text) {
   let t = text.trim();

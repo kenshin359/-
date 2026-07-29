@@ -1,0 +1,92 @@
+{
+  "_説明": [
+    "売上・広告ファイルの『どの列を見るか』を決める設定ファイルです。",
+    "列名の候補を上から順に探し、最初に見つかったものを使います。",
+    "実物のCSVをいただいたら、ここに正式な列名を追記して確定させます。",
+    "kind: 'sales' は売上ファイル、'ad' は広告ファイルです。",
+    "match: ファイル名にこの文字が含まれていれば、その媒体だと判断します。",
+    "skipRows: 見出し行の前にある説明行を読み飛ばす数（既定 0）。"
+  ],
+
+  "channels": [
+    {
+      "id": "amazon",
+      "label": "Amazon",
+      "kind": "sales",
+      "match": ["amazon", "アマゾン", "amzn"],
+      "skipRows": 0,
+      "columns": {
+        "date": ["購入日", "注文日", "発注日", "purchase-date", "orderdate", "date"],
+        "amount": ["商品小計", "売上", "売上金額", "注文額", "item-price", "itemprice", "ordered product sales"],
+        "quantity": ["数量", "個数", "quantity", "quantity-purchased", "units ordered"],
+        "orderId": ["注文番号", "amazon-order-id", "order-id", "orderid"],
+        "product": ["商品名", "product-name", "title", "asin"]
+      },
+      "_TODO": "要確認: 実際のレポート種別（ビジネスレポート / 注文レポート）で列名が変わります"
+    },
+
+    {
+      "id": "rakuten",
+      "label": "楽天",
+      "kind": "sales",
+      "match": ["rakuten", "楽天", "rms"],
+      "skipRows": 0,
+      "columns": {
+        "date": ["注文日", "受注日", "注文日時", "受注日時", "date"],
+        "amount": ["小計", "商品計", "合計金額", "売上", "商品金額"],
+        "quantity": ["数量", "個数", "注文数"],
+        "orderId": ["注文番号", "受注番号"],
+        "product": ["商品名", "商品管理番号"]
+      },
+      "_TODO": "要確認: RMSの受注CSVは1注文が複数行に分かれることがあります（要サンプル確認）"
+    },
+
+    {
+      "id": "own",
+      "label": "自社サイト",
+      "kind": "sales",
+      "match": ["own", "自社", "shopify", "base", "makeshop", "site"],
+      "skipRows": 0,
+      "columns": {
+        "date": ["注文日", "購入日", "created at", "createdat", "date"],
+        "amount": ["合計", "小計", "売上", "total", "subtotal"],
+        "quantity": ["数量", "lineitem quantity", "quantity"],
+        "orderId": ["注文番号", "name", "order number"],
+        "product": ["商品名", "lineitem name", "product"]
+      }
+    },
+
+    {
+      "id": "meta",
+      "label": "Meta広告",
+      "kind": "ad",
+      "match": ["meta", "facebook", "fb", "instagram", "メタ"],
+      "skipRows": 0,
+      "columns": {
+        "date": ["日", "日付", "reporting starts", "day", "date"],
+        "cost": ["消化金額", "消化金額(jpy)", "費用", "amount spent", "amountspent(jpy)", "spend"],
+        "impressions": ["インプレッション", "impressions"],
+        "clicks": ["クリック", "リンクのクリック", "clicks", "link clicks"],
+        "conversions": ["購入", "コンバージョン", "purchases", "results"],
+        "conversionValue": ["購入コンバージョン値", "コンバージョン値", "purchase conversion value"]
+      }
+    },
+
+    {
+      "id": "rpp",
+      "label": "RPP広告",
+      "kind": "ad",
+      "match": ["rpp", "楽天広告", "promotion"],
+      "skipRows": 0,
+      "columns": {
+        "date": ["日付", "日", "date"],
+        "cost": ["実績額", "消化金額", "広告費", "費用", "コスト"],
+        "impressions": ["表示回数", "インプレッション"],
+        "clicks": ["クリック数", "クリック"],
+        "conversions": ["注文数", "経由注文数", "cv数"],
+        "conversionValue": ["売上金額", "経由売上", "広告経由売上"]
+      },
+      "_TODO": "要確認: RPPは管理画面からのCSVダウンロードが基本（APIは未提供）"
+    }
+  ]
+}

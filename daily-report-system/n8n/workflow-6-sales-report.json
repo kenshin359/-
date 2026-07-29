@@ -1,0 +1,218 @@
+{
+  "name": "Libetee ⑥ 売上レポート（Amazon/楽天/自社/Meta/RPP）",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 10 * * *"
+            }
+          ]
+        }
+      },
+      "id": "sales-trigger",
+      "name": "毎日10:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -260,
+        300
+      ],
+      "notes": "前日分の売上を毎朝10時に配信します。時刻はここで変更できます。"
+    },
+    {
+      "parameters": {
+        "fileSelector": "=/data/sales/*",
+        "options": {}
+      },
+      "id": "sales-read",
+      "name": "CSVを読み込む",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        -40,
+        300
+      ],
+      "notes": "CSVを置いたフォルダを指定します。\nn8nクラウドを使う場合はこのノードを削除し、\nGoogle Drive ノード（Download File）に差し替えてください。"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ============================================================\n//  売上ファイルを集計して通知文を作る\n// ------------------------------------------------------------\n//  ★このコードは自動生成されています。\n//    直接編集せず、リポジトリの n8n/snippets/salesInline.js を直し、\n//    npm run build:n8n で作り直してください。\n// ============================================================\n\n// 列の対応表（config/sales-mapping.json の内容）\nconst MAPPING = {\n  \"_説明\": [\n    \"売上・広告ファイルの『どの列を見るか』を決める設定ファイルです。\",\n    \"列名の候補を上から順に探し、最初に見つかったものを使います。\",\n    \"実物のCSVをいただいたら、ここに正式な列名を追記して確定させます。\",\n    \"kind: 'sales' は売上ファイル、'ad' は広告ファイルです。\",\n    \"match: ファイル名にこの文字が含まれていれば、その媒体だと判断します。\",\n    \"skipRows: 見出し行の前にある説明行を読み飛ばす数（既定 0）。\"\n  ],\n\n  \"channels\": [\n    {\n      \"id\": \"amazon\",\n      \"label\": \"Amazon\",\n      \"kind\": \"sales\",\n      \"match\": [\"amazon\", \"アマゾン\", \"amzn\"],\n      \"skipRows\": 0,\n      \"columns\": {\n        \"date\": [\"購入日\", \"注文日\", \"発注日\", \"purchase-date\", \"orderdate\", \"date\"],\n        \"amount\": [\"商品小計\", \"売上\", \"売上金額\", \"注文額\", \"item-price\", \"itemprice\", \"ordered product sales\"],\n        \"quantity\": [\"数量\", \"個数\", \"quantity\", \"quantity-purchased\", \"units ordered\"],\n        \"orderId\": [\"注文番号\", \"amazon-order-id\", \"order-id\", \"orderid\"],\n        \"product\": [\"商品名\", \"product-name\", \"title\", \"asin\"]\n      },\n      \"_TODO\": \"要確認: 実際のレポート種別（ビジネスレポート / 注文レポート）で列名が変わります\"\n    },\n\n    {\n      \"id\": \"rakuten\",\n      \"label\": \"楽天\",\n      \"kind\": \"sales\",\n      \"match\": [\"rakuten\", \"楽天\", \"rms\"],\n      \"skipRows\": 0,\n      \"columns\": {\n        \"date\": [\"注文日\", \"受注日\", \"注文日時\", \"受注日時\", \"date\"],\n        \"amount\": [\"小計\", \"商品計\", \"合計金額\", \"売上\", \"商品金額\"],\n        \"quantity\": [\"数量\", \"個数\", \"注文数\"],\n        \"orderId\": [\"注文番号\", \"受注番号\"],\n        \"product\": [\"商品名\", \"商品管理番号\"]\n      },\n      \"_TODO\": \"要確認: RMSの受注CSVは1注文が複数行に分かれることがあります（要サンプル確認）\"\n    },\n\n    {\n      \"id\": \"own\",\n      \"label\": \"自社サイト\",\n      \"kind\": \"sales\",\n      \"match\": [\"own\", \"自社\", \"shopify\", \"base\", \"makeshop\", \"site\"],\n      \"skipRows\": 0,\n      \"columns\": {\n        \"date\": [\"注文日\", \"購入日\", \"created at\", \"createdat\", \"date\"],\n        \"amount\": [\"合計\", \"小計\", \"売上\", \"total\", \"subtotal\"],\n        \"quantity\": [\"数量\", \"lineitem quantity\", \"quantity\"],\n        \"orderId\": [\"注文番号\", \"name\", \"order number\"],\n        \"product\": [\"商品名\", \"lineitem name\", \"product\"]\n      }\n    },\n\n    {\n      \"id\": \"meta\",\n      \"label\": \"Meta広告\",\n      \"kind\": \"ad\",\n      \"match\": [\"meta\", \"facebook\", \"fb\", \"instagram\", \"メタ\"],\n      \"skipRows\": 0,\n      \"columns\": {\n        \"date\": [\"日\", \"日付\", \"reporting starts\", \"day\", \"date\"],\n        \"cost\": [\"消化金額\", \"消化金額(jpy)\", \"費用\", \"amount spent\", \"amountspent(jpy)\", \"spend\"],\n        \"impressions\": [\"インプレッション\", \"impressions\"],\n        \"clicks\": [\"クリック\", \"リンクのクリック\", \"clicks\", \"link clicks\"],\n        \"conversions\": [\"購入\", \"コンバージョン\", \"purchases\", \"results\"],\n        \"conversionValue\": [\"購入コンバージョン値\", \"コンバージョン値\", \"purchase conversion value\"]\n      }\n    },\n\n    {\n      \"id\": \"rpp\",\n      \"label\": \"RPP広告\",\n      \"kind\": \"ad\",\n      \"match\": [\"rpp\", \"楽天広告\", \"promotion\"],\n      \"skipRows\": 0,\n      \"columns\": {\n        \"date\": [\"日付\", \"日\", \"date\"],\n        \"cost\": [\"実績額\", \"消化金額\", \"広告費\", \"費用\", \"コスト\"],\n        \"impressions\": [\"表示回数\", \"インプレッション\"],\n        \"clicks\": [\"クリック数\", \"クリック\"],\n        \"conversions\": [\"注文数\", \"経由注文数\", \"cv数\"],\n        \"conversionValue\": [\"売上金額\", \"経由売上\", \"広告経由売上\"]\n      },\n      \"_TODO\": \"要確認: RPPは管理画面からのCSVダウンロードが基本（APIは未提供）\"\n    }\n  ]\n};\n\n// ============================================================\n//  n8n の Code ノードに埋め込む売上集計ロジック（自己完結版）\n// ------------------------------------------------------------\n//  n8n の Code ノードは外部ファイルを import できないため、\n//  lib/ と同じ処理をこのファイル1枚にまとめています。\n//\n//  ★このファイルを直接編集し、npm run build:n8n で\n//    n8n/workflow-6-sales-report.json に埋め込みます。\n//    手でJSONを書き換えないでください。\n//\n//  ★lib/ 側とズレていないことは test/sales-inline.test.js が\n//    毎回チェックします（同じサンプルで同じ文面が出ること）。\n// ============================================================\n\nfunction buildSalesText(files, mapping, dateISO, prevISO, opts = {}) {\n  const results = files.map((f) => aggregateFile(f, mapping));\n  const summary = buildDailySummary(results, dateISO, prevISO);\n  return { text: formatSalesSummary(summary, opts), summary, results };\n}\n\n// ── 文字コード ───────────────────────────────────────────\nfunction decodeText(buf) {\n  const bytes = buf instanceof Uint8Array ? buf : new Uint8Array(buf);\n  if (bytes[0] === 0xef && bytes[1] === 0xbb && bytes[2] === 0xbf)\n    return { text: new TextDecoder('utf-8').decode(bytes.subarray(3)), encoding: 'utf-8-bom' };\n  if (bytes[0] === 0xff && bytes[1] === 0xfe)\n    return { text: new TextDecoder('utf-16le').decode(bytes.subarray(2)), encoding: 'utf-16le' };\n  if (bytes[0] === 0xfe && bytes[1] === 0xff)\n    return { text: new TextDecoder('utf-16be').decode(bytes.subarray(2)), encoding: 'utf-16be' };\n  try {\n    return { text: new TextDecoder('utf-8', { fatal: true }).decode(bytes), encoding: 'utf-8' };\n  } catch {\n    return { text: new TextDecoder('shift_jis').decode(bytes), encoding: 'shift_jis' };\n  }\n}\n\nfunction detectDelimiter(text) {\n  const first = text.split(/\\r?\\n/, 1)[0] ?? '';\n  return (first.match(/\\t/g) || []).length > (first.match(/,/g) || []).length ? '\\t' : ',';\n}\n\nfunction parseCsv(text, delimiter) {\n  const delim = delimiter || detectDelimiter(text);\n  const rows = [];\n  let row = [], field = '', inQuotes = false;\n  for (let i = 0; i < text.length; i++) {\n    const c = text[i];\n    if (inQuotes) {\n      if (c === '\"') {\n        if (text[i + 1] === '\"') { field += '\"'; i++; } else inQuotes = false;\n      } else field += c;\n      continue;\n    }\n    if (c === '\"') inQuotes = true;\n    else if (c === delim) { row.push(field); field = ''; }\n    else if (c === '\\r') {\n      if (text[i + 1] !== '\\n') { row.push(field); rows.push(row); row = []; field = ''; }\n    } else if (c === '\\n') { row.push(field); rows.push(row); row = []; field = ''; }\n    else field += c;\n  }\n  if (field !== '' || row.length > 0) { row.push(field); rows.push(row); }\n  return rows.filter((r) => !(r.length === 1 && r[0].trim() === ''));\n}\n\nfunction normalizeHeader(h) {\n  return String(h ?? '')\n    .replace(/^﻿/, '')\n    .replace(/[　\\s]+/g, '')\n    .replace(/^[\"']|[\"']$/g, '')\n    .replace(/[Ａ-Ｚａ-ｚ０-９]/g, (s) => String.fromCharCode(s.charCodeAt(0) - 0xfee0))\n    .toLowerCase();\n}\n\nfunction readTable(buf, opts = {}) {\n  const { text, encoding } = decodeText(buf);\n  const delimiter = detectDelimiter(text);\n  let matrix = parseCsv(text, delimiter);\n  const skip = Number(opts.skipRows) || 0;\n  if (skip > 0) matrix = matrix.slice(skip);\n  if (matrix.length === 0) return { headers: [], rows: [], encoding, delimiter };\n  const headers = matrix[0].map(normalizeHeader);\n  const rows = matrix.slice(1).map((cells) => {\n    const o = {};\n    for (let i = 0; i < headers.length; i++) {\n      if (headers[i] === '') continue;\n      o[headers[i]] = (cells[i] ?? '').trim();\n    }\n    return o;\n  });\n  return { headers, rows, encoding, delimiter };\n}\n\n// ── 値の読み取り ─────────────────────────────────────────\nfunction parseAmount(raw) {\n  if (raw === null || raw === undefined) return null;\n  if (typeof raw === 'number') return Number.isFinite(raw) ? raw : null;\n  let s = String(raw).trim();\n  if (s === '') return null;\n  s = s.replace(/[Ａ-Ｚａ-ｚ０-９．，－]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0xfee0));\n  if (/^(-|‐|—|ー|n\\/a|na|null|なし|未計上|不明)$/i.test(s)) return null;\n  let negative = false;\n  const paren = s.match(/^\\((.*)\\)$/);\n  if (paren) { negative = true; s = paren[1]; }\n  s = s.replace(/[¥￥$€]/g, '').replace(/jpy|usd|円|件|点|個/gi, '').replace(/[,\\s]/g, '');\n  if (s.startsWith('-') || s.startsWith('△') || s.startsWith('▲')) {\n    negative = true;\n    s = s.replace(/^[-△▲]/, '');\n  }\n  if (!/^\\d*\\.?\\d+$/.test(s)) return null;\n  const n = Number(s);\n  if (!Number.isFinite(n)) return null;\n  return negative ? -n : n;\n}\n\nfunction iso(y, mo, d) {\n  const mm = String(Number(mo)).padStart(2, '0');\n  const dd = String(Number(d)).padStart(2, '0');\n  if (Number(mo) < 1 || Number(mo) > 12 || Number(d) < 1 || Number(d) > 31) return null;\n  return `${y}-${mm}-${dd}`;\n}\n\nfunction parseDate(raw) {\n  if (!raw) return null;\n  let s = String(raw).trim();\n  if (s === '') return null;\n  s = s.replace(/[０-９]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0xfee0));\n  let m = s.match(/^(\\d{4})年\\s*(\\d{1,2})月\\s*(\\d{1,2})日/);\n  if (m) return iso(m[1], m[2], m[3]);\n  m = s.match(/^(\\d{4})[-/.](\\d{1,2})[-/.](\\d{1,2})/);\n  if (m) return iso(m[1], m[2], m[3]);\n  m = s.match(/^(\\d{4})(\\d{2})(\\d{2})$/);\n  if (m) return iso(m[1], m[2], m[3]);\n  m = s.match(/^(\\d{1,2})[-/.](\\d{1,2})[-/.](\\d{4})/);\n  if (m) return iso(m[3], m[1], m[2]);\n  return null;\n}\n\nfunction yen(n) {\n  if (n === null || n === undefined || !Number.isFinite(n)) return '—';\n  const sign = n < 0 ? '-' : '';\n  return `${sign}¥${Math.round(Math.abs(n)).toLocaleString('ja-JP')}`;\n}\n\nfunction deltaPct(current, previous) {\n  if (!Number.isFinite(current) || !Number.isFinite(previous) || previous === 0) return null;\n  return ((current - previous) / Math.abs(previous)) * 100;\n}\n\nfunction formatDelta(pct) {\n  if (pct === null) return '';\n  return `${pct >= 0 ? '+' : ''}${pct.toFixed(1)}%`;\n}\n\n// ── 集計 ─────────────────────────────────────────────────\nfunction detectChannel(fileName, mapping) {\n  const name = String(fileName).toLowerCase();\n  for (const ch of mapping.channels) {\n    const patterns = Array.isArray(ch.match) ? ch.match : [ch.match];\n    if (patterns.some((p) => p && name.includes(String(p).toLowerCase()))) return ch;\n  }\n  return null;\n}\n\nfunction pickColumn(headers, candidates = []) {\n  const wanted = candidates.map(normalizeHeader);\n  for (const w of wanted) if (headers.includes(w)) return w;\n  for (const w of wanted) {\n    if (!w) continue;\n    const hit = headers.find((h) => h.includes(w) || w.includes(h));\n    if (hit) return hit;\n  }\n  return null;\n}\n\nfunction blankBucket(isAd) {\n  return isAd\n    ? { cost: 0, impressions: 0, clicks: 0, conversions: 0, conversionValue: 0 }\n    : { revenue: 0, units: 0, orderIds: new Set() };\n}\n\nfunction aggregateFile(file, mapping) {\n  const channel = detectChannel(file.name, mapping);\n  if (!channel)\n    return { ok: false, fileName: file.name, reason: '媒体を判別できませんでした（ファイル名に amazon / rakuten / meta / rpp などを含めてください）' };\n\n  const { headers, rows, encoding } = readTable(file.buffer, { skipRows: channel.skipRows });\n  if (rows.length === 0) return { ok: false, fileName: file.name, channel, reason: 'データ行がありません' };\n\n  const cols = channel.columns || {};\n  const dateCol = pickColumn(headers, cols.date);\n  if (!dateCol)\n    return { ok: false, fileName: file.name, channel, reason: `日付の列が見つかりません（見出し: ${headers.slice(0, 12).join(' / ')}）` };\n\n  const isAd = channel.kind === 'ad';\n  const valueCols = isAd\n    ? {\n        cost: pickColumn(headers, cols.cost),\n        impressions: pickColumn(headers, cols.impressions),\n        clicks: pickColumn(headers, cols.clicks),\n        conversions: pickColumn(headers, cols.conversions),\n        conversionValue: pickColumn(headers, cols.conversionValue),\n      }\n    : {\n        amount: pickColumn(headers, cols.amount),\n        quantity: pickColumn(headers, cols.quantity),\n        orderId: pickColumn(headers, cols.orderId),\n        product: pickColumn(headers, cols.product),\n      };\n\n  const mainCol = isAd ? valueCols.cost : valueCols.amount;\n  if (!mainCol)\n    return { ok: false, fileName: file.name, channel, reason: `${isAd ? '広告費' : '売上金額'}の列が見つかりません（見出し: ${headers.slice(0, 12).join(' / ')}）` };\n\n  const byDate = new Map();\n  const byProduct = new Map();\n  let skipped = 0;\n\n  for (const row of rows) {\n    const date = parseDate(row[dateCol]);\n    if (!date) { skipped++; continue; }\n    const bucket = byDate.get(date) || blankBucket(isAd);\n    byDate.set(date, bucket);\n\n    if (isAd) {\n      bucket.cost += parseAmount(row[valueCols.cost]) ?? 0;\n      if (valueCols.impressions) bucket.impressions += parseAmount(row[valueCols.impressions]) ?? 0;\n      if (valueCols.clicks) bucket.clicks += parseAmount(row[valueCols.clicks]) ?? 0;\n      if (valueCols.conversions) bucket.conversions += parseAmount(row[valueCols.conversions]) ?? 0;\n      if (valueCols.conversionValue) bucket.conversionValue += parseAmount(row[valueCols.conversionValue]) ?? 0;\n    } else {\n      const amount = parseAmount(row[valueCols.amount]) ?? 0;\n      bucket.revenue += amount;\n      bucket.units += valueCols.quantity ? (parseAmount(row[valueCols.quantity]) ?? 0) : 0;\n      if (valueCols.orderId) bucket.orderIds.add(row[valueCols.orderId]);\n      else bucket.orderIds.add(`row-${bucket.orderIds.size}`);\n      if (valueCols.product) {\n        const name = (row[valueCols.product] || '').trim();\n        if (name) {\n          const key = `${date} ${name}`;\n          const p = byProduct.get(key) || { name, revenue: 0, units: 0, date };\n          p.revenue += amount;\n          p.units += valueCols.quantity ? (parseAmount(row[valueCols.quantity]) ?? 0) : 0;\n          byProduct.set(key, p);\n        }\n      }\n    }\n  }\n\n  const daily = {};\n  for (const [date, b] of byDate) {\n    daily[date] = isAd\n      ? { cost: b.cost, impressions: b.impressions, clicks: b.clicks, conversions: b.conversions, conversionValue: b.conversionValue }\n      : { revenue: b.revenue, units: b.units, orders: b.orderIds.size };\n  }\n\n  return {\n    ok: true,\n    fileName: file.name,\n    channelId: channel.id,\n    label: channel.label,\n    kind: channel.kind,\n    encoding,\n    rowCount: rows.length,\n    skipped,\n    usedColumns: { date: dateCol, ...valueCols },\n    daily,\n    products: [...byProduct.values()],\n  };\n}\n\nfunction buildDailySummary(results, dateISO, prevISO) {\n  const ok = results.filter((r) => r.ok);\n  const salesChannels = [];\n  const adChannels = [];\n\n  for (const r of ok) {\n    const today = r.daily[dateISO];\n    const prev = r.daily[prevISO];\n    if (r.kind === 'ad') {\n      adChannels.push({\n        id: r.channelId, label: r.label,\n        cost: today?.cost ?? 0, prevCost: prev?.cost ?? null,\n        clicks: today?.clicks ?? 0, conversions: today?.conversions ?? 0,\n        conversionValue: today?.conversionValue ?? 0, hasData: !!today,\n      });\n    } else {\n      salesChannels.push({\n        id: r.channelId, label: r.label,\n        revenue: today?.revenue ?? 0, prevRevenue: prev?.revenue ?? null,\n        orders: today?.orders ?? 0, units: today?.units ?? 0, hasData: !!today,\n      });\n    }\n  }\n\n  const totalRevenue = salesChannels.reduce((s, c) => s + c.revenue, 0);\n  const prevRevenue = salesChannels.reduce((s, c) => s + (c.prevRevenue ?? 0), 0);\n  const totalOrders = salesChannels.reduce((s, c) => s + c.orders, 0);\n  const totalCost = adChannels.reduce((s, c) => s + c.cost, 0);\n  const prevCost = adChannels.reduce((s, c) => s + (c.prevCost ?? 0), 0);\n\n  const productMap = new Map();\n  for (const r of ok) {\n    if (r.kind === 'ad') continue;\n    for (const p of r.products) {\n      if (p.date !== dateISO) continue;\n      const cur = productMap.get(p.name) || { name: p.name, revenue: 0, units: 0 };\n      cur.revenue += p.revenue;\n      cur.units += p.units;\n      productMap.set(p.name, cur);\n    }\n  }\n  const topProducts = [...productMap.values()].sort((a, b) => b.revenue - a.revenue).slice(0, 5);\n\n  return {\n    date: dateISO,\n    prevDate: prevISO,\n    salesChannels,\n    adChannels,\n    totals: {\n      revenue: totalRevenue,\n      prevRevenue: salesChannels.some((c) => c.prevRevenue !== null) ? prevRevenue : null,\n      orders: totalOrders,\n      aov: totalOrders > 0 ? totalRevenue / totalOrders : null,\n      adCost: totalCost,\n      prevAdCost: adChannels.some((c) => c.prevCost !== null) ? prevCost : null,\n      roas: totalCost > 0 ? totalRevenue / totalCost : null,\n      adRatio: totalRevenue > 0 ? (totalCost / totalRevenue) * 100 : null,\n    },\n    topProducts,\n    problems: results.filter((r) => !r.ok),\n  };\n}\n\n// ── 文面 ─────────────────────────────────────────────────\nfunction trend(pct) {\n  if (pct === null) return '';\n  if (pct <= -10) return ' ⚠️';\n  if (pct >= 10) return ' 🔺';\n  return '';\n}\n\nfunction line(label, value, pct) {\n  const d = pct === null || pct === undefined ? '' : `（前日比 ${formatDelta(pct)}）${trend(pct)}`;\n  return `${label}　${value}${d}`;\n}\n\nfunction formatSalesSummary(summary, opts = {}) {\n  const t = summary.totals;\n  const out = [];\n  out.push(`${opts.title || '💰 売上速報'}（${summary.date}）`);\n  out.push('');\n\n  const revPct = t.prevRevenue === null ? null : deltaPct(t.revenue, t.prevRevenue);\n  out.push(line('総売上', yen(t.revenue), revPct));\n  out.push(`注文数　${t.orders.toLocaleString('ja-JP')}件` + (t.aov ? `　客単価 ${yen(t.aov)}` : ''));\n  out.push('');\n\n  if (summary.salesChannels.length) {\n    out.push('【媒体別】');\n    for (const c of [...summary.salesChannels].sort((a, b) => b.revenue - a.revenue)) {\n      if (!c.hasData) { out.push(`${c.label}　データなし`); continue; }\n      out.push(line(c.label, yen(c.revenue), c.prevRevenue === null ? null : deltaPct(c.revenue, c.prevRevenue)));\n    }\n    out.push('');\n  }\n\n  if (summary.adChannels.length) {\n    out.push('【広告】');\n    for (const c of summary.adChannels) {\n      if (!c.hasData) { out.push(`${c.label}　データなし`); continue; }\n      out.push(line(c.label, yen(c.cost), c.prevCost === null ? null : deltaPct(c.cost, c.prevCost)));\n    }\n    out.push(`広告費計　${yen(t.adCost)}`);\n    if (t.roas !== null)\n      out.push(`ROAS　${t.roas.toFixed(2)}${t.roas < 2 ? ' ⚠️' : ''}　（広告費率 ${t.adRatio.toFixed(1)}%）`);\n    out.push('');\n  }\n\n  if (summary.topProducts.length) {\n    out.push('【売れ筋 TOP3】');\n    for (const p of summary.topProducts.slice(0, 3))\n      out.push(`・${p.name}　${yen(p.revenue)}${p.units ? `　${p.units}点` : ''}`);\n    out.push('');\n  }\n\n  if (opts.comment && opts.comment !== '特記事項なし') {\n    out.push(`💡 ${opts.comment}`);\n    out.push('');\n  }\n\n  if (summary.problems?.length) {\n    out.push('【要確認】');\n    for (const p of summary.problems) out.push(`・${p.fileName}: ${p.reason}`);\n  }\n\n  return out.join('\\n').trim();\n}\n\n// ── ここから n8n との受け渡し ──────────────────────────\n\n// 対象日を決める（既定は「昨日」。売上は当日中に確定しないため）\nconst tz = 'Asia/Tokyo';\nconst now = new Date();\nconst jst = new Date(now.toLocaleString('en-US', { timeZone: tz }));\njst.setDate(jst.getDate() - 1);\nconst pad = (n) => String(n).padStart(2, '0');\nconst dateISO = `${jst.getFullYear()}-${pad(jst.getMonth() + 1)}-${pad(jst.getDate())}`;\njst.setDate(jst.getDate() - 1);\nconst prevISO = `${jst.getFullYear()}-${pad(jst.getMonth() + 1)}-${pad(jst.getDate())}`;\n\n// 前のノードから渡ってきたファイルを取り出す\nconst files = [];\nfor (let i = 0; i < items.length; i++) {\n  const binary = items[i].binary || {};\n  for (const key of Object.keys(binary)) {\n    const b = binary[key];\n    const buffer = await this.helpers.getBinaryDataBuffer(i, key);\n    files.push({ name: b.fileName || `file-${i}-${key}`, buffer });\n  }\n}\n\nif (files.length === 0) {\n  return [{ json: { skip: true, reason: '読み込めるCSVがありませんでした', dateISO } }];\n}\n\nconst { text, summary } = buildSalesText(files, MAPPING, dateISO, prevISO);\n\nreturn [\n  {\n    json: {\n      skip: false,\n      dateISO,\n      prevISO,\n      text,\n      fileCount: files.length,\n      revenue: summary.totals.revenue,\n      adCost: summary.totals.adCost,\n      roas: summary.totals.roas,\n      problems: summary.problems.map((p) => `${p.fileName}: ${p.reason}`),\n    },\n  },\n];\n"
+      },
+      "id": "sales-aggregate",
+      "name": "売上を集計して文面を作る",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        180,
+        300
+      ],
+      "notes": "自動生成されたコードです。直接編集しないでください。\nリポジトリの n8n/snippets/salesInline.js を直し、npm run build:n8n で再生成します。"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "has-data",
+              "leftValue": "={{ $json.skip }}",
+              "rightValue": false,
+              "operator": {
+                "type": "boolean",
+                "operation": "false",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "sales-if",
+      "name": "データあり?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        400,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.chatwork.com/v2/rooms/{{ $env.CHATWORK_ROOM_ID }}/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-ChatWorkToken",
+              "value": "={{ $env.CHATWORK_API_TOKEN }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "body",
+              "value": "=[info][title]{{ $json.text.split(\"\\n\")[0] }}[/title]{{ $json.text.split(\"\\n\").slice(1).join(\"\\n\") }}[/info]"
+            },
+            {
+              "name": "self_unread",
+              "value": "0"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "sales-chatwork",
+      "name": "Chatworkに通知",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        640,
+        200
+      ],
+      "onError": "continueRegularOutput",
+      "notes": "CHATWORK_API_TOKEN と CHATWORK_ROOM_ID を n8n の環境変数に設定してください。"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.line.me/v2/bot/message/push",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.LINE_CHANNEL_ACCESS_TOKEN }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ to: $env.LINE_TARGET_GROUP_ID || $env.LINE_TARGET_USER_ID, messages: [{ type: \"text\", text: $json.text.slice(0, 4900) }] }) }}",
+        "options": {}
+      },
+      "id": "sales-line",
+      "name": "LINEに通知",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        640,
+        400
+      ],
+      "onError": "continueRegularOutput",
+      "disabled": true,
+      "notes": "LINEにも送りたい場合はこのノードを有効化してください（既定は無効）。\nChatworkだけで足りる場合は無効のままで構いません。"
+    }
+  ],
+  "connections": {
+    "毎日10:00": {
+      "main": [
+        [
+          {
+            "node": "CSVを読み込む",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CSVを読み込む": {
+      "main": [
+        [
+          {
+            "node": "売上を集計して文面を作る",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "売上を集計して文面を作る": {
+      "main": [
+        [
+          {
+            "node": "データあり?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "データあり?": {
+      "main": [
+        [
+          {
+            "node": "Chatworkに通知",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "LINEに通知",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Asia/Tokyo",
+    "saveDataErrorExecution": "all"
+  },
+  "staticData": null,
+  "meta": {
+    "instanceId": "libetee-sales-report"
+  },
+  "tags": []
+}

@@ -12,6 +12,7 @@
     "doctor": "node scripts/doctor.js",
     "watch": "node scripts/watchNewReports.js",
     "digest": "node scripts/dailyDigest.js",
+    "sales": "node scripts/salesDigest.js",
     "notify-test": "node scripts/sendTest.js",
     "backup": "node scripts/backup.js",
     "apps": "node kintone/inspectApp.js",
@@ -24,6 +25,7 @@
     "line": "node scripts/sendLine.js",
     "pipeline": "node scripts/runPipeline.js",
     "urgent": "node scripts/urgentNotify.js",
-    "test": "node --test \"test/*.test.js\""
+    "test": "node --test \"test/*.test.js\"",
+    "build:n8n": "node scripts/buildN8nSales.js"
   }
 }

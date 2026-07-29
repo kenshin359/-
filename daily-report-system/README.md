@@ -122,7 +122,9 @@ daily-report-system/
 | `npm run setup` | **対話式セットアップ**（まずこれ） |
 | `npm run doctor` | **設定の総点検**（困ったらこれ） |
 | `npm run backup` | **元データのバックアップ**（読み取りのみ） |
-| `npm test` | ユニットテスト（オフライン・41件） |
+| `npm test` | ユニットテスト（オフライン・120件） |
+| `npm run sales` | **売上レポート**（Amazon/楽天/自社/Meta/RPP・費用ゼロ） |
+| `npm run build:n8n` | 売上ワークフローJSONを再生成 |
 | `npm run apps` | Kintone アプリ一覧とIDを表示 |
 | `npm run inspect -- <appId>` | 既存アプリの構成と不足フィールドを確認 |
 | `npm run add-fields -- <appId> --dry-run` | 既存アプリへ不足分を追加（まず dry-run） |
@@ -145,7 +147,35 @@ daily-report-system/
 **② 緊急（リアルタイム）**
 `Webhook → シークレット検証 → 緊急判定 → Claude要約 → LINE即時通知 → 通知済み更新`
 
+**⑥ 売上レポート（毎朝10:00）**
+`Schedule Trigger → CSV読込 → 集計(Code) → (0件分岐) → Chatwork通知 / LINE通知`
+
 各ノードの設定・入出力・認証・エラー処理は JSON 内の `notes` と `docs/` を参照。
+
+---
+
+## 売上レポート（Amazon / 楽天 / 自社 / Meta広告 / RPP広告）
+
+CSVを `data/sales/` に置いて `npm run sales` を実行すると、
+総売上・媒体別・前日比・広告費・ROAS・売れ筋を1通にまとめて通知します。
+
+手順は **[docs/sales-report-setup.md](docs/sales-report-setup.md)** を参照。
+
+**設計上の要点**
+
+- **金額の集計はすべて JavaScript 側で行い、AIには渡さない。**
+  LLM に大量の加算をさせると金額がずれるため。AIの役割は「解釈」のみ。
+- そのため通常運用の **API費用はゼロ**。`SALES_AI_COMMENT=true` のときだけ
+  集計済みの数字を渡して一言コメントを生成する（1回あたり数円）。
+- 文字コード（Shift_JIS/UTF-8/BOM/UTF-16）、引用符内のカンマ・改行、
+  タブ区切り、金額・日付の表記ゆれ、合計行の混入を自動で吸収する。
+- 判別できないファイルは黙って捨てず、レポート末尾の【要確認】に理由を出す。
+- n8n の Code ノードは import が使えないため集計処理を複製しているが、
+  `n8n/snippets/salesInline.js` を単一の元とし、`npm run build:n8n` で
+  JSONへ埋め込む。複製のズレは `test/sales-inline.test.js` が毎回検出する。
+
+**⚠️ 実データは絶対にコミットしない。** `data/` は `.gitignore` 済み。
+`samples/sales/` は全て架空のダミーデータ。
 
 ---
 
