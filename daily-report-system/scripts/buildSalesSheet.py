@@ -315,6 +315,11 @@ def main():
     build_matrix(wb, data)
     build_monthly(wb, data)
 
+    # openpyxl は数式に計算結果を持たせられない（値は空のまま保存される）。
+    # このフラグを立てておくと、Excel / Googleスプレッドシートが
+    # ファイルを開いた瞬間に全数式を計算し直してくれる。
+    wb.calculation.fullCalcOnLoad = True
+
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
     wb.save(OUT)
     print(f'✅ 作成しました: {OUT}')
