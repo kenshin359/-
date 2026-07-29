@@ -1,0 +1,92 @@
+{
+  "name": "Libetee ④LINE送信先IDを調べる (設定時だけ使う)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "libetee-line-id",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "hook",
+      "name": "LINEからの通知を受ける",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -700,
+        300
+      ],
+      "webhookId": "libetee-line-id",
+      "notes": "このノードのURL(Production URL)を、LINE Developers の Webhook URL に一時的に設定します。"
+    },
+    {
+      "parameters": {
+        "jsCode": "// LINEから届いたイベントから、送信先IDを取り出して見やすく表示する\nconst events = ($json.body && $json.body.events) || [];\nif (!events.length) return [{ json: { 状態: 'イベントが空です（LINEの接続確認かもしれません）' } }];\n\nconst out = [];\nfor (const ev of events) {\n  const s = ev.source || {};\n  const row = { 種類: s.type || '不明' };\n  if (s.groupId) {\n    row['★ここをコピー'] = s.groupId;\n    row['設定する変数'] = 'LINE_TARGET_GROUP_ID';\n    row['説明'] = 'グループのIDです。社長・部長が入ったグループに送るならこれを使います。';\n  } else if (s.roomId) {\n    row['★ここをコピー'] = s.roomId;\n    row['設定する変数'] = 'LINE_TARGET_GROUP_ID';\n    row['説明'] = '複数人トークのIDです。';\n  } else if (s.userId) {\n    row['★ここをコピー'] = s.userId;\n    row['設定する変数'] = 'LINE_TARGET_USER_ID';\n    row['説明'] = '個人のIDです。1人に送るならこれを使います。';\n  }\n  if (ev.message && ev.message.text) row['送られたメッセージ'] = ev.message.text;\n  out.push({ json: row });\n}\nreturn out;"
+      },
+      "id": "show",
+      "name": "★送信先IDを表示",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -480,
+        300
+      ],
+      "notes": "★ここに出た ID をコピーして、n8nの変数に設定してください。"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "ok",
+        "options": {}
+      },
+      "id": "ok",
+      "name": "LINEに200を返す",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        -260,
+        300
+      ],
+      "notes": "LINEは200を返さないとWebhookを無効化することがあるため、必ず応答します。"
+    }
+  ],
+  "connections": {
+    "LINEからの通知を受ける": {
+      "main": [
+        [
+          {
+            "node": "★送信先IDを表示",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "★送信先IDを表示": {
+      "main": [
+        [
+          {
+            "node": "LINEに200を返す",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Asia/Tokyo",
+    "saveDataErrorExecution": "all",
+    "saveManualExecutions": true
+  },
+  "staticData": null,
+  "meta": {
+    "templateId": "libetee-lineid-4"
+  },
+  "tags": [
+    {
+      "name": "Libetee"
+    }
+  ]
+}

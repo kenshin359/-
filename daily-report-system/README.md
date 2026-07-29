@@ -89,7 +89,9 @@ daily-report-system/
 │   └── urgent-summary-prompt.md
 ├── n8n/                          n8n インポート用 JSON
 │   ├── workflow-0-setup.json             ⓪初期設定: AI経営日報アプリを自動作成（1回だけ）★
-│   ├── workflow-1-daily-report.json      ①定時: Schedule→Kintone→Claude→保存→LINE→ログ
+│   ├── workflow-1-daily-report.json      ①定時: Schedule→Kintone→Claude→保存→通知→ログ
+│   ├── workflow-3-notify-on-submit.json  ③提出のたびに即時通知（10分間隔）★
+│   ├── workflow-4-line-id-finder.json    ④LINE送信先IDを調べる（設定時のみ）★
 │   └── workflow-2-urgent-webhook.json    ②緊急: Webhook→分岐→Claude→LINE→更新
 ├── samples/                      サンプルデータ
 │   ├── sample-daily-reports.json
