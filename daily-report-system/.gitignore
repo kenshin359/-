@@ -21,3 +21,7 @@ state/
 # このリポジトリは公開設定のため、実際の売上CSVを絶対に置かないこと。
 # 動作確認用のダミーは samples/sales/ にあります。
 data/
+
+# Python のキャッシュ
+__pycache__/
+*.pyc

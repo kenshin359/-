@@ -38,6 +38,8 @@
     "replies": "node scripts/replyDrafts.js",
     "videos": "python3 scripts/analyzeVideos.py",
     "handbook": "python3 scripts/buildSnsHandbook.py",
-    "sns": "python3 scripts/analyzeVideos.py && python3 scripts/buildSnsHandbook.py"
+    "sns": "python3 scripts/analyzeVideos.py && python3 scripts/buildSnsHandbook.py",
+    "reviews:analyze": "node scripts/analyzeReviews.js",
+    "reviews:report": "node scripts/analyzeReviews.js && python3 scripts/buildReviewReport.py"
   }
 }
