@@ -15,7 +15,7 @@ import readline from 'node:readline/promises';
 import { stdin as input, stdout as output } from 'node:process';
 import { fileURLToPath } from 'node:url';
 import { fetchWithRetry } from '../lib/httpRetry.js';
-import { FIELDS as STAFF_FIELDS } from '../kintone/staffReportSchema.js';
+import { extractReports } from '../lib/extractReports.js';
 import { FIELDS as AI_FIELDS, APP_NAME as AI_APP_NAME } from '../kintone/aiReportSchema.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -23,7 +23,6 @@ const ROOT = path.resolve(__dirname, '..');
 const ENV_PATH = path.join(ROOT, '.env');
 
 // 自動化に最低限必要なフィールド
-const CRITICAL = ['report_date', 'urgency', 'submit_status'];
 
 const rl = readline.createInterface({ input, output });
 const answers = {};
@@ -193,44 +192,43 @@ async function step3() {
   const picked = apps.find((a) => String(a.appId) === String(answers.KINTONE_DAILY_REPORT_APP_ID));
   line(`  → 「${picked?.name ?? '(不明)'}」(ID ${answers.KINTONE_DAILY_REPORT_APP_ID}) を使います。`);
 
-  // ── 不足フィールドの確認と追加 ──
-  line('  … このアプリに必要な項目が揃っているか確認します');
-  const form = await kintoneCall(
-    'GET',
-    `/k/v1/preview/app/form/fields.json?app=${encodeURIComponent(answers.KINTONE_DAILY_REPORT_APP_ID)}`
-  );
-  const existing = new Set(Object.keys(form.properties ?? {}));
+  // ── 実際に日報を取り出せるか確認する ──
+  //    Kintone側は一切変更しません。いまの構造のまま読み取れるかを試します。
+  line('  … このアプリから日報を取り出せるか試します（変更は行いません）');
+  try {
+    const res = await kintoneCall(
+      'GET',
+      `/k/v1/records.json?app=${encodeURIComponent(answers.KINTONE_DAILY_REPORT_APP_ID)}` +
+        `&query=${encodeURIComponent('order by $id desc limit 100')}`
+    );
+    const reports = extractReports(res.records ?? []);
 
-  const missing = {};
-  for (const [code, def2] of Object.entries(STAFF_FIELDS)) {
-    if (existing.has(code)) continue;
-    if (code === 'reporter') continue; // 既存の氏名欄と重複しがちなので追加しない
-    missing[code] = def2;
-  }
-  const missingCodes = Object.keys(missing);
+    if (!reports.length) {
+      line('  ⚠️  日報らしき本文が見つかりませんでした。');
+      hint(
+        'アプリIDが違うか、まだ日報が入力されていない可能性があります。',
+        'あとで  node scripts/fetchDailyReports.js --all  で確認できます。'
+      );
+      return;
+    }
 
-  if (!missingCodes.length) {
-    line('  ✅ 必要な項目はすべて揃っています。');
-    return;
-  }
+    const dates = [...new Set(reports.map((r) => r.date).filter(Boolean))].sort();
+    const people = [...new Set(reports.map((r) => r.reporter).filter(Boolean))];
+    line(`  ✅ 日報を ${reports.length} 件 取り出せました。`);
+    line(`      期間  : ${dates[0] ?? '?'} 〜 ${dates[dates.length - 1] ?? '?'}`);
+    line(`      報告者: ${people.join('・') || '(氏名不明)'}`);
 
-  line(`  不足している項目が ${missingCodes.length} 個あります：`);
-  for (const c of missingCodes) {
-    line(`      ${CRITICAL.includes(c) ? '★' : ' '} ${missing[c].label}`);
-  }
-  hint('★ が付いたものは、自動化に必ず必要です（この日の分だけ取り出す等に使います）。', '既にある項目や既存データには一切手を触れません。');
-
-  if (await askYesNo('これらを自動で追加してよいですか？')) {
-    line('  … 追加しています');
-    await kintoneCall('POST', '/k/v1/preview/app/form/fields.json', {
-      app: answers.KINTONE_DAILY_REPORT_APP_ID,
-      properties: missing,
-    });
-    await kintoneCall('POST', '/k/v1/preview/app/deploy.json', { apps: [{ app: answers.KINTONE_DAILY_REPORT_APP_ID }] });
-    await waitDeploy(answers.KINTONE_DAILY_REPORT_APP_ID);
-    line('  ✅ 追加しました。');
-  } else {
-    line('  ⏭  スキップしました（あとで npm run add-fields でも追加できます）。');
+    // 取り出せた中身を1件だけ見せて、正しく読めているか目視確認してもらう
+    const sample = reports[0];
+    line('');
+    line('  ── 取り出せた日報の例 ──');
+    line(`  [${sample.date}] ${sample.reporter ?? '(氏名不明)'}`);
+    line(`  ${sample.text.replace(/\n/g, '\n  ').slice(0, 160)}…`);
+    line('');
+    answers.__sampleDate = dates[dates.length - 1] ?? null;
+  } catch (e) {
+    line(`  ⚠️  日報の取り出しを確認できませんでした: ${tidy(e.message)}`);
+    hint('設定は続行できます。あとで npm run doctor で確認してください。');
   }
 }
 

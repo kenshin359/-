@@ -34,8 +34,8 @@ npm run pipeline    # ③ 実行（取得→AI分析→保存→LINE）
 `npm run setup` が自動でやること：
 
 - Kintone から**日報アプリを自動検出**
-- 不足フィールド（報告日・緊急度・提出状況など）を**確認のうえ自動追加**（既存項目・既存データは非変更）
-- **AI経営日報アプリを自動作成**
+- **いまの構造のまま日報を読み取れるか実際に試して表示**（Kintone側は一切変更しません）
+- **AI経営日報アプリを自動作成**（保存先として1つだけ）
 - 入力値をその場で**実際に接続テスト**して `.env` を書き出し
 
 > `APP_ENV=test`（既定）の間、LINE は実送信されずプレビューのみ。安全に検証できます。
@@ -57,7 +57,8 @@ daily-report-system/
 │   ├── kintone.js                Kintone 取得・保存・重複チェック
 │   ├── claude.js                 Claude API 呼び出し / JSON 抽出
 │   ├── line.js                   LINE push / 文字数・吹き出し分割 / test分離
-│   ├── normalize.js              Kintoneレコード → Claude入力
+│   ├── normalize.js              Kintoneレコード → Claude入力（構造化アプリ用）
+│   ├── extractReports.js         実際の日報アプリ構造から日付/氏名/本文を抽出 ★
 │   └── format.js                 Claude出力 → 経営日報/LINE本文/保存レコード
 ├── kintone/
 │   ├── staffReportSchema.js      スタッフ日報アプリ フィールド定義
@@ -87,6 +88,8 @@ daily-report-system/
 │   ├── sample-urgent.json
 │   └── sample-claude-output.json
 ├── docs/                         ドキュメント
+│   ├── START-HERE.md             ど素人向け導入ガイド（まずこれ）
+│   ├── actual-kintone-structure.md  実際のKintone構造と対応方針 ★
 │   ├── setup-guide.md            導入マニュアル（最短ルート）
 │   ├── phases.md                 実装順 Phase 1〜8
 │   ├── test-guide.md             テスト手順書
@@ -106,7 +109,7 @@ daily-report-system/
 |----------|------|
 | `npm run setup` | **対話式セットアップ**（まずこれ） |
 | `npm run doctor` | **設定の総点検**（困ったらこれ） |
-| `npm test` | ユニットテスト（オフライン・12件） |
+| `npm test` | ユニットテスト（オフライン・19件） |
 | `npm run apps` | Kintone アプリ一覧とIDを表示 |
 | `npm run inspect -- <appId>` | 既存アプリの構成と不足フィールドを確認 |
 | `npm run add-fields -- <appId> --dry-run` | 既存アプリへ不足分を追加（まず dry-run） |
@@ -136,7 +139,7 @@ daily-report-system/
 
 | フェーズ | 内容 | 状態 |
 |----------|------|------|
-| Phase 1 | Kintone アプリ作成 | コード・設計書 完備（実行は要 Kintone 認証） |
+| Phase 1 | Kintone アプリ | **変更不要**（既存の日報アプリをそのまま読む方式に変更） |
 | Phase 2 | API 接続 | 実装済み |
 | Phase 3 | Claude 連携 | 実装済み（要 APIキー） |
 | Phase 4 | LINE 送信 | 実装済み（要トークン/宛先） |
@@ -147,5 +150,8 @@ daily-report-system/
 
 > **要確認（TODO）**：Kintone appId / 各種トークン / LINE 宛先ID / n8n Webhook URL は
 > 実環境で発行後に `.env`（と n8n 環境変数）へ設定してください。すべて `.env.example` に一覧化しています。
+
+実際のKintoneの構造と、それに対する対応方針は
+**[`docs/actual-kintone-structure.md`](./docs/actual-kintone-structure.md)** にまとめています。
 
 詳しい導入は **`docs/setup-guide.md`** から。

@@ -111,3 +111,78 @@ test('authHeadersFor: 認証情報が全く無ければ分かりやすいエラ�
   delete process.env.KINTONE_PASSWORD;
   assert.throws(() => authHeadersFor(null), /認証情報がありません|npm run setup/);
 });
+
+// ── 実際の日報アプリ構造からの抽出 ──────────────────────
+// リベティの日報アプリは「1レコード＝1チームの数日分、日付ごとのテーブルに
+// 複数人の氏名＋本文が横に並ぶ」構造。フィールドコードが不明でも
+// "形" から日付・氏名・本文を取り出せることを確認する。
+
+import { extractReports, filterByDate, buildInputFromExtracted, looksLikeDate, toDateISO } from '../lib/extractReports.js';
+
+const rec33 = JSON.parse(
+  fs.readFileSync(path.join(ROOT, 'samples/sample-kintone-record33.json'), 'utf8')
+).records;
+
+test('extractReports: サブテーブル構造から日付・氏名・本文を取り出す', () => {
+  const got = extractReports(rec33);
+  assert.equal(got.length, 6, '2日分 × 3名 = 6件');
+
+  const first = got[0];
+  assert.equal(first.date, '2026-07-01');
+  assert.equal(first.reporter, 'ミツワ');
+  assert.equal(first.team, 'LP');
+  assert.ok(first.text.includes('楽天の受注処理'));
+});
+
+test('extractReports: 氏名と本文の対応がずれない', () => {
+  const got = extractReports(rec33);
+  const day1 = got.filter((r) => r.date === '2026-07-01');
+  assert.deepEqual(day1.map((r) => r.reporter), ['ミツワ', '三浦', '久保']);
+  // 久保の本文にクレームの記載があること（＝取り違えていない）
+  assert.ok(day1[2].text.includes('クレーム'));
+});
+
+test('filterByDate: 対象日だけに絞れる', () => {
+  const got = extractReports(rec33);
+  assert.equal(filterByDate(got, '2026-07-01').length, 3);
+  assert.equal(filterByDate(got, '2026-07-02').length, 3);
+  assert.equal(filterByDate(got, '2026-07-09').length, 0);
+});
+
+test('extractReports: 空・壊れた入力でも落ちない', () => {
+  assert.deepEqual(extractReports([]), []);
+  assert.deepEqual(extractReports(null), []);
+  assert.deepEqual(extractReports([null, undefined, 'ゴミ']), []);
+  assert.deepEqual(extractReports([{ $id: { value: '1' } }]), []);
+});
+
+test('extractReports: サブテーブルが無く本文が直置きでも拾える', () => {
+  const flat = [
+    {
+      $id: { value: '1' },
+      hiduke: { type: 'DATE', value: '2026-07-05' },
+      shimei: { type: 'SINGLE_LINE_TEXT', value: '田中' },
+      honbun: { type: 'MULTI_LINE_TEXT', value: '本日は在庫の棚卸しを行いました。特に問題はありません。' },
+    },
+  ];
+  const got = extractReports(flat);
+  assert.equal(got.length, 1);
+  assert.equal(got[0].date, '2026-07-05');
+  assert.equal(got[0].reporter, '田中');
+});
+
+test('looksLikeDate / toDateISO: 日時からも日付を取り出せる', () => {
+  assert.ok(looksLikeDate('2026-07-01T10:37:00Z'));
+  assert.ok(looksLikeDate('2026-07-01'));
+  assert.ok(!looksLikeDate('ミツワ'));
+  assert.equal(toDateISO('2026-07-01T10:37:00Z'), '2026-07-01');
+});
+
+test('buildInputFromExtracted: Claude入力の形になる', () => {
+  const got = extractReports(rec33);
+  const input = buildInputFromExtracted('2026-07-01', filterByDate(got, '2026-07-01'));
+  assert.equal(input.report_count, 3);
+  assert.equal(input.reports[0].reporter, 'ミツワ');
+  assert.ok(input.reports[0].body.length > 0);
+  assert.ok(input.note.includes('自由記述'));
+});

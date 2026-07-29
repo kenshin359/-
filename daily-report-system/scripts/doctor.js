@@ -12,6 +12,7 @@ import { optional, isProduction } from '../lib/env.js';
 import { fetchWithRetry } from '../lib/httpRetry.js';
 import { authHeadersFor } from '../lib/kintone.js';
 import { todayISO } from '../lib/date.js';
+import { extractReports } from '../lib/extractReports.js';
 
 const results = [];
 const line = (s = '') => console.log(s);
@@ -97,29 +98,8 @@ async function checkKintone() {
       );
       ok(`日報アプリ(ID ${dailyApp})に接続できました`, `レコード取得テスト: 成功`);
 
-      // 必須フィールドの確認
-      await checkFields(base, headers, dailyApp);
-
-      // 本日の提出件数
-      const today = todayISO();
-      const q = `report_date = "${today}" and submit_status in ("提出済み") limit 500`;
-      try {
-        const r2 = await fetchWithRetry(
-          `${base}/k/v1/records.json?app=${dailyApp}&query=${encodeURIComponent(q)}`,
-          { method: 'GET', headers: { 'Content-Type': 'application/json', ...headers } },
-          { label: 'kintone', retries: 1 }
-        );
-        const n = r2.json?.records?.length ?? 0;
-        if (n > 0) ok(`本日(${today})の提出済み日報: ${n} 件`);
-        else
-          skip(
-            `本日(${today})の提出済み日報: 0 件`,
-            '日報がまだ無いか、「提出状況」が「提出済み」になっていません',
-            'Kintoneで日報を1件、提出状況＝提出済み で登録してみてください'
-          );
-      } catch {
-        skip('本日の日報件数を確認できませんでした', '必須フィールドが未追加の可能性', 'npm run add-fields -- ' + dailyApp);
-      }
+      // 日報を正しく取り出せるか（アプリの構造に依存しない抽出をテスト）
+      await checkExtraction(base, headers, dailyApp);
     } catch (e) {
       const m = String(e.message);
       ng(
@@ -151,30 +131,47 @@ async function checkKintone() {
   }
 }
 
-// 日報アプリに必須フィールドがあるか
-async function checkFields(base, headers, appId) {
-  const CRITICAL = {
-    report_date: '報告日',
-    urgency: '緊急度',
-    submit_status: '提出状況',
-  };
+// 日報を「日付・氏名・本文」として取り出せるか実際に試す。
+// アプリの項目構成に依存しない方式なので、フィールドの追加は不要。
+async function checkExtraction(base, headers, appId) {
   try {
     const res = await fetchWithRetry(
-      `${base}/k/v1/app/form/fields.json?app=${appId}`,
+      `${base}/k/v1/records.json?app=${appId}&query=${encodeURIComponent('order by $id desc limit 100')}`,
       { method: 'GET', headers: { 'Content-Type': 'application/json', ...headers } },
       { label: 'kintone', retries: 1 }
     );
-    const props = res.json?.properties ?? {};
-    const missing = Object.entries(CRITICAL).filter(([c]) => !(c in props));
-    if (!missing.length) ok('必須フィールド（報告日・緊急度・提出状況）が揃っています');
-    else
-      ng(
-        `必須フィールドが ${missing.length} 個 不足しています`,
-        missing.map(([, l]) => l).join(' / '),
-        `npm run add-fields -- ${appId}  （まず --dry-run で確認）`
+    const records = res.json?.records ?? [];
+    const reports = extractReports(records);
+
+    if (!reports.length) {
+      skip(
+        '日報を取り出せませんでした',
+        `レコード ${records.length} 件を調べましたが、日報らしき本文が見つかりません`,
+        'node scripts/fetchDailyReports.js --all でデータの入り方を確認してください'
       );
-  } catch {
-    skip('フィールド構成を確認できませんでした', 'APIトークン利用時はアプリ管理権限が必要な場合があります');
+      return;
+    }
+
+    // 日付の範囲と人数を表示
+    const dates = [...new Set(reports.map((r) => r.date).filter(Boolean))].sort();
+    const people = [...new Set(reports.map((r) => r.reporter).filter(Boolean))];
+    ok(
+      `日報を ${reports.length} 件 取り出せました`,
+      `期間: ${dates[0] ?? '?'} 〜 ${dates[dates.length - 1] ?? '?'} / 報告者: ${people.join('・') || '(不明)'}`
+    );
+
+    // 本日分があるか
+    const today = todayISO();
+    const n = reports.filter((r) => r.date === today).length;
+    if (n > 0) ok(`本日(${today})の日報: ${n} 件`);
+    else
+      skip(
+        `本日(${today})の日報: 0 件`,
+        'まだ本日分が入力されていないだけの可能性があります',
+        `過去日で試すには: npm run pipeline -- --date=${dates[dates.length - 1] ?? today}`
+      );
+  } catch (e) {
+    skip('日報の取り出しを確認できませんでした', tidy(e.message));
   }
 }
 

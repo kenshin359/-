@@ -12,8 +12,8 @@
 //   - 重複実行 → 同じ対象日のAI日報が既にあればスキップ（重複送信防止）
 //   - Claude/JSONパース失敗 → 生成失敗として記録しLINEはスキップ
 // ============================================================
-import { fetchDailyReports, createAiReport, updateAiReport, findAiReportByDate } from '../lib/kintone.js';
-import { buildAnalysisInput } from '../lib/normalize.js';
+import { fetchAllDailyReportRecords, createAiReport, updateAiReport, findAiReportByDate } from '../lib/kintone.js';
+import { extractReports, filterByDate, buildInputFromExtracted } from '../lib/extractReports.js';
 import { analyzeReports } from '../lib/claude.js';
 import { formatCeoReport, formatLineReport, toAiReportRecord } from '../lib/format.js';
 import { pushLine } from '../lib/line.js';
@@ -31,9 +31,12 @@ async function main() {
     return;
   }
 
-  // 1) Kintone から日報取得
-  const records = await fetchDailyReports(dateISO);
-  console.log(`① 日報取得: ${records.length} 件`);
+  // 1) Kintone から全レコードを取得し、日付・氏名・本文に展開して対象日で絞る
+  //    （日報アプリは日付がサブテーブル内にあり、kintoneのクエリでは絞れないため）
+  const rawRecords = await fetchAllDailyReportRecords();
+  const allReports = extractReports(rawRecords);
+  const records = filterByDate(allReports, dateISO);
+  console.log(`① 日報取得: レコード${rawRecords.length}件 → 日報${allReports.length}件 → ${dateISO}分 ${records.length}件`);
 
   // 1.5) 日報0件のハンドリング
   if (records.length === 0) {
@@ -51,7 +54,7 @@ async function main() {
   }
 
   // 2) Claude 分析
-  const input = buildAnalysisInput(dateISO, records);
+  const input = buildInputFromExtracted(dateISO, records);
   let analysis;
   try {
     analysis = await analyzeReports(input);

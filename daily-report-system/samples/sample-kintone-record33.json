@@ -1,0 +1,62 @@
+{
+  "_comment": "写真で確認した実際の日報アプリ(ID 6)レコード33の構造を再現したサンプル。フィールドコードは仮のもので、実際のコードが違っても extractReports は形で判定するため動作します。",
+  "records": [
+    {
+      "$id": { "type": "__ID__", "value": "33" },
+      "$revision": { "type": "__REVISION__", "value": "5" },
+      "team_name": { "type": "SINGLE_LINE_TEXT", "value": "LP" },
+      "table_1": {
+        "type": "SUBTABLE",
+        "value": [
+          {
+            "id": "1001",
+            "value": {
+              "nippou_date": { "type": "DATETIME", "value": "2026-07-01T10:37:00Z" },
+              "name_1": { "type": "SINGLE_LINE_TEXT", "value": "ミツワ" },
+              "body_1": {
+                "type": "MULTI_LINE_TEXT",
+                "value": "本日の業務報告です。\n・楽天の受注処理を完了しました（120件）\n・在庫連携でエラーが出たため手動対応\n明日は恒久対応の検討を行います。"
+              },
+              "name_2": { "type": "SINGLE_LINE_TEXT", "value": "三浦" },
+              "body_2": {
+                "type": "MULTI_LINE_TEXT",
+                "value": "広告運用の報告です。\n・TikTok広告のクリエイティブを差し替え\n・CVRが1.8%に改善（前日比+0.3pt）\n特に問題はありません。"
+              },
+              "name_3": { "type": "SINGLE_LINE_TEXT", "value": "久保" },
+              "body_3": {
+                "type": "MULTI_LINE_TEXT",
+                "value": "問い合わせ対応45件を完了しました。\nスーツケースLの初期不良クレームが5件発生しており、ロット不良の疑いがあります。\n販売停止の判断をお願いしたいです。至急ご確認ください。"
+              }
+            }
+          }
+        ]
+      },
+      "table_2": {
+        "type": "SUBTABLE",
+        "value": [
+          {
+            "id": "1002",
+            "value": {
+              "nippou_date": { "type": "DATETIME", "value": "2026-07-02T10:37:00Z" },
+              "name_1": { "type": "SINGLE_LINE_TEXT", "value": "ミツワ" },
+              "body_1": {
+                "type": "MULTI_LINE_TEXT",
+                "value": "在庫連携の恒久対応を設計しました。\nベンダーからの回答待ちのため、着手は明日以降になります。"
+              },
+              "name_2": { "type": "SINGLE_LINE_TEXT", "value": "三浦" },
+              "body_2": {
+                "type": "MULTI_LINE_TEXT",
+                "value": "ABテストを開始しました。経過は良好です。\n次回クリエイティブの制作に入ります。"
+              },
+              "name_3": { "type": "SINGLE_LINE_TEXT", "value": "久保" },
+              "body_3": {
+                "type": "MULTI_LINE_TEXT",
+                "value": "商品部と連携してロット調査を進めています。\n返金対応の承認をお待ちしている状況です。"
+              }
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

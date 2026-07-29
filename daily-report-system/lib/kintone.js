@@ -71,7 +71,39 @@ export function qs(params) {
 }
 
 /**
- * スタッフ日報アプリから、指定日の提出済みレコードを取得する。
+ * 日報アプリの全レコードを取得する（$id カーソルで全件ページング）。
+ *
+ * リベティの日報アプリは「1レコード＝1チームの数日分」で、日付は
+ * サブテーブルの中に入っている。そのため kintone のクエリでは
+ * 日付で絞り込めない。全件取ってから lib/extractReports.js で
+ * 日付・氏名・本文に展開し、コード側で対象日を絞る方式にしている。
+ *
+ * @returns {Promise<Array>} レコード配列（kintone 形式）
+ */
+export async function fetchAllDailyReportRecords() {
+  const app = required('KINTONE_DAILY_REPORT_APP_ID');
+  const token = optional('KINTONE_API_TOKEN_DAILY_REPORT') || null; // 無ければパスワード認証
+
+  const all = [];
+  let lastId = 0;
+  for (;;) {
+    const query = `$id > ${lastId} order by $id asc limit 100`;
+    const res = await api('GET', `/k/v1/records.json?${qs({ app, query })}`, token);
+    const records = res.records ?? [];
+    if (!records.length) break;
+    all.push(...records);
+    lastId = Number(records[records.length - 1].$id.value);
+    if (records.length < 100) break;
+  }
+  return all;
+}
+
+/**
+ * 指定日の提出済みレコードを取得する（構造化された日報アプリ向け）。
+ * report_date / submit_status フィールドを持つアプリでのみ使用可能。
+ * ※ 現在のリベティの日報アプリはこの形ではないため、通常は
+ *   fetchAllDailyReportRecords + extractReports を使うこと。
+ *
  * @param {string} dateISO  'YYYY-MM-DD'
  * @returns {Promise<Array>} レコード配列（kintone 形式）
  */
