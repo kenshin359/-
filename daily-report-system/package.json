@@ -35,6 +35,9 @@
     "brief": "node scripts/boardBrief.js",
     "sheet": "node scripts/exportDashboardData.js && python3 scripts/buildSalesSheet.py",
     "sheet:send": "node scripts/sendSalesSheet.js",
-    "replies": "node scripts/replyDrafts.js"
+    "replies": "node scripts/replyDrafts.js",
+    "videos": "python3 scripts/analyzeVideos.py",
+    "handbook": "python3 scripts/buildSnsHandbook.py",
+    "sns": "python3 scripts/analyzeVideos.py && python3 scripts/buildSnsHandbook.py"
   }
 }
