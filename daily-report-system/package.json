@@ -27,6 +27,11 @@
     "urgent": "node scripts/urgentNotify.js",
     "test": "node --test \"test/*.test.js\"",
     "build:n8n": "node scripts/buildN8nSales.js",
-    "monthly": "node scripts/monthlySalesReport.js"
+    "monthly": "node scripts/monthlySalesReport.js",
+    "dashboard:data": "node scripts/exportDashboardData.js",
+    "dashboard": "node scripts/exportDashboardData.js && node scripts/buildDashboard.js",
+    "dashboard:build": "node scripts/buildDashboard.js",
+    "create-business-apps": "node kintone/createBusinessApps.js",
+    "brief": "node scripts/boardBrief.js"
   }
 }

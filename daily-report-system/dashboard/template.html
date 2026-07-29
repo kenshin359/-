@@ -1,0 +1,1158 @@
+<title>Libetee 販売ダッシュボード</title>
+<style>
+  /* ============================================================
+     配色トークン
+     系列色は dataviz の検証済みパレット（validate_palette.js で
+     light / dark 両モードとも全項目 PASS を確認済み）。
+     明モードで aqua / yellow が対サーフェス 3:1 未満のため、
+     凡例・直接ラベル・テーブル表示を必ず併設している。
+     ============================================================ */
+  :root {
+    color-scheme: light;
+    --plane:        #f6f6f3;
+    --surface:      #fcfcfb;
+    --surface-2:    #f1f1ed;
+    --ink:          #0b0b0b;
+    --ink-2:        #52514e;
+    --ink-3:        #898781;
+    --grid:         #e1e0d9;
+    --axis:         #c3c2b7;
+    --hairline:     rgba(11, 11, 11, 0.10);
+
+    --s1: #2a78d6;  /* 楽天 */
+    --s2: #eb6834;  /* Amazon */
+    --s3: #1baf7a;  /* Shopify(自社) */
+    --s4: #eda100;  /* TikTok Shop */
+
+    --good:     #006300;
+    --warning:  #fab219;
+    --critical: #d03b3b;
+
+    --focus: #2a78d6;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:where(:not([data-theme="light"])) {
+      color-scheme: dark;
+      --plane:     #0d0d0d;
+      --surface:   #1a1a19;
+      --surface-2: #232322;
+      --ink:       #ffffff;
+      --ink-2:     #c3c2b7;
+      --ink-3:     #898781;
+      --grid:      #2c2c2a;
+      --axis:      #383835;
+      --hairline:  rgba(255, 255, 255, 0.10);
+
+      --s1: #3987e5;
+      --s2: #d95926;
+      --s3: #199e70;
+      --s4: #c98500;
+
+      --good:     #0ca30c;
+      --warning:  #fab219;
+      --critical: #d03b3b;
+
+      --focus: #3987e5;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --plane:     #0d0d0d;
+    --surface:   #1a1a19;
+    --surface-2: #232322;
+    --ink:       #ffffff;
+    --ink-2:     #c3c2b7;
+    --ink-3:     #898781;
+    --grid:      #2c2c2a;
+    --axis:      #383835;
+    --hairline:  rgba(255, 255, 255, 0.10);
+    --s1: #3987e5;
+    --s2: #d95926;
+    --s3: #199e70;
+    --s4: #c98500;
+    --good: #0ca30c;
+    --focus: #3987e5;
+  }
+
+  :root[data-theme="light"] {
+    color-scheme: light;
+    --plane: #f6f6f3; --surface: #fcfcfb; --surface-2: #f1f1ed;
+    --ink: #0b0b0b; --ink-2: #52514e; --ink-3: #898781;
+    --grid: #e1e0d9; --axis: #c3c2b7; --hairline: rgba(11,11,11,0.10);
+    --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100;
+    --good: #006300; --focus: #2a78d6;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--plane);
+    color: var(--ink);
+    font-family: system-ui, -apple-system, "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .app {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 28px 20px 96px;
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+  }
+
+  /* ── 見出し ────────────────────────────── */
+  .masthead { display: flex; flex-direction: column; gap: 6px; }
+  .eyebrow {
+    font-size: 11px; font-weight: 600; letter-spacing: 0.13em;
+    text-transform: uppercase; color: var(--ink-3);
+  }
+  h1 { margin: 0; font-size: 26px; font-weight: 650; letter-spacing: -0.015em; text-wrap: balance; }
+  .sub { margin: 0; color: var(--ink-2); font-size: 13.5px; }
+
+  /* ── フィルター行 ──────────────────────── */
+  .filters {
+    display: flex; flex-wrap: wrap; gap: 18px 26px; align-items: flex-end;
+    padding: 14px 16px;
+    background: var(--surface);
+    border: 1px solid var(--hairline);
+    border-radius: 10px;
+  }
+  .filter-group { display: flex; flex-direction: column; gap: 7px; }
+  .filter-label {
+    font-size: 10.5px; font-weight: 600; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--ink-3);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip {
+    font: inherit; font-size: 13px; line-height: 1;
+    padding: 7px 12px; border-radius: 999px;
+    border: 1px solid var(--hairline);
+    background: var(--surface-2); color: var(--ink-2);
+    cursor: pointer; white-space: nowrap;
+    display: inline-flex; align-items: center; gap: 6px;
+    transition: background 120ms, color 120ms, border-color 120ms;
+  }
+  .chip:hover { background: var(--surface); border-color: var(--axis); }
+  .chip[aria-pressed="true"] {
+    background: var(--ink); color: var(--surface); border-color: var(--ink);
+    font-weight: 600;
+  }
+  .chip .key { width: 9px; height: 9px; border-radius: 2px; flex: none; }
+  .chip[aria-pressed="false"] .key { opacity: 0.35; }
+  :is(button, a, [tabindex]):focus-visible {
+    outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 4px;
+  }
+
+  /* ── KPI ───────────────────────────────── */
+  .kpi-row {
+    display: grid; gap: 14px;
+    grid-template-columns: repeat(auto-fit, minmax(178px, 1fr));
+  }
+  .tile {
+    background: var(--surface); border: 1px solid var(--hairline);
+    border-radius: 10px; padding: 15px 16px 16px;
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .tile .label { font-size: 12px; color: var(--ink-2); }
+  .tile .value { font-size: 25px; font-weight: 650; letter-spacing: -0.02em; }
+  .tile.hero { grid-column: span 2; }
+  .tile.hero .value { font-size: 46px; line-height: 1.1; letter-spacing: -0.03em; }
+  @media (max-width: 560px) { .tile.hero { grid-column: span 1; } .tile.hero .value { font-size: 34px; } }
+  .tile .foot { font-size: 12px; color: var(--ink-3); }
+  .delta { font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; }
+  .delta.up { color: var(--good); }
+  .delta.down { color: var(--critical); }
+  .delta.flat { color: var(--ink-3); }
+
+  /* ── カード & グラフ ───────────────────── */
+  .card {
+    background: var(--surface); border: 1px solid var(--hairline);
+    border-radius: 10px; padding: 16px 16px 12px;
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .card-head { display: flex; flex-wrap: wrap; gap: 10px; align-items: baseline; justify-content: space-between; }
+  .card-title { margin: 0; font-size: 15.5px; font-weight: 640; }
+  .card-note { font-size: 12px; color: var(--ink-3); margin: 0; }
+  .legend { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+  .legend-item { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--ink-2); }
+  .legend-key { width: 11px; height: 11px; border-radius: 2px; flex: none; }
+  .legend-key.line { height: 3px; border-radius: 2px; width: 16px; }
+
+  .plot { position: relative; width: 100%; }
+  .plot svg { display: block; width: 100%; height: auto; overflow: visible; }
+  .grid-line { stroke: var(--grid); stroke-width: 1; }
+  .axis-line { stroke: var(--axis); stroke-width: 1; }
+  .tick { fill: var(--ink-3); font-size: 11px; font-variant-numeric: tabular-nums; }
+  .crosshair { stroke: var(--axis); stroke-width: 1; pointer-events: none; }
+  .end-label { fill: var(--ink-2); font-size: 11.5px; font-weight: 600; }
+
+  .tip {
+    position: absolute; pointer-events: none; z-index: 6;
+    background: var(--surface); color: var(--ink);
+    border: 1px solid var(--hairline); border-radius: 8px;
+    padding: 9px 11px; font-size: 12.5px; line-height: 1.5;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.13);
+    min-width: 148px; opacity: 0; transition: opacity 90ms;
+  }
+  .tip .tip-date { font-size: 11.5px; color: var(--ink-3); margin-bottom: 5px; }
+  .tip-row { display: flex; align-items: center; gap: 7px; justify-content: space-between; }
+  .tip-row .nm { display: inline-flex; align-items: center; gap: 6px; color: var(--ink-2); font-size: 12px; }
+  .tip-row .ky { width: 13px; height: 3px; border-radius: 2px; flex: none; }
+  .tip-row .vl { font-weight: 650; font-variant-numeric: tabular-nums; }
+  .tip-total { border-top: 1px solid var(--hairline); margin-top: 5px; padding-top: 5px; }
+
+  /* ── 表 ────────────────────────────────── */
+  .table-toggle {
+    align-self: flex-start; font: inherit; font-size: 12px;
+    background: none; border: none; color: var(--ink-2);
+    cursor: pointer; padding: 2px 0; text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .table-wrap { overflow-x: auto; max-height: 320px; overflow-y: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: 12.5px; }
+  th, td { padding: 6px 10px; text-align: right; white-space: nowrap; }
+  th:first-child, td:first-child { text-align: left; }
+  thead th {
+    position: sticky; top: 0; background: var(--surface);
+    color: var(--ink-2); font-weight: 600; font-size: 11.5px;
+    border-bottom: 1px solid var(--axis);
+  }
+  tbody td { border-bottom: 1px solid var(--grid); font-variant-numeric: tabular-nums; }
+  tbody tr:hover { background: var(--surface-2); }
+
+  /* ── 商品一覧 ──────────────────────────── */
+  .prod-list { display: flex; flex-direction: column; gap: 2px; }
+  .prod-row {
+    display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center;
+    width: 100%; text-align: left; font: inherit;
+    background: none; border: none; border-bottom: 1px solid var(--grid);
+    padding: 9px 8px; cursor: pointer; color: var(--ink);
+  }
+  .prod-row:hover { background: var(--surface-2); }
+  .prod-row[aria-expanded="true"] { background: var(--surface-2); }
+  .prod-name { display: flex; align-items: center; gap: 9px; min-width: 0; }
+  .prod-name .nm { font-weight: 550; overflow: hidden; text-overflow: ellipsis; }
+  .prod-group {
+    font-size: 10.5px; color: var(--ink-3); border: 1px solid var(--hairline);
+    padding: 1px 6px; border-radius: 999px; flex: none;
+  }
+  .prod-bar { width: 100%; height: 6px; background: var(--surface-2); border-radius: 3px; overflow: hidden; }
+  .prod-bar > i { display: block; height: 100%; border-radius: 3px; background: var(--s1); }
+  .prod-qty { font-variant-numeric: tabular-nums; font-weight: 650; font-size: 14px; }
+  .prod-meta { font-size: 11.5px; color: var(--ink-3); }
+  .drill {
+    padding: 4px 8px 18px; display: flex; flex-direction: column; gap: 16px;
+    border-bottom: 1px solid var(--grid);
+  }
+  .drill-grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+  .mini-title { font-size: 12px; font-weight: 600; color: var(--ink-2); margin: 0 0 6px; }
+
+  /* ── 注意・未接続 ──────────────────────── */
+  .notice {
+    display: flex; gap: 10px; align-items: flex-start;
+    padding: 12px 14px; border-radius: 9px;
+    background: var(--surface); border: 1px solid var(--hairline);
+    border-left: 3px solid var(--warning);
+    font-size: 13px; color: var(--ink-2);
+  }
+  .notice.pending { border-left-color: var(--s1); }
+  .notice strong { color: var(--ink); font-weight: 620; }
+  .notice ul { margin: 6px 0 0; padding-left: 18px; }
+  .notice li { margin: 2px 0; }
+  .badge {
+    display: inline-block; font-size: 10.5px; font-weight: 600; letter-spacing: 0.04em;
+    padding: 2px 8px; border-radius: 999px; flex: none;
+    background: var(--surface-2); color: var(--ink-2); border: 1px solid var(--hairline);
+  }
+  .empty { color: var(--ink-3); font-size: 13px; padding: 18px 4px; }
+  footer { color: var(--ink-3); font-size: 12px; text-align: center; padding-top: 8px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; animation: none !important; }
+  }
+</style>
+
+<div class="app">
+  <header class="masthead">
+    <span class="eyebrow">株式会社リベティ</span>
+    <h1>販売ダッシュボード</h1>
+    <p class="sub" id="periodLine"></p>
+  </header>
+
+  <div class="filters">
+    <div class="filter-group">
+      <span class="filter-label" id="rangeLabel">期間</span>
+      <div class="chips" role="group" aria-labelledby="rangeLabel" id="rangeChips"></div>
+    </div>
+    <div class="filter-group">
+      <span class="filter-label" id="chanLabel">販売チャネル</span>
+      <div class="chips" role="group" aria-labelledby="chanLabel" id="chanChips"></div>
+    </div>
+  </div>
+
+  <section class="kpi-row" id="kpis" aria-label="主要指標"></section>
+
+  <section class="card">
+    <div class="card-head">
+      <h2 class="card-title">売上の推移</h2>
+      <div class="legend" id="salesLegend"></div>
+    </div>
+    <div class="plot" id="salesPlot"></div>
+    <button class="table-toggle" type="button" data-table="salesTable">表で見る</button>
+    <div class="table-wrap" id="salesTable" hidden></div>
+  </section>
+
+  <section class="card">
+    <div class="card-head">
+      <h2 class="card-title">販売個数の推移</h2>
+      <div class="legend" id="unitsLegend"></div>
+    </div>
+    <p class="card-note">チャネル別の販売個数。売上と違い TikTok Shop も含まれます。</p>
+    <div class="plot" id="unitsPlot"></div>
+    <button class="table-toggle" type="button" data-table="unitsTable">表で見る</button>
+    <div class="table-wrap" id="unitsTable" hidden></div>
+  </section>
+
+  <div class="kpi-row" style="grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));">
+    <section class="card">
+      <div class="card-head">
+        <h2 class="card-title">転換率</h2>
+        <div class="legend" id="cvrLegend"></div>
+      </div>
+      <div class="plot" id="cvrPlot"></div>
+      <button class="table-toggle" type="button" data-table="cvrTable">表で見る</button>
+      <div class="table-wrap" id="cvrTable" hidden></div>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <h2 class="card-title">アクセス数</h2>
+        <div class="legend" id="accessLegend"></div>
+      </div>
+      <div class="plot" id="accessPlot"></div>
+      <button class="table-toggle" type="button" data-table="accessTable">表で見る</button>
+      <div class="table-wrap" id="accessTable" hidden></div>
+    </section>
+  </div>
+
+  <section class="card">
+    <div class="card-head">
+      <h2 class="card-title">お気に入り登録数（楽天）</h2>
+    </div>
+    <div class="plot" id="favPlot"></div>
+    <button class="table-toggle" type="button" data-table="favTable">表で見る</button>
+    <div class="table-wrap" id="favTable" hidden></div>
+  </section>
+
+  <section class="card">
+    <div class="card-head">
+      <h2 class="card-title">商品別の販売個数</h2>
+      <p class="card-note">商品名を押すと、チャネル別の内訳・転換率・ランキングが開きます。</p>
+    </div>
+    <div class="prod-list" id="prodList"></div>
+  </section>
+
+  <section class="card" id="stockoutCard">
+    <div class="card-head">
+      <h2 class="card-title">在庫切れの疑い</h2>
+      <span class="badge">売上データからの推定</span>
+    </div>
+    <p class="card-note">
+      普段よく売れている商品が、連続して 0 個になった期間を拾っています。
+      在庫アプリができれば推定ではなく実数で判定できます。
+    </p>
+    <div id="stockoutList"></div>
+  </section>
+
+  <section class="notice pending">
+    <span class="badge">未接続</span>
+    <div>
+      <strong>在庫数と広告費は、まだ Kintone にデータがありません。</strong>
+      <ul>
+        <li><strong>在庫数</strong>（CS倉庫 / Amazon倉庫）… アプリ設計書を <code>docs/kintone-inventory-app.md</code> に用意しました</li>
+        <li><strong>広告費</strong>（Meta / RPP / Amazon広告 / Google広告）… 同じく <code>docs/kintone-adcost-app.md</code></li>
+      </ul>
+      この2つが入ると、上の「在庫切れの疑い」が実数判定になり、
+      ROAS と 広告費率 をこの画面に追加できます。
+    </div>
+  </section>
+
+  <section class="notice" id="issuesBox" hidden>
+    <span class="badge">要確認</span>
+    <div>
+      <strong>データの記入について気づいた点</strong>
+      <ul id="issuesList"></ul>
+    </div>
+  </section>
+
+  <footer id="footer"></footer>
+</div>
+
+<script id="dashboard-data" type="application/json">__DATA__</script>
+<script>
+(() => {
+  'use strict';
+
+  const DATA = JSON.parse(document.getElementById('dashboard-data').textContent);
+
+  // 系列色は CSS 変数から読む（テーマ切替に追従させるため）
+  const cssVar = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  const CH = [
+    { key: 'rakuten', label: '楽天',          slot: '--s1' },
+    { key: 'amazon',  label: 'Amazon',        slot: '--s2' },
+    { key: 'shopify', label: 'Shopify(自社)', slot: '--s3' },
+    { key: 'tiktok',  label: 'TikTok Shop',   slot: '--s4' },
+  ];
+  // 売上テキストには自社サイト＝own として入っている
+  const SALES_KEY = { rakuten: 'rakuten', amazon: 'amazon', shopify: 'own' };
+
+  const state = {
+    range: 30,                                   // 日数。0 = 全期間
+    channels: new Set(CH.map((c) => c.key)),
+    openProduct: null,
+  };
+
+  // ── 数値の整形 ──────────────────────────
+  const yen = (n) => (n === null || n === undefined || !isFinite(n)) ? '—'
+    : '¥' + Math.round(n).toLocaleString('ja-JP');
+  const yenShort = (n) => {
+    if (n === null || !isFinite(n)) return '—';
+    if (Math.abs(n) >= 100000000) return '¥' + (n / 100000000).toFixed(2) + '億';
+    if (Math.abs(n) >= 10000) return '¥' + Math.round(n / 10000).toLocaleString('ja-JP') + '万';
+    return yen(n);
+  };
+  const num = (n) => (n === null || !isFinite(n)) ? '—' : Math.round(n).toLocaleString('ja-JP');
+  const pct = (n) => (n === null || !isFinite(n)) ? '—' : n.toFixed(2) + '%';
+  const md = (d) => d.slice(5).replace('-', '/');
+
+  // ── 期間の絞り込み ──────────────────────
+  function visibleDaily() {
+    const all = DATA.daily;
+    if (!state.range || state.range >= all.length) return all;
+    return all.slice(-state.range);
+  }
+  function visibleDates() { return visibleDaily().map((d) => d.date); }
+
+  // ── SVG 補助 ────────────────────────────
+  const NS = 'http://www.w3.org/2000/svg';
+  function el(tag, attrs = {}, parent) {
+    const n = document.createElementNS(NS, tag);
+    for (const [k, v] of Object.entries(attrs)) {
+      if (v !== null && v !== undefined) n.setAttribute(k, v);
+    }
+    if (parent) parent.appendChild(n);
+    return n;
+  }
+  function niceTicks(max, count = 4) {
+    if (!isFinite(max) || max <= 0) return [0, 1];
+    const raw = max / count;
+    const mag = Math.pow(10, Math.floor(Math.log10(raw)));
+    const norm = raw / mag;
+    const step = (norm <= 1 ? 1 : norm <= 2 ? 2 : norm <= 5 ? 5 : 10) * mag;
+    const ticks = [];
+    for (let v = 0; v <= max * 1.0001 + step * 0.5; v += step) ticks.push(v);
+    return ticks;
+  }
+
+  /**
+   * 折れ線 / 積み上げ棒の共通描画。
+   * series: [{ key, label, color, values: number|null[] }]
+   */
+  function drawChart(mount, { dates, series, type, fmt, fmtShort, height = 230, tableEl, tableUnit, invert }) {
+    mount.innerHTML = '';
+    if (!dates.length || !series.length) {
+      const p = document.createElement('p');
+      p.className = 'empty';
+      p.textContent = 'この期間に表示できるデータがありません。';
+      mount.appendChild(p);
+      if (tableEl) tableEl.innerHTML = '';
+      return;
+    }
+
+    const W = Math.max(320, mount.clientWidth || 640);
+    const H = height;
+    const M = { t: 14, r: type === 'line' ? 54 : 14, b: 26, l: 54 };
+    const iw = W - M.l - M.r;
+    const ih = H - M.t - M.b;
+
+    // 最大値
+    let max = 0;
+    if (type === 'stack') {
+      dates.forEach((_, i) => {
+        let s = 0;
+        series.forEach((sr) => { s += sr.values[i] || 0; });
+        max = Math.max(max, s);
+      });
+    } else {
+      series.forEach((sr) => sr.values.forEach((v) => { if (v !== null && isFinite(v)) max = Math.max(max, v); }));
+    }
+    if (max <= 0) max = 1;
+
+    const ticks = niceTicks(max);
+    const top = ticks[ticks.length - 1];
+    // invert: ランキングのように「数字が小さいほど良い」指標は上下を反転させ、
+    //         線が上がる＝良くなる、と直感どおりに読めるようにする
+    const y = (v) => invert ? M.t + (v / top) * ih : M.t + ih - (v / top) * ih;
+    const band = iw / dates.length;
+    const cx = (i) => M.l + band * (i + 0.5);
+
+    const svg = el('svg', { viewBox: `0 0 ${W} ${H}`, width: W, height: H, role: 'img' }, mount);
+
+    // グリッド（実線ヘアライン）
+    ticks.forEach((t) => {
+      el('line', { class: 'grid-line', x1: M.l, x2: M.l + iw, y1: y(t), y2: y(t) }, svg);
+      const lb = el('text', { class: 'tick', x: M.l - 8, y: y(t) + 4, 'text-anchor': 'end' }, svg);
+      lb.textContent = fmtShort ? fmtShort(t) : num(t);
+    });
+    el('line', { class: 'axis-line', x1: M.l, x2: M.l + iw, y1: M.t + ih, y2: M.t + ih }, svg);
+
+    // X 軸ラベル（間引く）。最終日は、直前の目盛と近すぎるときは出さない
+    // （「07/27 07/28」のように重なって読めなくなるのを防ぐ）
+    // ★間引き幅はグラフの実幅から決める。件数だけで決めると、
+    //   横に狭い小さなグラフでラベルが密着して読めなくなる。
+    const LABEL_PX = 46;
+    const maxLabels = Math.max(2, Math.floor(iw / LABEL_PX));
+    const every = Math.max(1, Math.ceil(dates.length / maxLabels));
+    const shown = [];
+    dates.forEach((d, i) => {
+      if (i % every !== 0) return;
+      shown.push(i);
+    });
+    const lastIdx = dates.length - 1;
+    const MIN_GAP_PX = 44;
+    if (!shown.includes(lastIdx) && cx(lastIdx) - cx(shown[shown.length - 1]) >= MIN_GAP_PX) {
+      shown.push(lastIdx);
+    }
+    shown.forEach((i) => {
+      const lb = el('text', { class: 'tick', x: cx(i), y: H - 8, 'text-anchor': 'middle' }, svg);
+      lb.textContent = md(dates[i]);
+    });
+
+    const surface = cssVar('--surface');
+
+    if (type === 'stack') {
+      const bw = Math.min(24, band * 0.68);
+      dates.forEach((_, i) => {
+        let acc = 0;
+        series.forEach((sr) => {
+          const v = sr.values[i] || 0;
+          if (v <= 0) return;
+          const y0 = y(acc);
+          const y1 = y(acc + v);
+          const h = Math.max(0, y0 - y1);
+          if (h > 0) {
+            el('rect', {
+              x: cx(i) - bw / 2, y: y1, width: bw, height: h,
+              fill: sr.color, rx: 2,
+              // 積み上げの境目は 2px のサーフェス色の隙間で分ける（枠線は引かない）
+              stroke: surface, 'stroke-width': 2, 'stroke-opacity': acc === 0 ? 0 : 1,
+            }, svg);
+          }
+          acc += v;
+        });
+      });
+    } else {
+      const ends = [];
+      series.forEach((sr) => {
+        // null を挟んで線を切る（データが無い日をつながない）
+        let d = '', pen = false;
+        sr.values.forEach((v, i) => {
+          if (v === null || !isFinite(v)) { pen = false; return; }
+          d += (pen ? 'L' : 'M') + cx(i).toFixed(1) + ' ' + y(v).toFixed(1) + ' ';
+          pen = true;
+        });
+        if (d) {
+          el('path', { d, fill: 'none', stroke: sr.color, 'stroke-width': 2,
+            'stroke-linejoin': 'round', 'stroke-linecap': 'round' }, svg);
+        }
+        let last = -1;
+        sr.values.forEach((v, i) => { if (v !== null && isFinite(v)) last = i; });
+        if (last >= 0) {
+          el('circle', { cx: cx(last), cy: y(sr.values[last]), r: 4,
+            fill: sr.color, stroke: surface, 'stroke-width': 2 }, svg);
+          ends.push({ x: cx(last), y: y(sr.values[last]), v: sr.values[last] });
+        }
+      });
+
+      // 末尾の直接ラベル。線が終端で近づいている場合はラベルを出さない。
+      // ずらして並べると線から離れて誤読を招くため、凡例・ツールチップ・表に任せる。
+      const sorted = [...ends].sort((a, b) => a.y - b.y);
+      const collide = sorted.some((e, i) => i > 0 && Math.abs(e.y - sorted[i - 1].y) < 15);
+      if (!collide) {
+        ends.forEach((e) => {
+          const t = el('text', { class: 'end-label', x: e.x + 9, y: e.y + 4 }, svg);
+          t.textContent = fmtShort ? fmtShort(e.v) : num(e.v);
+        });
+      }
+    }
+
+    // ── ホバー層（十字線 + まとめツールチップ）──
+    const tip = document.createElement('div');
+    tip.className = 'tip';
+    mount.appendChild(tip);
+    const cross = el('line', { class: 'crosshair', y1: M.t, y2: M.t + ih, opacity: 0 }, svg);
+
+    const hit = el('rect', { x: M.l, y: M.t, width: iw, height: ih,
+      fill: 'transparent', tabindex: 0, role: 'application',
+      'aria-label': '日ごとの数値。左右キーで移動できます。' }, svg);
+
+    let idx = -1;
+    function show(i) {
+      if (i < 0 || i >= dates.length) return;
+      idx = i;
+      cross.setAttribute('x1', cx(i));
+      cross.setAttribute('x2', cx(i));
+      cross.setAttribute('opacity', 1);
+
+      tip.innerHTML = '';
+      const head = document.createElement('div');
+      head.className = 'tip-date';
+      head.textContent = dates[i];
+      tip.appendChild(head);
+
+      let total = 0;
+      series.forEach((sr) => {
+        const v = sr.values[i];
+        if (v === null || v === undefined || !isFinite(v)) return;
+        total += v;
+        const row = document.createElement('div');
+        row.className = 'tip-row';
+        const nm = document.createElement('span');
+        nm.className = 'nm';
+        const ky = document.createElement('span');
+        ky.className = 'ky';
+        ky.style.background = sr.color;
+        nm.appendChild(ky);
+        // 系列名は外部由来の文字列なので textContent で入れる
+        nm.appendChild(document.createTextNode(sr.label));
+        const vl = document.createElement('span');
+        vl.className = 'vl';
+        vl.textContent = fmt ? fmt(v) : num(v);
+        row.append(nm, vl);
+        tip.appendChild(row);
+      });
+      if (type === 'stack' && series.length > 1) {
+        const row = document.createElement('div');
+        row.className = 'tip-row tip-total';
+        const nm = document.createElement('span');
+        nm.className = 'nm';
+        nm.textContent = '合計';
+        const vl = document.createElement('span');
+        vl.className = 'vl';
+        vl.textContent = fmt ? fmt(total) : num(total);
+        row.append(nm, vl);
+        tip.appendChild(row);
+      }
+
+      tip.style.opacity = 1;
+      const px = cx(i) / W * mount.clientWidth;
+      const tw = tip.offsetWidth;
+      tip.style.left = Math.max(2, Math.min(mount.clientWidth - tw - 2, px + 14)) + 'px';
+      tip.style.top = '8px';
+    }
+    function hide() { tip.style.opacity = 0; cross.setAttribute('opacity', 0); }
+
+    hit.addEventListener('pointermove', (e) => {
+      const r = svg.getBoundingClientRect();
+      const x = (e.clientX - r.left) * (W / r.width);
+      show(Math.max(0, Math.min(dates.length - 1, Math.floor((x - M.l) / band))));
+    });
+    hit.addEventListener('pointerleave', hide);
+    hit.addEventListener('focus', () => show(idx < 0 ? dates.length - 1 : idx));
+    hit.addEventListener('blur', hide);
+    hit.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight') { show(Math.min(dates.length - 1, idx + 1)); e.preventDefault(); }
+      if (e.key === 'ArrowLeft') { show(Math.max(0, idx - 1)); e.preventDefault(); }
+    });
+
+    // ── 表（ツールチップに頼らず値へ到達できるようにする）──
+    if (tableEl) {
+      const t = document.createElement('table');
+      const thead = document.createElement('thead');
+      const hr = document.createElement('tr');
+      ['日付', ...series.map((s) => s.label)].forEach((h) => {
+        const th = document.createElement('th');
+        th.textContent = h + (tableUnit && h !== '日付' ? tableUnit : '');
+        hr.appendChild(th);
+      });
+      thead.appendChild(hr);
+      const tb = document.createElement('tbody');
+      dates.forEach((d, i) => {
+        const tr = document.createElement('tr');
+        const td0 = document.createElement('td');
+        td0.textContent = d;
+        tr.appendChild(td0);
+        series.forEach((sr) => {
+          const td = document.createElement('td');
+          const v = sr.values[i];
+          td.textContent = (v === null || v === undefined || !isFinite(v)) ? '—' : (fmt ? fmt(v) : num(v));
+          tr.appendChild(td);
+        });
+        tb.appendChild(tr);
+      });
+      t.append(thead, tb);
+      tableEl.innerHTML = '';
+      tableEl.appendChild(t);
+    }
+  }
+
+  function legendInto(mount, series, shape) {
+    mount.innerHTML = '';
+    series.forEach((s) => {
+      const item = document.createElement('span');
+      item.className = 'legend-item';
+      const key = document.createElement('span');
+      key.className = 'legend-key' + (shape === 'line' ? ' line' : '');
+      key.style.background = s.color;
+      item.appendChild(key);
+      item.appendChild(document.createTextNode(s.label));
+      mount.appendChild(item);
+    });
+  }
+
+  // ── KPI ─────────────────────────────────
+  function renderKpis() {
+    const days = visibleDaily();
+    const box = document.getElementById('kpis');
+    box.innerHTML = '';
+    if (!days.length) return;
+
+    const activeSales = CH.filter((c) => state.channels.has(c.key) && SALES_KEY[c.key]);
+    const revenue = days.reduce((s, d) =>
+      s + activeSales.reduce((a, c) => a + (d.sales[SALES_KEY[c.key]] || 0), 0), 0);
+    const units = days.reduce((s, d) =>
+      s + CH.filter((c) => state.channels.has(c.key)).reduce((a, c) => a + (d.units[c.key] || 0), 0), 0);
+
+    const cvrVals = days.map((d) => d.cvr.rakuten).filter((v) => v !== null && isFinite(v));
+    const avgCvr = cvrVals.length ? cvrVals.reduce((a, b) => a + b, 0) / cvrVals.length : null;
+    const favVals = days.map((d) => d.favorites).filter((v) => v !== null && isFinite(v));
+    const lastFav = favVals.length ? favVals[favVals.length - 1] : null;
+
+    // 直前の期間と比べる。
+    // ★日数が違う期間の「累計どうし」を比べると +130% のような無意味な数字になる。
+    //   1日あたりの売上（日商平均）で比べ、日数も併記する。
+    const all = DATA.daily;
+    const n = days.length;
+    const prev = all.slice(Math.max(0, all.length - n * 2), all.length - n);
+    const prevRevenue = prev.reduce((s, d) =>
+      s + activeSales.reduce((a, c) => a + (d.sales[SALES_KEY[c.key]] || 0), 0), 0);
+
+    const avgNow = n ? revenue / n : null;
+    const avgPrev = prev.length ? prevRevenue / prev.length : null;
+    const delta = avgPrev && avgPrev > 0 ? ((avgNow - avgPrev) / avgPrev) * 100 : null;
+
+    const foot = prev.length
+      ? `日商平均で比較 ｜ 前の${prev.length}日間: ${yenShort(avgPrev)}/日 → ${yenShort(avgNow)}/日`
+      : '比較できる前期間がありません';
+
+    const tiles = [
+      { hero: true, label: `総売上（${n}日間）`, value: yen(revenue), delta, foot },
+      { label: '販売個数', value: num(units) + ' 個', foot: `1日あたり ${num(units / n)} 個` },
+      { label: '平均転換率（楽天）', value: pct(avgCvr), foot: cvrVals.length + '日分の平均' },
+      { label: 'お気に入り登録（楽天）', value: num(lastFav), foot: '最終日の登録数' },
+    ];
+
+    tiles.forEach((t) => {
+      const d = document.createElement('div');
+      d.className = 'tile' + (t.hero ? ' hero' : '');
+      const l = document.createElement('span'); l.className = 'label'; l.textContent = t.label;
+      const v = document.createElement('span'); v.className = 'value'; v.textContent = t.value;
+      d.append(l, v);
+      if (t.delta !== null && t.delta !== undefined) {
+        const dd = document.createElement('span');
+        const dir = t.delta > 0.5 ? 'up' : t.delta < -0.5 ? 'down' : 'flat';
+        dd.className = 'delta ' + dir;
+        dd.textContent = (dir === 'up' ? '▲ ' : dir === 'down' ? '▼ ' : '― ')
+          + (t.delta >= 0 ? '+' : '') + t.delta.toFixed(1) + '%';
+        d.appendChild(dd);
+      }
+      if (t.foot) { const f = document.createElement('span'); f.className = 'foot'; f.textContent = t.foot; d.appendChild(f); }
+      box.appendChild(d);
+    });
+  }
+
+  // ── 各グラフ ────────────────────────────
+  function renderCharts() {
+    const days = visibleDaily();
+    const dates = days.map((d) => d.date);
+
+    const salesSeries = CH.filter((c) => state.channels.has(c.key) && SALES_KEY[c.key])
+      .map((c) => ({ key: c.key, label: c.label, color: cssVar(c.slot),
+        values: days.map((d) => d.sales[SALES_KEY[c.key]] || 0) }));
+    legendInto(document.getElementById('salesLegend'), salesSeries);
+    drawChart(document.getElementById('salesPlot'), {
+      dates, series: salesSeries, type: 'stack', fmt: yen, fmtShort: yenShort,
+      tableEl: document.getElementById('salesTable'), height: 250,
+    });
+
+    const unitSeries = CH.filter((c) => state.channels.has(c.key))
+      .map((c) => ({ key: c.key, label: c.label, color: cssVar(c.slot),
+        values: days.map((d) => d.units[c.key] || 0) }));
+    legendInto(document.getElementById('unitsLegend'), unitSeries);
+    drawChart(document.getElementById('unitsPlot'), {
+      dates, series: unitSeries, type: 'stack',
+      fmt: (v) => num(v) + '個', fmtShort: num,
+      tableEl: document.getElementById('unitsTable'), height: 230,
+    });
+
+    // 転換率とアクセス数は単位が違うので、必ず別のグラフにする（2軸にしない）
+    const cvrSeries = [
+      { label: '楽天', color: cssVar('--s1'), values: days.map((d) => d.cvr.rakuten) },
+      { label: 'Amazon', color: cssVar('--s2'), values: days.map((d) => d.cvr.amazon) },
+    ].filter((s) => s.values.some((v) => v !== null));
+    legendInto(document.getElementById('cvrLegend'), cvrSeries, 'line');
+    drawChart(document.getElementById('cvrPlot'), {
+      dates, series: cvrSeries, type: 'line', fmt: pct, fmtShort: (v) => v.toFixed(1) + '%',
+      tableEl: document.getElementById('cvrTable'), height: 200,
+    });
+
+    const accSeries = [
+      { label: '楽天', color: cssVar('--s1'), values: days.map((d) => d.access.rakuten) },
+      { label: 'Amazon', color: cssVar('--s2'), values: days.map((d) => d.access.amazon) },
+    ].filter((s) => s.values.some((v) => v !== null));
+    legendInto(document.getElementById('accessLegend'), accSeries, 'line');
+    drawChart(document.getElementById('accessPlot'), {
+      dates, series: accSeries, type: 'line', fmt: num,
+      fmtShort: (v) => v >= 10000 ? (v / 10000).toFixed(1) + '万' : num(v),
+      tableEl: document.getElementById('accessTable'), height: 200,
+    });
+
+    // 1系列なので凡例は置かない（タイトルが何のグラフか言っている）
+    drawChart(document.getElementById('favPlot'), {
+      dates,
+      series: [{ label: 'お気に入り登録数', color: cssVar('--s1'), values: days.map((d) => d.favorites) }],
+      type: 'line', fmt: num, fmtShort: num,
+      tableEl: document.getElementById('favTable'), height: 190,
+    });
+  }
+
+  // ── 商品一覧とドリルダウン ──────────────
+  function productUnitsIn(p, dates) {
+    const byCh = {};
+    let total = 0;
+    CH.forEach((c) => {
+      if (!state.channels.has(c.key)) return;
+      const src = p.units[c.key];
+      if (!src) return;
+      const vals = dates.map((d) => src[d] || 0);
+      const sum = vals.reduce((a, b) => a + b, 0);
+      if (sum > 0) { byCh[c.key] = vals; total += sum; }
+    });
+    return { byCh, total };
+  }
+
+  function renderProducts() {
+    const dates = visibleDates();
+    const list = document.getElementById('prodList');
+    list.innerHTML = '';
+
+    const rows = DATA.products
+      .map((p) => ({ p, ...productUnitsIn(p, dates) }))
+      .filter((r) => r.total > 0)
+      .sort((a, b) => b.total - a.total);
+
+    if (!rows.length) {
+      const e = document.createElement('p');
+      e.className = 'empty';
+      e.textContent = 'この期間・チャネルに販売個数のデータがありません。';
+      list.appendChild(e);
+      return;
+    }
+
+    const max = rows[0].total;
+
+    rows.forEach(({ p, byCh, total }) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'prod-row';
+      btn.setAttribute('aria-expanded', String(state.openProduct === p.name));
+
+      const left = document.createElement('span');
+      left.className = 'prod-name';
+      const nm = document.createElement('span');
+      nm.className = 'nm';
+      nm.textContent = p.name;                       // 外部由来の文字列
+      const grp = document.createElement('span');
+      grp.className = 'prod-group';
+      grp.textContent = p.group;
+      left.append(nm, grp);
+
+      const right = document.createElement('span');
+      right.style.display = 'flex';
+      right.style.alignItems = 'center';
+      right.style.gap = '12px';
+      const bar = document.createElement('span');
+      bar.className = 'prod-bar';
+      bar.style.width = '110px';
+      const fill = document.createElement('i');
+      fill.style.width = Math.max(2, (total / max) * 100) + '%';
+      bar.appendChild(fill);
+      const qty = document.createElement('span');
+      qty.className = 'prod-qty';
+      qty.textContent = num(total) + ' 個';
+      right.append(bar, qty);
+
+      btn.append(left, right);
+      btn.addEventListener('click', () => {
+        state.openProduct = state.openProduct === p.name ? null : p.name;
+        renderProducts();
+      });
+      list.appendChild(btn);
+
+      if (state.openProduct === p.name) {
+        list.appendChild(buildDrill(p, byCh, dates));
+      }
+    });
+  }
+
+  function buildDrill(p, byCh, dates) {
+    const wrap = document.createElement('div');
+    wrap.className = 'drill';
+
+    const grid = document.createElement('div');
+    grid.className = 'drill-grid';
+    wrap.appendChild(grid);
+
+    // ① チャネル別の販売個数
+    const unitSeries = CH.filter((c) => byCh[c.key])
+      .map((c) => ({ label: c.label, color: cssVar(c.slot), values: byCh[c.key] }));
+    if (unitSeries.length) {
+      grid.appendChild(miniCard('チャネル別の販売個数', unitSeries, 'stack', dates,
+        (v) => num(v) + '個', num, true));
+    }
+
+    // ② 商品別転換率
+    const cvrSeries = [
+      { key: 'rakuten', label: '楽天', slot: '--s1' },
+      { key: 'amazon', label: 'Amazon', slot: '--s2' },
+    ].filter((c) => p.cvr[c.key] && state.channels.has(c.key))
+      .map((c) => ({ label: c.label, color: cssVar(c.slot),
+        values: dates.map((d) => (p.cvr[c.key][d] === undefined ? null : p.cvr[c.key][d])) }))
+      .filter((s) => s.values.some((v) => v !== null));
+    if (cvrSeries.length) {
+      grid.appendChild(miniCard('商品別の転換率', cvrSeries, 'line', dates,
+        pct, (v) => v.toFixed(1) + '%', true));
+    }
+
+    // ③ ランキング（小さいほど良いので注記を添える）
+    const rankSeries = [
+      { key: 'rakuten', label: '楽天', slot: '--s1' },
+      { key: 'amazon', label: 'Amazon', slot: '--s2' },
+    ].filter((c) => p.rank[c.key] && state.channels.has(c.key))
+      .map((c) => ({ label: c.label, color: cssVar(c.slot),
+        values: dates.map((d) => (p.rank[c.key][d] === undefined ? null : p.rank[c.key][d])) }))
+      .filter((s) => s.values.some((v) => v !== null));
+    if (rankSeries.length) {
+      grid.appendChild(miniCard('ランキング（上に行くほど上位）', rankSeries, 'line', dates,
+        (v) => num(v) + '位', (v) => num(v) + '位', true, true));
+    }
+
+    if (!grid.children.length) {
+      const e = document.createElement('p');
+      e.className = 'empty';
+      e.textContent = 'この商品には、この期間の内訳データがありません。';
+      wrap.appendChild(e);
+    }
+    return wrap;
+  }
+
+  function miniCard(title, series, type, dates, fmt, fmtShort, withLegend, invert) {
+    const box = document.createElement('div');
+    const h = document.createElement('p');
+    h.className = 'mini-title';
+    h.textContent = title;
+    box.appendChild(h);
+    if (withLegend && series.length > 1) {
+      const lg = document.createElement('div');
+      lg.className = 'legend';
+      lg.style.marginBottom = '6px';
+      legendInto(lg, series, type === 'line' ? 'line' : null);
+      box.appendChild(lg);
+    }
+    const plot = document.createElement('div');
+    plot.className = 'plot';
+    box.appendChild(plot);
+    const tbl = document.createElement('div');
+    tbl.className = 'table-wrap';
+    tbl.hidden = true;
+    const tog = document.createElement('button');
+    tog.type = 'button';
+    tog.className = 'table-toggle';
+    tog.textContent = '表で見る';
+    tog.addEventListener('click', () => {
+      tbl.hidden = !tbl.hidden;
+      tog.textContent = tbl.hidden ? '表で見る' : '表を閉じる';
+    });
+    box.append(tog, tbl);
+    // 挿入後に幅が決まるので次フレームで描く
+    requestAnimationFrame(() => drawChart(plot, {
+      dates, series, type, fmt, fmtShort, height: 170, tableEl: tbl, invert,
+    }));
+    return box;
+  }
+
+  // ── 在庫切れの疑い ──────────────────────
+  function renderStockouts() {
+    const dates = visibleDates();
+    const box = document.getElementById('stockoutList');
+    box.innerHTML = '';
+
+    // 販売個数の記載がある日だけを対象にする（未記入日を欠品と誤判定しないため）
+    const daily = visibleDaily();
+    const usable = dates.filter((d, i) => daily[i].hasUnits);
+    const found = [];
+
+    DATA.products.forEach((p) => {
+      const perDay = usable.map((d) =>
+        CH.reduce((s, c) => s + ((p.units[c.key] && p.units[c.key][d]) || 0), 0));
+      const sold = perDay.filter((v) => v > 0);
+      if (sold.length < 5) return;                        // 普段売れていない商品は対象外
+      const avg = sold.reduce((a, b) => a + b, 0) / sold.length;
+      if (avg < 3) return;                                // 1日平均3個未満は判定しない
+
+      let run = 0, start = null;
+      const gaps = [];
+      perDay.forEach((v, i) => {
+        if (v === 0) { if (run === 0) start = usable[i]; run++; }
+        else { if (run >= 2) gaps.push({ from: start, to: usable[i - 1], days: run }); run = 0; }
+      });
+      if (run >= 2) gaps.push({ from: start, to: usable[usable.length - 1], days: run });
+
+      gaps.forEach((g) => found.push({ name: p.name, avg, ...g }));
+    });
+
+    if (!found.length) {
+      const e = document.createElement('p');
+      e.className = 'empty';
+      e.textContent = 'この期間に、在庫切れが疑われる連続ゼロはありません。';
+      box.appendChild(e);
+      return;
+    }
+
+    found.sort((a, b) => b.days - a.days || b.avg - a.avg);
+    const t = document.createElement('table');
+    const thead = document.createElement('thead');
+    const hr = document.createElement('tr');
+    ['商品', '売れていない期間', '日数', '普段の販売個数/日', '推定の機会損失'].forEach((h) => {
+      const th = document.createElement('th');
+      th.textContent = h;
+      hr.appendChild(th);
+    });
+    thead.appendChild(hr);
+    const tb = document.createElement('tbody');
+    found.slice(0, 12).forEach((f) => {
+      const tr = document.createElement('tr');
+      [f.name, `${md(f.from)} 〜 ${md(f.to)}`, f.days + '日',
+       num(f.avg) + '個', 'およそ ' + num(f.avg * f.days) + '個'].forEach((v, i) => {
+        const td = document.createElement('td');
+        td.textContent = v;
+        tr.appendChild(td);
+      });
+      tb.appendChild(tr);
+    });
+    t.append(thead, tb);
+    const wrap = document.createElement('div');
+    wrap.className = 'table-wrap';
+    wrap.appendChild(t);
+    box.appendChild(wrap);
+  }
+
+  // ── フィルターUI ────────────────────────
+  function buildFilters() {
+    const ranges = [
+      { label: '直近7日', v: 7 }, { label: '直近14日', v: 14 },
+      { label: '直近30日', v: 30 }, { label: '全期間', v: 0 },
+    ];
+    const rc = document.getElementById('rangeChips');
+    ranges.forEach((r) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'chip';
+      b.textContent = r.label;
+      b.setAttribute('aria-pressed', String(state.range === r.v));
+      b.addEventListener('click', () => {
+        state.range = r.v;
+        [...rc.children].forEach((c, i) => c.setAttribute('aria-pressed', String(ranges[i].v === r.v)));
+        renderAll();
+      });
+      rc.appendChild(b);
+    });
+
+    const cc = document.getElementById('chanChips');
+    CH.forEach((c) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'chip';
+      b.setAttribute('aria-pressed', String(state.channels.has(c.key)));
+      const k = document.createElement('span');
+      k.className = 'key';
+      k.style.background = cssVar(c.slot);
+      b.appendChild(k);
+      b.appendChild(document.createTextNode(c.label));
+      b.addEventListener('click', () => {
+        if (state.channels.has(c.key)) {
+          if (state.channels.size === 1) return;   // 全部消せないようにする
+          state.channels.delete(c.key);
+        } else {
+          state.channels.add(c.key);
+        }
+        b.setAttribute('aria-pressed', String(state.channels.has(c.key)));
+        renderAll();
+      });
+      cc.appendChild(b);
+    });
+  }
+
+  document.querySelectorAll('.table-toggle[data-table]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const t = document.getElementById(btn.dataset.table);
+      t.hidden = !t.hidden;
+      btn.textContent = t.hidden ? '表で見る' : '表を閉じる';
+    });
+  });
+
+  // ── 全体 ────────────────────────────────
+  function renderAll() {
+    renderKpis();
+    renderCharts();
+    renderProducts();
+    renderStockouts();
+  }
+
+  function renderStatic() {
+    const p = DATA.period;
+    document.getElementById('periodLine').textContent =
+      `${p.from} 〜 ${p.to}　|　出典: ${DATA.source}　|　全 ${DATA.daily.length} 日分`;
+
+    if (DATA.issues && DATA.issues.length) {
+      const box = document.getElementById('issuesBox');
+      const ul = document.getElementById('issuesList');
+      DATA.issues.forEach((s) => {
+        const li = document.createElement('li');
+        li.textContent = s;
+        ul.appendChild(li);
+      });
+      box.hidden = false;
+    }
+
+    document.getElementById('footer').textContent =
+      '作成 ' + new Date(DATA.generatedAt).toLocaleString('ja-JP') + '　|　Kintone は読み取りのみ（変更していません）';
+  }
+
+  buildFilters();
+  renderStatic();
+  renderAll();
+
+  let rt;
+  window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(renderAll, 160); });
+  // テーマ切替に系列色を追従させる
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', renderAll);
+  new MutationObserver(renderAll).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+})();
+</script>
