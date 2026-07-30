@@ -42,6 +42,8 @@
     "reviews:analyze": "node scripts/analyzeReviews.js",
     "reviews:report": "node scripts/analyzeReviews.js && python3 scripts/buildReviewReport.py",
     "product:analyze": "node scripts/analyzeProductIssues.js",
-    "product:report": "node scripts/analyzeProductIssues.js && python3 scripts/buildProductReport.py"
+    "product:report": "node scripts/analyzeProductIssues.js && python3 scripts/buildProductReport.py",
+    "watch:sales": "node scripts/watchSales.js",
+    "quicksheet": "python3 scripts/buildQuickSheet.py"
   }
 }

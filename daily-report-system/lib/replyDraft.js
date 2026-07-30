@@ -44,8 +44,19 @@ export function checkEscalation(review, cfg) {
   }
 
   const body = String(review.body ?? '');
+
+  // 「他社製品が壊れた話」など、本件の不具合ではない文脈は除外する。
+  // ★安全側に倒すのが原則だが、明らかな誤検知が続くと
+  //   🔴 が軽く見られてしまい、本当の緊急を見落とす。
+  const excluded = (rule.exclude_context ?? []).some((p) => new RegExp(p).test(body));
+
   const hit = (rule.keywords ?? []).filter((k) => k && body.includes(k));
-  if (hit.length) reasons.push(`注意語: ${hit.join('・')}`);
+  // 短いひらがな語（「けが」など）は他の語の一部に紛れやすいので、
+  // 「軽いだけが取り柄」のような誤検知を避けるため形を限定する
+  const patHit = (rule.keyword_patterns ?? []).filter((p) => new RegExp(p).test(body));
+
+  const all = [...hit, ...patHit];
+  if (all.length && !excluded) reasons.push(`注意語: ${all.join('・')}`);
 
   return { needed: reasons.length > 0, reasons };
 }

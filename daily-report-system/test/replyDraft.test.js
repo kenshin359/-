@@ -74,6 +74,36 @@ describe('人の確認が必要かの判定', () => {
   });
 });
 
+describe('注意語の誤検知を防ぐ', () => {
+  test('「軽いだけが取り柄」を「けが」と誤検知しない（回帰テスト）', () => {
+    const r = checkEscalation(
+      { star: 4, body: '軽いだけが取り柄みたいなスーツケースを使ってきた' }, cfg);
+    assert.equal(r.needed, false, '「だけが」を「けが」と読んでいる');
+  });
+
+  test('「けが」は助詞が続く形で拾う', () => {
+    for (const b of ['けがをしました', 'けががありました', '怪我をしました']) {
+      assert.equal(checkEscalation({ star: 5, body: b }, cfg).needed, true, `${b} を拾えていない`);
+    }
+  });
+
+  test('他社製品が壊れた話は要確認にしない（回帰テスト）', () => {
+    for (const b of [
+      '以前使っていたキャリーケースが壊れているのを見てきました',
+      '今まで使っていたスーツケースが破損したため購入しました',
+      '保存して1年、遂に壊れたので購入しました',
+    ]) {
+      assert.equal(checkEscalation({ star: 5, body: b }, cfg).needed, false, `${b} を誤検知している`);
+    }
+  });
+
+  test('本件の不具合は、除外文脈があっても拾う', () => {
+    for (const b of ['届いて2日で壊れました', 'キャスターが壊れてしまい交換をお願いしました']) {
+      assert.equal(checkEscalation({ star: 5, body: b }, cfg).needed, true, `${b} を見逃している`);
+    }
+  });
+});
+
 describe('返信文の組み立て', () => {
   const review = { star: 5, date: '2026/07/29', who: 'テストさん', body: 'キャスターが静かで満足です。' };
 
