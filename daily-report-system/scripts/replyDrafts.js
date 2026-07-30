@@ -10,6 +10,7 @@
 //    npm run replies -- --limit=10    … 下書きを作る件数の上限
 //    npm run replies -- --dry-run     … 送らずに画面に表示
 //    npm run replies -- --init        … 既存レビューを「処理済み」にする（初回）
+//    npm run replies -- --quiet       … 件数だけ表示（お客様の情報をログに残さない）
 //
 //  ★自動投稿はしません。楽天にレビュー返信APIが無いこともありますが、
 //    それ以上に、お客様への文面を人が見ないまま出すべきではないためです。
@@ -64,6 +65,10 @@ async function main() {
   const limit = Number(arg('limit', '10'));
   const isDry = process.argv.includes('--dry-run');
   const isInit = process.argv.includes('--init');
+  // ★--quiet: 自動実行（GitHub Actions等）で使います。
+  //   実行ログが第三者から見える場所に残ることがあるため、
+  //   レビュー本文・投稿者名を画面に出しません。件数だけを出します。
+  const isQuiet = process.argv.includes('--quiet');
   // 何日ぶんのレビューを対象にするか（既定1日＝当日と前日ぶん）
   const days = Number(arg('days', '1'));
 
@@ -133,9 +138,12 @@ async function main() {
       const ai = parseJsonFromModel(raw);
       const built = assembleReply(ai, review, cfg);
       drafts.push({ review, ...built, audit: auditReply(built.text) });
-      console.log(`  ${built.needsHuman ? '⚠️' : '✅'} ★${review.star} ${review.date} ${review.who}`);
+      if (!isQuiet) {
+        console.log(`  ${built.needsHuman ? '⚠️' : '✅'} ★${review.star} ${review.date} ${review.who}`);
+      }
     } catch (e) {
-      console.warn(`  ❌ ★${review.star} ${review.who} の下書きに失敗: ${e.message}`);
+      // 失敗の理由は残すが、お客様の情報は出さない
+      console.warn(isQuiet ? `  ❌ 1件の下書きに失敗: ${e.message}` : `  ❌ ★${review.star} ${review.who} の下書きに失敗: ${e.message}`);
     }
   }
 
@@ -167,7 +175,11 @@ async function main() {
     .join('\n\n');
 
   if (isDry) {
-    console.log('\n--- [dry-run] 送信内容 ---\n' + header + '\n\n' + bodies);
+    if (isQuiet) {
+      console.log(`[dry-run] ${drafts.length}件の下書きを作成しました（内容は表示しません）`);
+    } else {
+      console.log('\n--- [dry-run] 送信内容 ---\n' + header + '\n\n' + bodies);
+    }
     return;
   }
 
