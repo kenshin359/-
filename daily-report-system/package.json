@@ -44,6 +44,8 @@
     "product:analyze": "node scripts/analyzeProductIssues.js",
     "product:report": "node scripts/analyzeProductIssues.js && python3 scripts/buildProductReport.py",
     "watch:sales": "node scripts/watchSales.js",
-    "quicksheet": "python3 scripts/buildQuickSheet.py"
+    "quicksheet": "python3 scripts/buildQuickSheet.py",
+    "ads:import": "node scripts/importAdCosts.js",
+    "ads:report": "node scripts/adReport.js"
   }
 }

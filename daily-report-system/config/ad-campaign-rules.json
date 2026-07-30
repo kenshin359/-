@@ -1,0 +1,62 @@
+{
+  "_説明": [
+    "広告の「キャンペーン名」から、販売先と商品を読み取るための対応表です。",
+    "",
+    "★方針: 確実に分かるものだけ『確定』にしています。",
+    "  判断がつかないものは『要確認』にして、勝手に1つにまとめません。",
+    "  広告費を間違った商品に付けると、赤字商品を黒字と誤認するためです。",
+    "",
+    "  この表を直せば、集計もキントーンへの取り込みも一緒に直ります。",
+    "  （プログラムを触る必要はありません）",
+    "",
+    "channels … キャンペーン名の先頭1文字で販売先を判定します",
+    "products … キーワードで商品を判定します。上から順に、最初に当たったものを採用",
+    "confidence … 確定 / 要確認"
+  ],
+
+  "channels": [
+    { "prefix": "R", "channel": "楽天", "confidence": "確定" },
+    { "prefix": "A", "channel": "Amazon", "confidence": "確定" },
+    { "prefix": "Z", "channel": "自社サイト", "confidence": "確定" },
+    { "prefix": "F", "channel": "未分類", "confidence": "要確認", "note": "Fが何を指すか未確認です（Facebook面／楽天ファッション等の可能性）" }
+  ],
+
+  "products": [
+    { "canonical": "ハンディファン(首振り)", "group": "ファン", "confidence": "確定",
+      "keywords": ["首振り"] },
+    { "canonical": "ハンディファン(スケルトン)", "group": "ファン", "confidence": "確定",
+      "keywords": ["スケルトン"] },
+    { "canonical": "ミニハンディファン", "group": "ファン", "confidence": "確定",
+      "keywords": ["ミニファン", "ミニハンディ"] },
+    { "canonical": "クリップファン", "group": "ファン", "confidence": "確定",
+      "keywords": ["クリップファン", "クリップ"] },
+
+    { "canonical": "ノーマルアルミ", "group": "スーツケース", "confidence": "確定",
+      "keywords": ["ノーマルアルミ", "Nアルミ", "Nアル"] },
+    { "canonical": "クラシックアルミ", "group": "スーツケース", "confidence": "確定",
+      "keywords": ["クラシックアルミ"] },
+
+    { "canonical": "多機能PC", "group": "スーツケース", "confidence": "要確認",
+      "keywords": ["PC多機能", "多機能PC", "PC 多機能", "PC　多機能", "多機能"],
+      "note": "PC=ポリカーボネートと思われます。販売個数報告のどの商品に当たるか未確認です。" },
+
+    { "canonical": "Tアルミ(型式未確認)", "group": "スーツケース", "confidence": "要確認",
+      "keywords": ["Tアルミ", "Tアル"],
+      "note": "アルミ系ですが、多機能アルミ／クラシックアルミのどちらか判別できません。" },
+
+    { "canonical": "スーツケース(PC)", "group": "スーツケース", "confidence": "要確認",
+      "keywords": ["PC"],
+      "note": "ポリカーボネート製スーツケース。S/M/Lのどれかは判別できません。" },
+
+    { "canonical": "ハンディファン(モデル未確認)", "group": "ファン", "confidence": "要確認",
+      "keywords": ["ハンディファン", "持ち運ぶエアコン", "爆風", "2000口コミ"],
+      "note": "ファンの広告ですが、首振り／スケルトンのどちらか判別できません。" },
+
+    { "canonical": "アルミ(型式未確認)", "group": "スーツケース", "confidence": "要確認",
+      "keywords": ["アルミ"],
+      "note": "アルミ系スーツケースですが型式が判別できません。" }
+  ],
+
+  "unknown_product": "未分類",
+  "unknown_channel": "未分類"
+}

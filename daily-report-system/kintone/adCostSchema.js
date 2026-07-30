@@ -1,91 +1,171 @@
 // ============================================================
-//  広告費アプリ  フィールド定義
+//  広告費管理アプリ  フィールド定義
 // ------------------------------------------------------------
-//  1レコード = 1日 × 1媒体 の広告実績。
+//  1レコード = 1日。
+//  その中のテーブル（明細）に「媒体 × 商品 × 広告費」を並べます。
 //
-//  なぜ媒体ごとに分けるのか:
-//    ・媒体別の ROAS を出すため（合算では止めるべき媒体が分からない）
-//    ・媒体ごとに取得方法も更新タイミングも違うため
+//  なぜこの形にしたか:
+//    ・入力画面が「その日の広告費シート」1枚になる（社長のご要望）
+//    ・上に総広告費が自動で出る（明細の合計＝計算式）
+//    ・商品ごと・媒体ごとの集計はグラフ側で自動で出せる
 //
-//  対象媒体: Meta広告 / RPP(楽天) / Amazon広告 / Google広告
+//  対象媒体:
+//    Meta広告 / Amazon広告 / RPP(楽天) / Google広告 / TikTok広告 / その他
 //
-//  ★売上との突き合わせは Kintone 側では行いません。
+//  ★売上との突き合わせ（ROASの全社集計）はここではやりません。
 //    このアプリは「広告側の実績」を素直に記録するだけにして、
-//    ROAS の計算はダッシュボード側（JS）で行います。
-//    計算式をアプリに埋めると、後から定義を変えづらくなるためです。
+//    突き合わせはダッシュボードと日次レポート側（JS）で行います。
+//    計算式をアプリに埋め込むと、後から定義を変えづらくなるためです。
 // ============================================================
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { dirname, join } from 'node:path';
 
-export const APP_NAME = '広告費';
+const HERE = dirname(fileURLToPath(import.meta.url));
+
+export const APP_NAME = '広告費管理';
+
+/** 媒体の選択肢（社長のご指定どおりの並び順） */
+export const MEDIA_OPTIONS = [
+  'Meta広告',
+  'Amazon広告',
+  'RPP(楽天)',
+  'Google広告',
+  'TikTok広告',
+  'その他',
+];
+
+/** 販売先の選択肢 */
+export const CHANNEL_OPTIONS = ['楽天', 'Amazon', '自社サイト', 'TikTok Shop', '共通', '未分類'];
+
+/**
+ * 商品の選択肢を作る。
+ * 既存の商品対応表（売上側）と、広告キャンペーンの対応表を合わせます。
+ * ★2つの表から作るので、商品を増やしたときに片方だけ直し忘れても
+ *   もう片方から拾えます。
+ */
+export function productOptions() {
+  const names = new Set();
+
+  const aliases = JSON.parse(
+    readFileSync(join(HERE, '..', 'config', 'product-aliases.json'), 'utf8')
+  );
+  for (const p of aliases.products ?? []) names.add(p.canonical);
+
+  const adRules = JSON.parse(
+    readFileSync(join(HERE, '..', 'config', 'ad-campaign-rules.json'), 'utf8')
+  );
+  for (const p of adRules.products ?? []) names.add(p.canonical);
+
+  // 商品を1つに決めない広告（ブランド広告・イベント広告など）用
+  names.add('全体・ブランド');
+  names.add('未分類');
+
+  return [...names];
+}
+
+/** 選択肢の配列を kintone の options 形式にする */
+export function toOptions(list) {
+  const o = {};
+  list.forEach((label, i) => {
+    o[label] = { label, index: String(i) };
+  });
+  return o;
+}
+
+/** 明細テーブルの中身 */
+export function detailFields() {
+  return {
+    d_media: {
+      type: 'DROP_DOWN', code: 'd_media', label: '媒体', required: true,
+      options: toOptions(MEDIA_OPTIONS),
+    },
+    d_product: {
+      type: 'DROP_DOWN', code: 'd_product', label: '商品', required: false,
+      options: toOptions(productOptions()),
+      defaultValue: '未分類',
+    },
+    d_channel: {
+      type: 'DROP_DOWN', code: 'd_channel', label: '販売先', required: false,
+      options: toOptions(CHANNEL_OPTIONS),
+    },
+    d_campaign: {
+      type: 'SINGLE_LINE_TEXT', code: 'd_campaign', label: 'キャンペーン名', required: false,
+    },
+    d_cost: {
+      type: 'NUMBER', code: 'd_cost', label: '広告費', required: true,
+      unit: '円', unitPosition: 'AFTER', digit: true, defaultValue: '0',
+    },
+    d_impressions: {
+      type: 'NUMBER', code: 'd_impressions', label: '表示回数', required: false, digit: true,
+    },
+    d_clicks: {
+      type: 'NUMBER', code: 'd_clicks', label: 'クリック数', required: false, digit: true,
+    },
+    d_conversions: {
+      type: 'NUMBER', code: 'd_conversions', label: '注文数', required: false, digit: true,
+    },
+    d_revenue: {
+      type: 'NUMBER', code: 'd_revenue', label: '広告経由売上', required: false,
+      unit: '円', unitPosition: 'AFTER', digit: true,
+    },
+    // 広告費0の日に「0で割る」エラーが出ないよう、必ず分岐を入れる
+    d_cpc: {
+      type: 'CALC', code: 'd_cpc', label: 'クリック単価', required: false,
+      expression: 'IF(d_clicks > 0, d_cost / d_clicks, 0)',
+      format: 'NUMBER_DIGIT', unit: '円', unitPosition: 'AFTER',
+    },
+    d_roas: {
+      type: 'CALC', code: 'd_roas', label: 'ROAS', required: false,
+      expression: 'IF(d_cost > 0, d_revenue / d_cost, 0)',
+      format: 'NUMBER', displayScale: '2',
+    },
+  };
+}
 
 export const FIELDS = {
   report_date: {
     type: 'DATE', code: 'report_date', label: '日付', required: true,
     defaultNowValue: true,
   },
-  media: {
-    type: 'DROP_DOWN', code: 'media', label: '媒体', required: true,
-    options: {
-      'Meta広告': { label: 'Meta広告', index: '0' },
-      'RPP(楽天)': { label: 'RPP(楽天)', index: '1' },
-      'Amazon広告': { label: 'Amazon広告', index: '2' },
-      'Google広告': { label: 'Google広告', index: '3' },
-      'その他': { label: 'その他', index: '4' },
-    },
-  },
-  // 媒体の中の内訳（RPPとクーポンアドバンス、Amazonのスポンサープロダクト等）
-  campaign: {
-    type: 'SINGLE_LINE_TEXT', code: 'campaign', label: 'キャンペーン/種別', required: false,
-  },
 
-  // ── 実績 ──
-  cost: {
-    type: 'NUMBER', code: 'cost', label: '広告費', required: true,
-    unit: '円', unitPosition: 'AFTER', digit: true,
-  },
-  impressions: {
-    type: 'NUMBER', code: 'impressions', label: '表示回数', required: false, digit: true,
-  },
-  clicks: {
-    type: 'NUMBER', code: 'clicks', label: 'クリック数', required: false, digit: true,
-  },
-  conversions: {
-    type: 'NUMBER', code: 'conversions', label: '注文数', required: false, digit: true,
-  },
-  conversion_value: {
-    type: 'NUMBER', code: 'conversion_value', label: '広告経由売上', required: false,
-    unit: '円', unitPosition: 'AFTER', digit: true,
-  },
-
-  // ── 媒体内で完結する指標だけを計算式にする ──
-  // ROAS は「広告経由売上 ÷ 広告費」。広告費0の日に壊れないよう分岐を入れる。
-  roas: {
-    type: 'CALC', code: 'roas', label: 'ROAS', required: false,
-    expression: 'IF(cost > 0, conversion_value / cost, 0)',
-    format: 'NUMBER', displayScale: '2',
-  },
-  cpc: {
-    type: 'CALC', code: 'cpc', label: 'クリック単価', required: false,
-    expression: 'IF(clicks > 0, cost / clicks, 0)',
+  // 明細の合計。入力画面の一番上に出るので、その日の総広告費がすぐ分かる。
+  total_cost: {
+    type: 'CALC', code: 'total_cost', label: '総広告費（自動計算）', required: false,
+    expression: 'SUM(d_cost)',
     format: 'NUMBER_DIGIT', unit: '円', unitPosition: 'AFTER',
   },
-  cpa: {
-    type: 'CALC', code: 'cpa', label: '注文獲得単価', required: false,
-    expression: 'IF(conversions > 0, cost / conversions, 0)',
-    format: 'NUMBER_DIGIT', unit: '円', unitPosition: 'AFTER',
+  total_clicks: {
+    type: 'CALC', code: 'total_clicks', label: 'クリック合計（自動計算）', required: false,
+    expression: 'SUM(d_clicks)', format: 'NUMBER_DIGIT',
+  },
+  total_conversions: {
+    type: 'CALC', code: 'total_conversions', label: '注文数合計（自動計算）', required: false,
+    expression: 'SUM(d_conversions)', format: 'NUMBER_DIGIT',
   },
 
+  detail: {
+    type: 'SUBTABLE', code: 'detail', label: '広告費 明細（媒体 × 商品）',
+    fields: detailFields(),
+  },
+
+  source: {
+    type: 'DROP_DOWN', code: 'source', label: '入力方法', required: false,
+    options: toOptions(['手入力', 'CSV取込']),
+    defaultValue: '手入力',
+  },
   note: {
     type: 'MULTI_LINE_TEXT', code: 'note', label: '備考', required: false,
   },
 
-  // 同じ日・同じ媒体・同じキャンペーンを二重登録しないための鍵
+  // 同じ日を二重に登録しないための鍵（1日1レコード）
   dedup_key: {
     type: 'SINGLE_LINE_TEXT', code: 'dedup_key', label: '重複防止キー',
     required: false, unique: true,
   },
 };
 
-/** 重複防止キーを組み立てる */
-export function dedupKey(dateISO, media, campaign = '') {
-  return `${dateISO}__${media}__${campaign}`;
+/** 重複防止キー（1日1レコードなので日付そのもの） */
+export function dedupKey(dateISO) {
+  return String(dateISO);
 }
