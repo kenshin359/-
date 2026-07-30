@@ -46,6 +46,7 @@
     "watch:sales": "node scripts/watchSales.js",
     "quicksheet": "python3 scripts/buildQuickSheet.py",
     "ads:import": "node scripts/importAdCosts.js",
-    "ads:report": "node scripts/adReport.js"
+    "ads:report": "node scripts/adReport.js",
+    "nightly": "sh scripts/nightly.sh"
   }
 }
