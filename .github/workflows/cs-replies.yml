@@ -1,0 +1,70 @@
+# CS 楽天レビュー返信：毎朝8:00(JST)の定時実行
+#
+# ★★落とし穴5-5（必読）★★
+#   GitHub Actions の定時実行(schedule)は「既定ブランチに置いた設定しか動きません」。
+#   作業ブランチ(claude/cs-review-auto-reply-...)に置いても“永久に”動きません。
+#   → 本番運用するときは、このファイルを既定ブランチにマージしてください。
+#
+# ★実行のたびにサーバーは作り直されます。送信済み記録(state/replied-reviews.json)を
+#   コミットして残さないと、毎朝おなじ下書きを送り続けます（5-5）。
+#   そのため実行後に state を自動コミットします。
+#
+# ★必要なシークレット（GitHubリポジトリの Settings → Secrets and variables → Actions）：
+#   RAKUTEN_SHOP_ID / RAKUTEN_SHOP_CODE
+#   CHATWORK_API_TOKEN / CHATWORK_CS_ROOM_ID / CHATWORK_CHINA_ROOM_ID / CHATWORK_SNS_ROOM_ID
+#   ANTHROPIC_API_KEY
+#   ※ 本番で実際に送るには、下の env で APP_ENV=production を渡します。
+
+name: CS 楽天レビュー返信（毎朝）
+
+on:
+  schedule:
+    # UTC 23:00 = JST 翌8:00
+    - cron: "0 23 * * *"
+  workflow_dispatch: {} # 手動実行も可（動作確認用）
+
+# state ファイルをコミットして戻すために書き込み権限が要る
+permissions:
+  contents: write
+
+jobs:
+  replies:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: cs-review-reply
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      # 依存ライブラリなし（Node標準機能のみ）のため install は不要
+
+      - name: レビュー返信を作成して送信
+        env:
+          RAKUTEN_SHOP_ID: ${{ secrets.RAKUTEN_SHOP_ID }}
+          RAKUTEN_SHOP_CODE: ${{ secrets.RAKUTEN_SHOP_CODE }}
+          CHATWORK_API_TOKEN: ${{ secrets.CHATWORK_API_TOKEN }}
+          CHATWORK_CS_ROOM_ID: ${{ secrets.CHATWORK_CS_ROOM_ID }}
+          CHATWORK_CHINA_ROOM_ID: ${{ secrets.CHATWORK_CHINA_ROOM_ID }}
+          CHATWORK_SNS_ROOM_ID: ${{ secrets.CHATWORK_SNS_ROOM_ID }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          ANTHROPIC_MODEL: claude-sonnet-5
+          # ★誤爆防止：本番送信するときだけ production。まずは test で流して確認を。
+          APP_ENV: production
+        run: npm run replies -- --quiet
+
+      - name: 送信済み記録をコミット（★毎朝の重複送信を防ぐ・5-5）
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          # ★state/ ではなく個別ファイルを add（.gitignore の !state/... と整合）
+          git add state/replied-reviews.json
+          if git diff --cached --quiet; then
+            echo "記録に変化なし（新着なし）"
+          else
+            git commit -m "chore(cs): 送信済みレビュー記録を更新 [skip ci]"
+            git push
+          fi

@@ -1,0 +1,9 @@
+{
+  "_comment": "★落とし穴5-2：監視する商品の対応表。reviewItemId は商品ページの英字コードとは別物で、連番でもありません。`npm run items -- <商品ページURL>` で自動追記されます。手で編集も可。",
+
+  "_category_comment": "category は結びの出し分け（3-3）に使用。suitcase＝スーツケース/キャリーケース類のときだけ『キャリーケース』の結びを使います。fan/beauty/unknown は無難な『弊社商品』になります。",
+
+  "_shape_comment": "items の各要素の形： { reviewItemId, shopCode, name, category(suitcase|fan|beauty|unknown), pageUrl }",
+
+  "items": []
+}

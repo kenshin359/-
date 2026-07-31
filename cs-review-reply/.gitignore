@@ -1,0 +1,18 @@
+# 認証情報は絶対にコミットしない
+.env
+.env.local
+*.secret
+
+# Node
+node_modules/
+npm-debug.log*
+
+# ★ 落とし穴5-5：state/ とだけ書くと、下の「!」による復活が git の仕様で効きません。
+#   （ディレクトリごと無視されると、中の個別ファイルを !で戻せない）
+#   そのため必ず「state/*」と書き、送信済み記録だけを明示的に追跡します。
+state/*
+!state/replied-reviews.json
+
+# 作業ファイル
+out/
+*.tmp

@@ -1,0 +1,113 @@
+# CS専用 楽天レビュー返信 自動連携ソフト
+
+楽天のレビューを毎朝取得し、**お客様ごとの返信の下書き**を作って **Chatwork** に届けるソフトです。
+アルバイトの方が **コピペするだけ** で返信できる状態にすることが目的です。
+
+> ⚠️ **自動投稿はしません。** 下書きを作って人に渡すところまでです（お客様に届く文章を、人が一度も見ないまま出さないため）。
+
+## できること
+
+- 楽天の **ショップレビュー** と **商品レビュー（複数商品）** を取得
+- **まだ返信していない新着だけ** を選ぶ
+- 1件ずつ **返信の下書き** を作成（丁寧さ・文体を過去の返信に寄せる）
+- **CSグループ** へコピペ用の形式で送信
+- **危険なレビュー（★3以下・不良/破損 等）** は 🔴「社員の確認が必要」を付ける
+- **クレーム・低評価** → 制作の **中国チーム** へ日次報告（改善のヒント）
+- **好評・SNS企画に使えそうなレビュー** → **SNSチーム** へ共有（活用メモ付き）
+- 送ったものを **ハッシュで記録** し、翌朝に同じレビューを二度送らない
+
+## セットアップ
+
+```bash
+cd cs-review-reply
+cp .env.example .env    # 値を記入（.env はコミットされません）
+```
+
+`.env` に入れる値（詳しくは `.env.example`）：
+
+| 項目 | 内容 |
+|---|---|
+| `RAKUTEN_SHOP_ID` | レビューURLの数字部分 |
+| `RAKUTEN_SHOP_CODE` | 商品ページURL（item.rakuten.co.jp/○○○/）の英字 |
+| `CHATWORK_API_TOKEN` | Chatwork のトークン |
+| `CHATWORK_CS_ROOM_ID` | CS専用グループ（返信下書きの送り先） |
+| `CHATWORK_CHINA_ROOM_ID` | 制作の中国チーム向けグループ（クレーム日次報告） |
+| `CHATWORK_SNS_ROOM_ID` | SNSチーム向けグループ（好評レビュー共有） |
+| `ANTHROPIC_API_KEY` | 返信の本文を書かせるAIのキー |
+| `APP_ENV` | `test` の間は**絶対に送りません**（画面表示だけ）。本番は `production` |
+
+> AIキーが未設定でも `--dry-run` で画面確認はできます（当たり障りのないひな形が入ります）。
+> **個別化された良い返信を作るには `ANTHROPIC_API_KEY` を設定してください。**
+
+## 使い方（推奨順）
+
+```bash
+# 1) まず送らずに画面で確認（誤爆しない）
+npm run replies -- --dry-run
+
+# 2) 初回だけ：既存レビューを「処理済み」にして、過去分を一気に送らないようにする
+npm run replies -- --init
+
+# 3) 文面を確認できたら、.env の APP_ENV=production にして本番送信
+npm run replies
+```
+
+### コマンド一覧
+
+| コマンド | 内容 |
+|---|---|
+| `npm run replies` | 新着ぶんの下書きを作って送る |
+| `npm run replies -- --dry-run` | 送らずに画面で確認 |
+| `npm run replies -- --quiet` | 件数だけ表示（お客様の情報をログに残さない） |
+| `npm run replies -- --init` | 既存レビューを「処理済み」にする（初回導入時） |
+| `npm run replies -- --days=3` | 何日ぶんを対象にするか（既定3） |
+| `npm run replies -- --limit=10` | 一度に作る件数の上限（既定20） |
+| `npm run items -- <商品ページURL>` | 監視する商品を追加する |
+| `npm test` | テストを実行 |
+
+### 監視する商品を増やす
+
+```bash
+npm run items -- https://item.rakuten.co.jp/yourshop/abc123/
+```
+
+商品ページから **reviewItemId**（レビュー用の数字。商品URLの英字とは別物）を自動で拾って
+`config/rakuten-items.json` に保存します。スーツケース類なら結びの出し分けのため
+`category` が `suitcase` になっているか確認してください（自動判定できないと `unknown`）。
+
+## 設定ファイル（プログラムを触らずに変えられる場所）
+
+| ファイル | 中身 |
+|---|---|
+| `config/reply-blocks.json` | 固定文（挨拶・感謝・お問い合わせ・結び） |
+| `config/danger-words.json` | 危険語・除外ルール・★のしきい値 |
+| `config/promise-check.json` | できない約束（送料無料等）の検出ルール |
+| `config/rakuten-items.json` | 監視する商品の対応表 |
+
+## 安全のしくみ（壊さないでください）
+
+- **危険判定はコード側で独立に**行います。AIが「大丈夫」と言っても、★3以下や不良/破損などは
+  プログラムが 🔴「要確認」を付けます（`src/safety/dangerDetector.js`）。
+- **文面の約束チェック**：出来上がった返信が「送料無料」「返金します」等を書いていたら、
+  送らず警告を付けて人に回します（`src/safety/promiseChecker.js`）。
+- **お客様情報を外に出さない**：レビュー本文・投稿者名は git にコミットせず、
+  送信済み記録は **元に戻せないハッシュ** だけを持ちます（`state/replied-reviews.json`）。
+- **`APP_ENV=test` の間は絶対に送信しません。**
+
+## 定時実行（毎朝8:00）
+
+`.github/workflows/cs-replies.yml`（リポジトリ直下）で設定しています。
+
+> ⚠️ **GitHub Actions の定時実行は、既定ブランチに置いた設定しか動きません。**
+> 作業ブランチに置いても動きません。本番運用時は既定ブランチにマージしてください。
+> 必要なシークレットはワークフロー先頭のコメントに記載しています。
+
+## 実測済みの技術メモ（触る前に読む）
+
+コード中の `★` コメントに、実際に踏んだ落とし穴と対策の理由を残しています。主なもの：
+
+- 楽天レビューは素の取得だと 403 / item ページは特定ヘッダ一式が必要（`src/rakuten/fetch.js`）
+- reviewItemId は連番でないので商品ページから拾う（`src/rakuten/resolveItemId.js`）
+- 商品レビューは商品名/販促文が混ざるので `<title>` を使って除去（`src/rakuten/parseReviews.js`）
+- Chatwork は4000字で分割・コピペ下書きは装飾なし（`src/chatwork/client.js`）
+- 送信済み記録の `.gitignore` は `state/*` + `!state/replied-reviews.json`（`state/` だと効かない）
