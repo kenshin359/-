@@ -48,6 +48,8 @@
     "ads:import": "node scripts/importAdCosts.js",
     "ads:report": "node scripts/adReport.js",
     "nightly": "sh scripts/nightly.sh",
-    "rakuten:items": "node scripts/resolveRakutenItems.js"
+    "rakuten:items": "node scripts/resolveRakutenItems.js",
+    "intake:check": "node scripts/intakeCheck.js",
+    "intake:import": "node scripts/intakeImport.js"
   }
 }

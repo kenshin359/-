@@ -8,6 +8,7 @@
 //    node kintone/createBusinessApps.js            … 両方
 //    node kintone/createBusinessApps.js inventory  … 在庫数のみ
 //    node kintone/createBusinessApps.js adcost     … 広告費のみ
+//    node kintone/createBusinessApps.js intake     … CSV提出ボックスのみ
 //    node kintone/createBusinessApps.js --dry-run  … 作らずに内容だけ表示
 //
 //  ★既存アプリは一切変更しません。新規に作るだけです。
@@ -16,7 +17,9 @@ import { required } from '../lib/env.js';
 import { fetchWithRetry } from '../lib/httpRetry.js';
 import * as inventory from './inventorySchema.js';
 import * as adcost from './adCostSchema.js';
+import * as intake from './intakeSchema.js';
 import { VIEWS as AD_VIEWS, REPORTS as AD_REPORTS } from './adCostViews.js';
+import { VIEWS as INTAKE_VIEWS } from './intakeViews.js';
 
 function base() {
   return required('KINTONE_BASE_URL').replace(/\/$/, '');
@@ -113,6 +116,7 @@ async function main() {
   const targets = [];
   if (!which || which === 'inventory') targets.push(['inventory', inventory]);
   if (!which || which === 'adcost') targets.push(['adcost', adcost]);
+  if (!which || which === 'intake') targets.push(['intake', intake]);
 
   if (isDry) {
     console.log('[dry-run] 作成せず、内容だけ表示します。');
@@ -122,6 +126,7 @@ async function main() {
 
   const extrasFor = {
     adcost: { views: AD_VIEWS, reports: AD_REPORTS },
+    intake: { views: INTAKE_VIEWS },
   };
 
   const results = {};
@@ -132,6 +137,7 @@ async function main() {
   console.log('\n──────── 次にやること ────────');
   if (results.inventory) console.log(`KINTONE_INVENTORY_APP_ID=${results.inventory}`);
   if (results.adcost) console.log(`KINTONE_ADCOST_APP_ID=${results.adcost}`);
+  if (results.intake) console.log(`KINTONE_INTAKE_APP_ID=${results.intake}`);
   console.log('この行を .env に貼り付けてください。');
   if (results.adcost) {
     console.log('');
