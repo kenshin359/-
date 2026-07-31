@@ -8,6 +8,7 @@
   "scripts": {
     "replies": "node src/index.js",
     "items": "node src/items.js",
+    "test-send": "node src/testSend.js",
     "test": "node --test"
   }
 }

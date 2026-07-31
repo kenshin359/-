@@ -28,13 +28,15 @@ export function splitMessage(text, max = MAX_LEN) {
 //   cfg     … loadConfig の結果（token とモード判定に使用）
 //   roomId  … 送り先ルーム
 //   text    … 本文
-//   opts    … { dryRun, label }
+//   opts    … { dryRun, label, force }
 // ★誤爆防止：APP_ENV=test か --dry-run のときは「送らずに画面表示だけ」。
+//   force=true は「人が明示的に実行したテスト送信(npm run test-send)」専用の例外です。
+//   毎朝の定時ジョブ(index.js)は force を渡さないので、この保護は外れません。
 export async function sendChatwork(cfg, roomId, text, opts = {}) {
   const chunks = splitMessage(text);
   const label = opts.label || "メッセージ";
 
-  if (cfg.isTest || opts.dryRun) {
+  if ((cfg.isTest && !opts.force) || opts.dryRun) {
     const why = cfg.isTest ? "APP_ENV=test" : "--dry-run";
     say(`  [送信スキップ:${why}] ${label} → room ${roomId || "(未設定)"} / ${chunks.length}通`);
     // 画面確認できるよう本文は info（--quiet では出さない）で表示
