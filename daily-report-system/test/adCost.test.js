@@ -8,6 +8,7 @@
 //    ・期間まとめのCSVを日別のふりをして取り込まない
 // ============================================================
 import test from 'node:test';
+import fsMod from 'node:fs';
 import assert from 'node:assert/strict';
 
 import { readAdFile, detectMedia, isPurchaseIndicator, countDays, MEDIA } from '../lib/adCsv.js';
@@ -302,4 +303,32 @@ test('kintoneのレコードを1行=1明細に開く', () => {
 test('空の明細でも落ちない', () => {
   assert.deepEqual(flattenRecords([{ report_date: { value: '2026-07-29' } }]), []);
   assert.deepEqual(flattenRecords([]), []);
+});
+
+// ── レビュー記録のハッシュ化 ──────────────────────
+// ★記録ファイルは公開リポジトリに保存されるため、
+//   レビュー本文や投稿者名がそのまま残っていてはいけない。
+
+test('★レビューの記録は元に戻せないハッシュになる', async () => {
+  const { hashKey } = await import('../scripts/replyDrafts.js');
+  const plain = '2026/07/29__さきつぁんだよんさん__大変丁寧な梱包でした！';
+  const h = hashKey(plain);
+  assert.match(h, /^[0-9a-f]{16}$/);
+  // 元の文字が1文字も残っていないこと
+  assert.ok(!h.includes('さん'));
+  assert.ok(!h.includes('2026'));
+  // 同じ入力なら必ず同じ結果（記録の突き合わせが壊れない）
+  assert.equal(hashKey(plain), h);
+  // 違う入力なら違う結果
+  assert.notEqual(hashKey(plain + 'x'), h);
+});
+
+test('保存済みの記録ファイルに平文が残っていない', () => {
+  const fs = fsMod;
+  const p = new URL('../state/replied-reviews.json', import.meta.url);
+  if (!fs.existsSync(p)) return; // 記録がまだ無ければ確認不要
+  const { handled } = JSON.parse(fs.readFileSync(p, 'utf8'));
+  for (const k of handled) {
+    assert.match(k, /^[0-9a-f]{16}$/, `平文が残っています: ${String(k).slice(0, 20)}…`);
+  }
 });

@@ -20,6 +20,7 @@
 // ============================================================
 import fs from 'node:fs';
 import path from 'node:path';
+import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 
 import {
@@ -44,10 +45,28 @@ function arg(name, fallback) {
   return hit ? hit.slice(name.length + 3) : fallback;
 }
 
+/**
+ * 処理済みレビューの記録は「ハッシュ（不可逆の短い文字列）」で持ちます。
+ *
+ * ★理由: この記録ファイルは公開リポジトリに保存します。
+ *   自動実行のたびにサーバーが作り直されるため、記録が残らないと
+ *   毎朝おなじレビューの下書きをくり返し送ってしまうためです。
+ *   レビュー本文や投稿者名をそのまま置くわけにはいかないので、
+ *   元に戻せない形（ハッシュ）にしてから保存します。
+ */
+export function hashKey(key) {
+  return crypto.createHash('sha256').update(String(key), 'utf8').digest('hex').slice(0, 16);
+}
+
+const IS_HASH = /^[0-9a-f]{16}$/;
+
 function loadState() {
   if (!fs.existsSync(STATE)) return { handled: [] };
   try {
-    return JSON.parse(fs.readFileSync(STATE, 'utf8'));
+    const raw = JSON.parse(fs.readFileSync(STATE, 'utf8'));
+    // 以前の記録（レビュー本文入り）は、読み込んだ時点でハッシュに直す
+    const handled = (raw.handled ?? []).map((k) => (IS_HASH.test(k) ? k : hashKey(k)));
+    return { handled };
   } catch {
     return { handled: [] };
   }
@@ -95,13 +114,13 @@ async function main() {
 
   // まだ返信しておらず、こちらでも下書きを作っていないもの
   const targets = reviews
-    .filter((r) => !r.shopReply && !handled.has(reviewKey(r)))
+    .filter((r) => !r.shopReply && !handled.has(hashKey(reviewKey(r))))
     .filter(inPeriod);
   console.log(`  ショップ返信済み: ${reviews.filter((r) => r.shopReply).length}件`);
   console.log(`  下書きが必要: ${targets.length}件`);
 
   if (isInit) {
-    for (const r of reviews) handled.add(reviewKey(r));
+    for (const r of reviews) handled.add(hashKey(reviewKey(r)));
     saveState({ handled: [...handled] });
     console.log(`✅ 既存の${reviews.length}件を処理済みにしました。次回から新着分だけ下書きします。`);
     return;
@@ -201,12 +220,15 @@ async function main() {
 
   // 送信できたものだけ処理済みにする（失敗したら次回また作る）
   if (anySent) {
-    for (const d of drafts) handled.add(reviewKey(d.review));
+    for (const d of drafts) handled.add(hashKey(reviewKey(d.review)));
     saveState({ handled: [...handled] });
   }
 }
 
-main().catch((e) => {
-  console.error('下書き作成エラー:', e.message);
-  process.exit(1);
-});
+// テストから読み込んだときは実行しない
+if (process.argv[1] && process.argv[1].endsWith('replyDrafts.js')) {
+  main().catch((e) => {
+    console.error('下書き作成エラー:', e.message);
+    process.exit(1);
+  });
+}
