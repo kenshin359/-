@@ -1,0 +1,18 @@
+{
+  "_comment": "中国（制作）チームへ送る不具合リストの絞り込みルール。スプシの『問い合わせ内容分類』列と『FAQ分類用タグ』列を見て、制造に関係する不具合だけを抜き出します。値だけここで変えられます（ロジックは src/sheets/chinaDefects.js）。",
+
+  "_includeCategories_comment": "『問い合わせ内容分類』がこれなら不具合として含める。",
+  "includeCategories": ["初期不良", "商品改良", "クレーム", "交換", "破損", "故障"],
+
+  "_includeTags_comment": "分類が未選択（プレースホルダ）や空欄のとき、代わりに『FAQ分類用タグ』がこれなら含める。",
+  "includeTags": ["初期不良", "使用感不満", "改良要望", "破損", "故障"],
+
+  "_excludeCategories_comment": "これは制造の不具合ではないので除外（納期など）。",
+  "excludeCategories": ["納期"],
+
+  "_excludeTags_comment": "タグがこれなら除外（納期関連など）。",
+  "excludeTags": ["納期関連"],
+
+  "_faqTagContains_comment": "FAQ分類用タグにこの文字を含む行は『よくある質問』として除外。",
+  "faqTagContains": "よくある質問"
+}

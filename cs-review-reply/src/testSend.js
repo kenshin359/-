@@ -17,6 +17,8 @@ import { formatCs } from "./chatwork/formatCs.js";
 import { formatChina } from "./chatwork/formatChina.js";
 import { formatSns } from "./chatwork/formatSns.js";
 import { sendChatwork } from "./chatwork/client.js";
+import { fetchSheetCsv, toRecords } from "./sheets/fetchSheet.js";
+import { extractChinaDefects } from "./sheets/chinaDefects.js";
 
 // 架空のサンプルレビュー（実在の顧客データではありません）
 const SAMPLE_REVIEWS = [
@@ -84,10 +86,36 @@ async function main() {
   const snsText = formatSns(snsEntries, label);
   if (snsText) await sendChatwork(cfg, cfg.chatwork.snsRoomId, BANNER + snsText, { force: true, label: "SNS共有(テスト)" });
   else say("  SNS: サンプルに該当なし");
-  // 中国（ルーム未設定ならスキップ）
-  const chinaText = formatChina(chinaEntries, label);
-  if (chinaText && cfg.chatwork.chinaRoomId) await sendChatwork(cfg, cfg.chatwork.chinaRoomId, BANNER + chinaText, { force: true, label: "中国チーム報告(テスト)" });
-  else say("  中国チーム: ルーム未設定のためスキップ（設定すれば送れます）");
+  // 中国：スプシの不具合リスト（テストなので日付で絞らず、直近ぶんを最大15件だけ表示）＋レビュー由来
+  let sheetDefects = [];
+  let sheetMeta = {};
+  if (cfg.chinaSheet.url) {
+    try {
+      const csv = await fetchSheetCsv(cfg.chinaSheet.url);
+      const { headers, records } = toRecords(csv);
+      const ext = extractChinaDefects(headers, records, cfg.chinaDefects, {}); // sinceDate指定なし＝全件
+      // 日付の新しい順に並べ、テスト表示は最大15件に絞る（本番は日付でN日絞り）
+      const sorted = ext.defects.sort((a, b) => (b.date || "").localeCompare(a.date || ""));
+      const CAP = 15;
+      sheetDefects = sorted.slice(0, CAP);
+      sheetMeta = { skippedNoDate: ext.skippedNoDate };
+      say(`  スプシ不具合: 抽出${ext.defects.length}件中 先頭${sheetDefects.length}件をテスト表示`);
+    } catch (e) {
+      say("  スプシ取得に失敗: " + e.message);
+    }
+  } else {
+    say("  スプシ未設定（CHINA_SHEET_URL）");
+  }
+
+  const chinaText = formatChina({ sheetDefects, reviewComplaints: chinaEntries }, label, sheetMeta);
+  if (chinaText && cfg.chatwork.chinaRoomId) {
+    await sendChatwork(cfg, cfg.chatwork.chinaRoomId, BANNER + chinaText, { force: true, label: "中国チーム報告(テスト)" });
+  } else if (chinaText) {
+    say("  中国チーム: ルーム未設定のため送信スキップ。以下が生成される報告です（確認用）:");
+    console.log("\n---------------- 中国チーム報告(プレビュー) ----------------\n" + chinaText + "\n----------------------------------------------------------\n");
+  } else {
+    say("  中国チーム: 対象なし");
+  }
 
   say("完了。Chatwork の各ルームをご確認ください。");
 }

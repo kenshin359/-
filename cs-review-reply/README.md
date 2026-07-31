@@ -31,8 +31,9 @@ cp .env.example .env    # 値を記入（.env はコミットされません）
 | `RAKUTEN_SHOP_CODE` | 商品ページURL（item.rakuten.co.jp/○○○/）の英字 |
 | `CHATWORK_API_TOKEN` | Chatwork のトークン |
 | `CHATWORK_CS_ROOM_ID` | CS専用グループ（返信下書きの送り先） |
-| `CHATWORK_CHINA_ROOM_ID` | 制作の中国チーム向けグループ（クレーム日次報告） |
+| `CHATWORK_CHINA_ROOM_ID` | 制作の中国チーム向けグループ（不具合の日次報告） |
 | `CHATWORK_SNS_ROOM_ID` | SNSチーム向けグループ（好評レビュー共有） |
+| `CHINA_SHEET_URL` | 中国チーム向け不具合リストの元（CS問い合わせ管理表スプシの共有URL） |
 | `ANTHROPIC_API_KEY` | 返信の本文を書かせるAIのキー |
 | `APP_ENV` | `test` の間は**絶対に送りません**（画面表示だけ）。本番は `production` |
 
@@ -83,6 +84,20 @@ npm run items -- https://item.rakuten.co.jp/yourshop/abc123/
 | `config/danger-words.json` | 危険語・除外ルール・★のしきい値 |
 | `config/promise-check.json` | できない約束（送料無料等）の検出ルール |
 | `config/rakuten-items.json` | 監視する商品の対応表 |
+| `config/china-defects.json` | 中国チーム報告に含める不具合の分類（納期・FAQは除外） |
+
+## 中国（制作）チームへの不具合 日次報告
+
+毎朝の実行で、中国チームのルームへ**1通**まとめて送ります。中身は2つ：
+
+1. **CS問い合わせ管理表（スプシ）の不具合リスト（主）** — `CHINA_SHEET_URL` のシートから、
+   `初期不良／商品改良／クレーム／交換／使用感不満／改良要望` の行だけを抽出（`--days` の直近分）。
+   **納期・FAQは除外**。分類が未選択の行は「FAQ分類用タグ」で判定します。
+2. **楽天レビューの低評価（補足）** — その日のレビューのうち★3以下・不良/破損等。
+
+> 🔒 **個人情報は送りません。** スプシの `顧客名`・`注文番号` 列は報告に含めません。
+> ただし `詳細内容` の**自由記述の中**に担当者が書いた名前（例:「○○様購入分」）が
+> 残ることがあります。気になる場合は運用で消すか、ご相談ください（自動除去も可能です）。
 
 ## 安全のしくみ（壊さないでください）
 

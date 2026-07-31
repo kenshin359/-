@@ -26,6 +26,8 @@ import { formatCs } from "./chatwork/formatCs.js";
 import { formatChina } from "./chatwork/formatChina.js";
 import { formatSns } from "./chatwork/formatSns.js";
 import { sendChatwork } from "./chatwork/client.js";
+import { fetchSheetCsv, toRecords } from "./sheets/fetchSheet.js";
+import { extractChinaDefects } from "./sheets/chinaDefects.js";
 
 // 何日ぶんを対象にするかの下限日付（YYYY-MM-DD文字列で比較）
 function cutoffDate(days) {
@@ -205,7 +207,29 @@ async function main() {
   await sendChatwork(cfg, cfg.chatwork.csRoomId, csText, { dryRun: dry, label: "CS返信下書き" });
 
   // 中国（制作）チームへ日次報告
-  const chinaText = formatChina(chinaEntries, dateLabel);
+  //   ①スプシ（CS問い合わせ管理表）の不具合リスト（主）＋②レビュー由来の低評価（補足）を1通で。
+  let sheetDefects = [];
+  let sheetMeta = {};
+  if (cfg.chinaSheet.url) {
+    try {
+      const csv = await fetchSheetCsv(cfg.chinaSheet.url);
+      const { headers, records } = toRecords(csv);
+      const ext = extractChinaDefects(headers, records, cfg.chinaDefects, { sinceDate: cutoff });
+      sheetDefects = ext.defects;
+      sheetMeta = { skippedNoDate: ext.skippedNoDate };
+      info(`  スプシ不具合: ${sheetDefects.length}件（直近${opts.days}日）`);
+    } catch (e) {
+      warn("  スプシの不具合リスト取得に失敗: " + e.message);
+    }
+  } else {
+    info("  スプシ未設定（CHINA_SHEET_URL）。レビュー由来のみで報告します。");
+  }
+
+  const chinaText = formatChina(
+    { sheetDefects, reviewComplaints: chinaEntries },
+    dateLabel,
+    sheetMeta
+  );
   if (chinaText) {
     await sendChatwork(cfg, cfg.chatwork.chinaRoomId, chinaText, { dryRun: dry, label: "中国チーム日次報告" });
   } else {

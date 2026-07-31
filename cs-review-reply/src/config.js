@@ -72,9 +72,14 @@ export function loadConfig({ needSend } = {}) {
       apiKey: process.env.ANTHROPIC_API_KEY || "",
       model: process.env.ANTHROPIC_MODEL || "claude-sonnet-5",
     },
+    // 中国チーム向け不具合リストの取得元（Googleスプレッドシートの共有URL）
+    chinaSheet: {
+      url: process.env.CHINA_SHEET_URL || "",
+    },
     replyBlocks: readJson("config/reply-blocks.json"),
     dangerWords: readJson("config/danger-words.json"),
     promiseCheck: readJson("config/promise-check.json"),
+    chinaDefects: readJson("config/china-defects.json"),
     items: readJson("config/rakuten-items.json"),
   };
 

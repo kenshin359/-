@@ -50,6 +50,8 @@ jobs:
           CHATWORK_CS_ROOM_ID: ${{ secrets.CHATWORK_CS_ROOM_ID }}
           CHATWORK_CHINA_ROOM_ID: ${{ secrets.CHATWORK_CHINA_ROOM_ID }}
           CHATWORK_SNS_ROOM_ID: ${{ secrets.CHATWORK_SNS_ROOM_ID }}
+          # 中国チーム不具合リストの元スプシ（秘密ではないので Variables でも可）
+          CHINA_SHEET_URL: ${{ vars.CHINA_SHEET_URL || secrets.CHINA_SHEET_URL }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           ANTHROPIC_MODEL: claude-sonnet-5
           # ★誤爆防止：本番送信するときだけ production。まずは test で流して確認を。
