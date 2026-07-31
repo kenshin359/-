@@ -20,6 +20,7 @@ import * as adcost from './adCostSchema.js';
 import * as intake from './intakeSchema.js';
 import { VIEWS as AD_VIEWS, REPORTS as AD_REPORTS } from './adCostViews.js';
 import { VIEWS as INTAKE_VIEWS } from './intakeViews.js';
+import { VIEWS as INV_VIEWS, REPORTS as INV_REPORTS } from './inventoryViews.js';
 
 function base() {
   return required('KINTONE_BASE_URL').replace(/\/$/, '');
@@ -127,6 +128,7 @@ async function main() {
   const extrasFor = {
     adcost: { views: AD_VIEWS, reports: AD_REPORTS },
     intake: { views: INTAKE_VIEWS },
+    inventory: { views: INV_VIEWS, reports: INV_REPORTS },
   };
 
   const results = {};
