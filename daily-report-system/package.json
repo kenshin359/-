@@ -47,6 +47,7 @@
     "quicksheet": "python3 scripts/buildQuickSheet.py",
     "ads:import": "node scripts/importAdCosts.js",
     "ads:report": "node scripts/adReport.js",
-    "nightly": "sh scripts/nightly.sh"
+    "nightly": "sh scripts/nightly.sh",
+    "rakuten:items": "node scripts/resolveRakutenItems.js"
   }
 }

@@ -13,6 +13,9 @@
 //    RAKUTEN_SHOP_ID     … 例: 407466（レビューURLの数字）
 //    RAKUTEN_ITEM_IDS    … 例: 10000012,10000015（カンマ区切り・任意）
 // ============================================================
+import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { optional } from './env.js';
 
 const UA =
@@ -239,8 +242,31 @@ function dedupe(rows) {
 
 /** 設定に書かれた商品IDの一覧 */
 export function configuredItemIds() {
+  // ★まず config/rakuten-items.json を見ます。
+  //   商品を増やすときは npm run rakuten:items -- <商品ページURL> を実行するだけで、
+  //   .env を触る必要がありません。
+  const fromConfig = itemsFromConfig().map((i) => i.review_id);
+  if (fromConfig.length) return fromConfig;
+
   return optional('RAKUTEN_ITEM_IDS', '')
     .split(',')
     .map((s) => s.trim())
     .filter(Boolean);
+}
+
+/** 設定ファイルの商品一覧（レビューID・商品名つき）。無ければ空配列 */
+export function itemsFromConfig() {
+  try {
+    const here = dirname(fileURLToPath(import.meta.url));
+    const raw = readFileSync(join(here, '..', 'config', 'rakuten-items.json'), 'utf8');
+    return (JSON.parse(raw).items ?? []).filter((i) => i.review_id);
+  } catch {
+    // 設定ファイルが無くても .env のほうで動けるようにする
+    return [];
+  }
+}
+
+/** レビューIDから商品名を引く（CSへの報告で「どの商品か」を出すため） */
+export function productNameOf(reviewId) {
+  return itemsFromConfig().find((i) => String(i.review_id) === String(reviewId))?.product ?? '';
 }

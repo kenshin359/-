@@ -332,3 +332,40 @@ test('保存済みの記録ファイルに平文が残っていない', () => {
     assert.match(k, /^[0-9a-f]{16}$/, `平文が残っています: ${String(k).slice(0, 20)}…`);
   }
 });
+
+// ── 楽天の商品一覧 ────────────────────────────────
+
+test('商品ページURLから商品コードを取り出す', async () => {
+  const { itemCodeFromUrl } = await import('../scripts/resolveRakutenItems.js');
+  assert.equal(
+    itemCodeFromUrl('https://item.rakuten.co.jp/libetee/suitcase01/?scid=wi_ich_iphoneapp_item_share'),
+    'suitcase01'
+  );
+  assert.equal(itemCodeFromUrl('https://item.rakuten.co.jp/libetee/handyfan202602/'), 'handyfan202602');
+  // すでにコードだけの場合はそのまま
+  assert.equal(itemCodeFromUrl('travel01'), 'travel01');
+});
+
+test('商品ページのHTMLからレビュー用の商品IDを取り出す', async () => {
+  const { extractItemInfo } = await import('../scripts/resolveRakutenItems.js');
+  assert.equal(extractItemInfo('{"itemId":10000038}').id, '10000038');
+  // itemId が無くてもレビューURLから拾える
+  assert.equal(
+    extractItemInfo('<a href="https://review.rakuten.co.jp/item/1/407466_10000045/">').id,
+    '10000045'
+  );
+  assert.equal(extractItemInfo('<html></html>').id, null);
+});
+
+test('★レビューIDは連番ではないので、設定ファイルから読む', async () => {
+  const { itemsFromConfig, productNameOf } = await import('../lib/rakutenReviews.js');
+  const items = itemsFromConfig();
+  assert.ok(items.length >= 13, '13商品が登録されているはずです');
+  // 連番でないこと（連番だと思って推測すると取りこぼす）
+  const ids = items.map((i) => Number(i.review_id)).sort((a, b) => a - b);
+  assert.ok(ids[ids.length - 1] - ids[0] > ids.length, 'IDが連番になっています（前提が変わりました）');
+  // すべての商品に名前が付いていること（CSへの報告で商品名を出すため）
+  for (const i of items) assert.ok(i.product, `${i.code} に商品名がありません`);
+  assert.equal(productNameOf('10000039'), 'ハンディファン スケルトン');
+  assert.equal(productNameOf('99999999'), '');
+});

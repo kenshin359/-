@@ -1,0 +1,82 @@
+{
+  "_説明": [
+    "楽天のレビューを取りに行く商品の一覧です。",
+    "",
+    "レビューページのURLは商品ページとは別の数字を使います。",
+    "  商品ページ    https://item.rakuten.co.jp/libetee/suitcase01/",
+    "  レビューページ https://review.rakuten.co.jp/item/1/407466_10000012/",
+    "この数字は連番ではないため、商品ページから拾って記録しています。",
+    "",
+    "商品を追加するとき:",
+    "  npm run rakuten:items -- <商品ページのURL>",
+    "  （プログラムを触る必要はありません）"
+  ],
+  "shop_code": "libetee",
+  "items": [
+    {
+      "code": "suitcase01",
+      "review_id": "10000012",
+      "product": "多機能スーツケース(PC) S/M/L"
+    },
+    {
+      "code": "libetee001",
+      "review_id": "10000033",
+      "product": "スーツケース(libetee001)"
+    },
+    {
+      "code": "libetee",
+      "review_id": "10000032",
+      "product": "アルミスーツケース フルアルミ 多機能"
+    },
+    {
+      "code": "skarumin",
+      "review_id": "10000048",
+      "product": "アルミスーツケース Sサイズ カスタム"
+    },
+    {
+      "code": "outdoorsk",
+      "review_id": "10000043",
+      "product": "大容量105L アウトドア/スキー"
+    },
+    {
+      "code": "handyfan01",
+      "review_id": "10000038",
+      "product": "ハンディファン 3Way(首振り)"
+    },
+    {
+      "code": "handyfan02",
+      "review_id": "10000039",
+      "product": "ハンディファン スケルトン"
+    },
+    {
+      "code": "handyfan202602",
+      "review_id": "10000051",
+      "product": "ハンディファン 5way 2026最新"
+    },
+    {
+      "code": "handyfan202601",
+      "review_id": "10000050",
+      "product": "ミニハンディファン 2026最新"
+    },
+    {
+      "code": "tsuyaris001",
+      "review_id": "10000045",
+      "product": "ツヤリス ドライヤー"
+    },
+    {
+      "code": "travel01",
+      "review_id": "10000036",
+      "product": "圧縮バッグ / トラベルポーチ"
+    },
+    {
+      "code": "cleanser01",
+      "review_id": "10000044",
+      "product": "電動洗顔ブラシ"
+    },
+    {
+      "code": "mobilebattery001",
+      "review_id": "10000046",
+      "product": "モバイルバッテリー 4500mAh"
+    }
+  ]
+}
