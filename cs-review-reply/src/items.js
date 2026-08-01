@@ -1,64 +1,89 @@
-// `npm run items -- <商品ページURL>` … 監視する商品を追加する。
-// ★落とし穴5-2：reviewItemId は商品ページから拾う（連番で探さない）。
-//   拾った対応表は config/rakuten-items.json に保存し、
-//   次からは「URLを渡すだけ」で追加できるようにします。
+// `npm run items -- <レビューURL または reviewItemId>` … 監視する商品を1つ追加する。
+//
+// ★このソフトはレビューサイト(review.rakuten.co.jp)から商品名・レビューを取ります。
+//   商品ページ(item.rakuten.co.jp)は実行環境によってはボット対策で弾かれるため、
+//   ここでも review.rakuten.co.jp を使って解決します（reviewItemId が分かればOK）。
+//
+// 使い方（どちらでも）:
+//   npm run items -- https://review.rakuten.co.jp/item/1/407466_10000038/1.1/
+//   npm run items -- 10000038
+//
+// 一括で発見したいときは `npm run discover` を使ってください。
 import { writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { loadConfig, ROOT } from "./config.js";
-import { resolveItem } from "./rakuten/resolveItemId.js";
+import { fetchHtml } from "./rakuten/fetch.js";
+import { extractInitialState } from "./rakuten/parseReviews.js";
 import { say } from "./util/log.js";
 
-// 商品名から category をざっくり推定（結びの出し分け用）。確信が持てなければ unknown。
 function guessCategory(name) {
   const n = name || "";
-  if (/(スーツケース|キャリー|キャリーケース|キャリーバッグ|トランク)/.test(n)) return "suitcase";
-  if (/(ハンディファン|扇風機|ファン|送風)/.test(n)) return "fan";
-  if (/(美容|ドライヤー|美顔|ヘアアイロン|脱毛|スチーマー)/.test(n)) return "beauty";
+  if (/(スーツケース|キャリー|キャリーケース|キャリーバッグ|トランク|アルミスーツ)/.test(n)) return "suitcase";
+  if (/(ハンディファン|扇風機|ファン|送風|首振り)/.test(n)) return "fan";
+  if (/(ドライヤー|美顔|ヘアアイロン|脱毛|スチーマー|洗顔ブラシ|美容)/.test(n)) return "beauty";
   return "unknown";
+}
+function shortName(fullName) {
+  let n = String(fullName || "").replace(/【[^】]*】/g, "").replace(/^[\s★☆・|]+/, "").trim();
+  n = n.split(/[\s　]/).slice(0, 4).join(" ");
+  return n.slice(0, 30) || String(fullName).slice(0, 30);
 }
 
 async function main() {
-  const url = process.argv[2];
-  if (!url || !/^https?:\/\//.test(url)) {
-    say("使い方: npm run items -- <商品ページURL>");
-    say("例)     npm run items -- https://item.rakuten.co.jp/yourshop/abc123/");
+  const arg = process.argv[2];
+  if (!arg) {
+    say("使い方: npm run items -- <レビューURL または reviewItemId>");
+    say("例)     npm run items -- https://review.rakuten.co.jp/item/1/407466_10000038/1.1/");
+    say("例)     npm run items -- 10000038");
+    say("（一括発見は npm run discover）");
     process.exit(1);
   }
 
   const cfg = loadConfig({ needSend: false });
-  say(`商品ページを解析中... ${url}`);
+  const shopId = cfg.rakuten.shopId;
 
-  const resolved = await resolveItem(url, cfg.rakuten.shopId);
-  const category = guessCategory(resolved.name);
+  // 入力から reviewItemId を取り出す
+  let reviewItemId = "";
+  const m = String(arg).match(/(?:_|\/)(\d{6,})(?:\/|$)/) || String(arg).match(/^(\d{6,})$/);
+  if (m) reviewItemId = m[1];
+  if (!reviewItemId) {
+    say(`エラー: 入力から reviewItemId（6桁以上の数字）を取り出せませんでした: ${arg}`);
+    process.exit(1);
+  }
+
+  const url = `https://review.rakuten.co.jp/item/1/${shopId}_${reviewItemId}/1.1/`;
+  say(`レビューページを解析中... ${url}`);
+  const html = await fetchHtml(url);
+  const state = extractInitialState(html);
+  const info = state && state.itemInfo;
+  if (!info || !info.name) {
+    say(`エラー: この reviewItemId から商品情報を取得できませんでした（このショップの商品でない可能性）: ${reviewItemId}`);
+    process.exit(1);
+  }
+  const category = guessCategory(info.name);
+  const record = {
+    reviewItemId,
+    shopCode: cfg.rakuten.shopCode,
+    name: shortName(info.name),
+    category,
+    pageUrl: url,
+  };
 
   const items = cfg.items;
   items.items = items.items || [];
-
-  // 既に同じ reviewItemId があれば更新、無ければ追加
-  const existing = items.items.find((it) => it.reviewItemId === resolved.reviewItemId);
-  const record = {
-    reviewItemId: resolved.reviewItemId,
-    shopCode: resolved.shopCode,
-    name: resolved.name,
-    category,
-    pageUrl: resolved.pageUrl,
-  };
+  const existing = items.items.find((it) => it.reviewItemId === reviewItemId);
   if (existing) {
     Object.assign(existing, record);
-    say(`更新しました（既存）: ${resolved.name}`);
+    say(`更新しました（既存）: ${record.name}`);
   } else {
     items.items.push(record);
-    say(`追加しました: ${resolved.name}`);
+    say(`追加しました: ${record.name}`);
   }
 
-  const path = join(ROOT, "config/rakuten-items.json");
-  writeFileSync(path, JSON.stringify(items, null, 2) + "\n", "utf8");
-
-  say(`  reviewItemId: ${resolved.reviewItemId}`);
-  say(`  category    : ${category}${category === "unknown" ? "（自動判定できず。結びは無難な『弊社商品』になります）" : ""}`);
-  say(`保存先: config/rakuten-items.json`);
+  writeFileSync(join(ROOT, "config/rakuten-items.json"), JSON.stringify(items, null, 2) + "\n", "utf8");
+  say(`  reviewItemId: ${reviewItemId} / category: ${category}`);
   if (category === "unknown") {
-    say("※ 商品分類が unknown です。スーツケース類なら category を \"suitcase\" に手で直すと、キャリーケース向けの結びが使えます。");
+    say("※ 商品分類が unknown です。スーツケース類なら category を \"suitcase\" に手で直すと結びが最適化されます。");
   }
 }
 

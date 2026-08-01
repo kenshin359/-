@@ -57,9 +57,9 @@ async function collectReviews(cfg) {
   // ショップレビュー
   try {
     const html = await fetchHtml(shopReviewUrl(shopId, 1));
-    const list = parseReviews(html, { kind: "shop" });
-    info(`  ショップレビュー: ${list.length}件 取得`);
-    for (const r of list) all.push({ ...r, productName: "ショップレビュー", category: "unknown", itemId: "" });
+    const { reviews, total } = parseReviews(html, { kind: "shop" });
+    info(`  ショップレビュー: ${reviews.length}件 取得（全${total}件中の先頭ページ）`);
+    for (const r of reviews) all.push({ ...r, productName: "ショップレビュー", category: "unknown", itemId: "" });
   } catch (e) {
     warn("  ショップレビューの取得に失敗: " + e.message);
   }
@@ -69,10 +69,12 @@ async function collectReviews(cfg) {
     if (!it.reviewItemId) continue;
     try {
       const html = await fetchHtml(itemReviewUrl(shopId, it.reviewItemId, 1));
-      const list = parseReviews(html, { kind: "item", productTitle: it.name });
-      info(`  商品レビュー[${it.name}]: ${list.length}件 取得`);
-      for (const r of list)
-        all.push({ ...r, productName: it.name, category: it.category || "unknown", itemId: it.reviewItemId });
+      const { reviews, productName, total } = parseReviews(html, { kind: "item" });
+      // 商品名は設定の短い名前を優先（楽天の実タイトルは販促文が長いため）。無ければ実データ。
+      const name = it.name || productName;
+      info(`  商品レビュー[${name}]: ${reviews.length}件 取得（全${total}件中の先頭ページ）`);
+      for (const r of reviews)
+        all.push({ ...r, productName: name, category: it.category || "unknown", itemId: it.reviewItemId });
     } catch (e) {
       warn(`  商品レビュー[${it.name}]の取得に失敗: ` + e.message);
     }
@@ -99,7 +101,8 @@ async function main() {
   // 2) 新着だけ＆日付で絞る
   const cutoff = cutoffDate(opts.days);
   reviews = reviews.filter((r) => {
-    if (isReplied(repliedSet, r)) return false; // 既に処理済み
+    if (r.replied) return false; // ★楽天側で既に返信済み（shopReplyあり）→ 下書き不要
+    if (isReplied(repliedSet, r)) return false; // 当システムで処理済み
     if (r.date && r.date < cutoff) return false; // 対象期間外
     return true;
   });

@@ -63,18 +63,23 @@ npm run replies
 | `npm run replies -- --init` | 既存レビューを「処理済み」にする（初回導入時） |
 | `npm run replies -- --days=3` | 何日ぶんを対象にするか（既定3） |
 | `npm run replies -- --limit=10` | 一度に作る件数の上限（既定20） |
-| `npm run items -- <商品ページURL>` | 監視する商品を追加する |
+| `npm run items -- <レビューURL または reviewItemId>` | 監視する商品を1つ追加する |
+| `npm run discover` | レビューサイトを走査して商品を自動発見し一覧を更新する |
 | `npm test` | テストを実行 |
 
-### 監視する商品を増やす
+### 監視する商品
+
+商品一覧は `config/rakuten-items.json` にあります。**ショップ libetee（shopId=407466）の
+全商品（14件）は登録済み**です。商品が増えたら、次のどちらかで更新します。
 
 ```bash
-npm run items -- https://item.rakuten.co.jp/yourshop/abc123/
+npm run discover                        # レビューサイトを走査して自動発見（おすすめ）
+npm run items -- 10000038               # reviewItemId を1つ指定して追加
+npm run items -- https://review.rakuten.co.jp/item/1/407466_10000038/1.1/
 ```
 
-商品ページから **reviewItemId**（レビュー用の数字。商品URLの英字とは別物）を自動で拾って
-`config/rakuten-items.json` に保存します。スーツケース類なら結びの出し分けのため
-`category` が `suitcase` になっているか確認してください（自動判定できないと `unknown`）。
+スーツケース類なら結びの出し分けのため `category` が `suitcase` になっているか確認して
+ください（自動判定できないと `unknown` → 無難な「弊社商品」の結びになります）。
 
 ## 設定ファイル（プログラムを触らずに変えられる場所）
 
@@ -121,8 +126,14 @@ npm run items -- https://item.rakuten.co.jp/yourshop/abc123/
 
 コード中の `★` コメントに、実際に踏んだ落とし穴と対策の理由を残しています。主なもの：
 
-- 楽天レビューは素の取得だと 403 / item ページは特定ヘッダ一式が必要（`src/rakuten/fetch.js`）
-- reviewItemId は連番でないので商品ページから拾う（`src/rakuten/resolveItemId.js`）
-- 商品レビューは商品名/販促文が混ざるので `<title>` を使って除去（`src/rakuten/parseReviews.js`）
+- 楽天レビューは素の取得だと 403 → ブラウザ相当のヘッダで 200（`src/rakuten/fetch.js`）
+- **実行環境によっては `www`/`item`/`search` の各ホストが Akamai のボット対策で弾かれる**
+  （42〜43バイトのエラーページ）。一方 **`review.rakuten.co.jp` は取得できる**ため、
+  商品発見・レビュー取得は review ホストで完結させています（`src/discover.js`）。
+- レビューは HTML の class 名（毎回変わる）ではなく、ページ内の
+  **`window.__INITIAL_STATE__` の構造化JSON**から取ります（星は数値・本文/日付も正確）。
+  これにより「商品名が本文に混ざる」問題（旧5-3）は発生しません（`src/rakuten/parseReviews.js`）。
+- reviewItemId は連番でないので、review ホストを範囲走査して発見（`npm run discover`）
+- **既に楽天側で返信済み（`shopReply` あり）のレビューは下書きを作らず自動スキップ**
 - Chatwork は4000字で分割・コピペ下書きは装飾なし（`src/chatwork/client.js`）
 - 送信済み記録の `.gitignore` は `state/*` + `!state/replied-reviews.json`（`state/` だと効かない）

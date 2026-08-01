@@ -1,148 +1,133 @@
 // 楽天レビューページのHTMLから、1件ずつのレビューを取り出します。
 //
-// ★注意：楽天のHTML構造は予告なく変わります。ここは“壊れやすい層”なので、
-//   複数の手がかりで拾えるようにし、拾えなかったら静かに0件ではなく
-//   「拾えなかった」と分かるようにしています（呼び出し側でログ）。
-//   安全判定・文面組み立て・分類・整形は、この層と切り離してテスト可能にしています。
+// ★実測（本番HTMLで確認済み）：レビューページは React 製で、
+//   ページ内の `window.__INITIAL_STATE__ = {...}` に全レビューが構造化JSONで入っています。
+//   これを読むのが最も確実です（星は数値、日付・本文・投稿者もそのまま取れる）。
+//   → HTMLのclass名（例 review-body--LpVR4）はビルドごとに変わるので当てにしない。
 //
-// ★落とし穴5-3：商品レビューは本文の前に“商品名や販促文”がくっついて取れる。
-//   「同じ文が3回以上出たら定型文」方式は失敗（販促文がレビューごとに違うため）。
-//   → <title>の商品名の単語を4つ以上含む長い行を落とす方式で対処。
-//     末尾の感想（「…出張 最高の質感！」→「最高の質感！」）は残す。
+//   JSONの形（実測）：
+//     state.reviews.data[uuid] = { rating, body, nickname, postDate, orderDate,
+//                                  shopReply?, key, ... }
+//     state.reviews.shopReviews.keys = [uuid...]（ショップレビューの並び）
+//     state.reviews.itemReviews.keys = [uuid...]（商品レビューの並び）
+//     state.itemInfo.name            = 商品名（商品レビューページのとき）
+//
+// ★shopReply があるレビューは「すでに返信済み」。下書きを作る必要がないので除外できます。
+//
+// もし将来 __INITIAL_STATE__ が取れなくなった場合に備え、末尾に簡易HTMLパーサの
+// フォールバックも残しています（本番では通常JSON経路が使われます）。
 
-function decodeEntities(s) {
+// window.__INITIAL_STATE__ = {...}; の {...} をバランスを見て取り出す
+export function extractInitialState(html) {
+  const m = html.match(/window\.__INITIAL_STATE__\s*=\s*/);
+  if (!m) return null;
+  let i = html.indexOf("{", m.index);
+  if (i === -1) return null;
+  let depth = 0, inStr = false, esc = false;
+  for (let j = i; j < html.length; j++) {
+    const c = html[j];
+    if (inStr) {
+      if (esc) esc = false;
+      else if (c === "\\") esc = true;
+      else if (c === '"') inStr = false;
+    } else {
+      if (c === '"') inStr = true;
+      else if (c === "{") depth++;
+      else if (c === "}") {
+        depth--;
+        if (depth === 0) {
+          try {
+            return JSON.parse(html.slice(i, j + 1));
+          } catch {
+            return null;
+          }
+        }
+      }
+    }
+  }
+  return null;
+}
+
+// "2026/07/31" → "2026-07-31"（取れなければ ""）
+function normalizeDate(raw) {
+  const m = String(raw || "").match(/(\d{4})[年/\-.](\d{1,2})[月/\-.](\d{1,2})/);
+  if (!m) return "";
+  return `${m[1]}-${String(m[2]).padStart(2, "0")}-${String(m[3]).padStart(2, "0")}`;
+}
+
+// state から1件のレビューオブジェクトを、この仕組みで扱う形に正規化する
+function normalizeReview(rev, kind) {
+  const shopReply = (rev.shopReply || "").trim();
+  return {
+    kind, // "shop" | "item"
+    rating: typeof rev.rating === "number" ? rev.rating : null,
+    date: normalizeDate(rev.postDate || rev.orderDate),
+    author: (rev.nickname || "").replace(/さん$/, "").trim(),
+    body: (rev.body || "").trim(),
+    shopReply, // 既存の返信（過去返信・文体の手本にもなる）
+    replied: shopReply.length > 0, // ★返信済みかどうか
+  };
+}
+
+// HTML → レビュー配列
+//   kind: "shop" | "item"
+// 返り値：{ reviews:[...], productName, total, source }
+export function parseReviews(html, { kind } = {}) {
+  const state = extractInitialState(html);
+
+  // ── 本命：__INITIAL_STATE__ から取る ──────────────
+  if (state && state.reviews && state.reviews.data) {
+    const store = state.reviews.data;
+    const group = kind === "item" ? state.reviews.itemReviews : state.reviews.shopReviews;
+    let keys = (group && group.keys) || [];
+    // keys が空なら data 全部を使う（保険）
+    if (keys.length === 0) keys = Object.keys(store);
+
+    const reviews = keys
+      .map((k) => store[k])
+      .filter(Boolean)
+      .map((rev) => normalizeReview(rev, kind));
+
+    const productName =
+      kind === "item" && state.itemInfo && state.itemInfo.name ? state.itemInfo.name : "";
+    const total = (group && group.count) || reviews.length;
+
+    return { reviews, productName, total, source: "state" };
+  }
+
+  // ── フォールバック：簡易HTMLパーサ（JSONが取れないとき）──────
+  return { reviews: parseReviewsFromHtmlFallback(html, kind), productName: "", total: 0, source: "html" };
+}
+
+// ───────────────────────────────────────────────
+// 以降はフォールバック（通常は使われません）。
+// __INITIAL_STATE__ が将来取れなくなったときの保険として、最低限の抽出を残します。
+function stripTags(s) {
   return s
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<[^>]+>/g, "")
     .replace(/&amp;/g, "&")
     .replace(/&lt;/g, "<")
     .replace(/&gt;/g, ">")
     .replace(/&quot;/g, '"')
     .replace(/&#39;/g, "'")
-    .replace(/&nbsp;/g, " ");
+    .replace(/&nbsp;/g, " ")
+    .trim();
 }
 
-function stripTags(s) {
-  return decodeEntities(
-    s
-      .replace(/<br\s*\/?>/gi, "\n")
-      .replace(/<\/(p|div|li)>/gi, "\n")
-      .replace(/<[^>]+>/g, "")
-  ).trim();
-}
-
-// 日付を YYYY-MM-DD に正規化（拾えなければ ""）
-function normalizeDate(raw) {
-  if (!raw) return "";
-  let m = raw.match(/(\d{4})[年/\-.](\d{1,2})[月/\-.](\d{1,2})/);
-  if (m) {
-    const [, y, mo, d] = m;
-    return `${y}-${String(mo).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
-  }
-  return "";
-}
-
-// 星（1〜5）を色々な手がかりから拾う
-function extractRating(block) {
-  // alt="5" / aria-label="5" / "評価: 5" / "★5" など
-  let m =
-    block.match(/(?:alt|aria-label)\s*=\s*["']?\s*([1-5])(?:\.0)?\s*(?:点|つ星|star)?["']?/i) ||
-    block.match(/評価[^0-9]{0,4}([1-5])/) ||
-    block.match(/★\s*([1-5])/) ||
-    block.match(/"rating"\s*:\s*"?([1-5])/i);
-  return m ? parseInt(m[1], 10) : null;
-}
-
-// 商品名の単語集合（2文字以上）を作る（5-3の行除去に使用）
-function titleWordSet(productTitle) {
-  if (!productTitle) return new Set();
-  const words = productTitle
-    .split(/[\s　,、。・/｜|【】\[\]()（）!！?？+＋]+/)
-    .map((w) => w.trim())
-    .filter((w) => w.length >= 2);
-  return new Set(words);
-}
-
-// ★5-3：商品名の単語を4つ以上含む長い行は「商品名＋販促文」とみなして落とす。
-//   ただし短い行（末尾の感想など）は残す。
-function stripProductNameLines(body, titleWords) {
-  if (titleWords.size === 0) return body;
-  const lines = body.split("\n");
-  const kept = [];
-  for (const line of lines) {
-    const t = line.trim();
-    if (!t) continue;
-    let hit = 0;
-    for (const w of titleWords) {
-      if (t.includes(w)) hit++;
-    }
-    // 単語4つ以上を含み、かつ“長い行”なら販促/商品名の混入とみなして除去
-    const looksLikeHeader = hit >= 4 && t.length >= 15;
-    if (looksLikeHeader) continue;
-    kept.push(t);
-  }
-  const result = kept.join("\n").trim();
-  // 全部落ちてしまったら元に戻す（拾いすぎ防止）
-  return result.length > 0 ? result : body.trim();
-}
-
-// レビューの塊を、ページから“ざっくり”切り出す。
-// 楽天のレビュー1件は、星・日付・本文が近接して並ぶ。ここでは
-// 「日付らしき文字列」を区切りの目印にして前後をまとめる素朴な方式にする。
-function splitIntoBlocks(html) {
-  // スクリプト/スタイルを除去してノイズを減らす
+function parseReviewsFromHtmlFallback(html, kind) {
   const cleaned = html
     .replace(/<script[\s\S]*?<\/script>/gi, " ")
     .replace(/<style[\s\S]*?<\/style>/gi, " ");
-
-  // レビュー本体が入りがちなコンテナ（class名に review を含む）を優先的に集める
-  const blocks = [];
-  const re = /<(?:div|li|article)[^>]*class=["'][^"']*review[^"']*["'][^>]*>([\s\S]*?)<\/(?:div|li|article)>/gi;
+  const out = [];
+  // class名の“接頭辞”で本文を拾う（ハッシュ部分は無視）
+  const re = /class="review-body--[^"]*"[^>]*>([\s\S]*?)<\/div>/gi;
   let m;
   while ((m = re.exec(cleaned)) !== null) {
-    if (m[1] && m[1].length > 30) blocks.push(m[1]);
+    const body = stripTags(m[1]);
+    if (body && body.length >= 4) {
+      out.push({ kind, rating: null, date: "", author: "", body, shopReply: "", replied: false });
+    }
   }
-  return blocks;
-}
-
-// HTML → レビュー配列
-//   kind: "shop" | "item"
-//   productTitle: item のとき商品名（5-3の除去に使用）
-export function parseReviews(html, { kind, productTitle = "" } = {}) {
-  const titleWords = kind === "item" ? titleWordSet(productTitle) : new Set();
-  const blocks = splitIntoBlocks(html);
-  const reviews = [];
-
-  for (const block of blocks) {
-    const rating = extractRating(block);
-    // 日付らしき文字列
-    const dateRaw =
-      (block.match(/\d{4}[年/\-.]\d{1,2}[月/\-.]\d{1,2}日?/) || [])[0] || "";
-    const date = normalizeDate(dateRaw);
-
-    let body = stripTags(block);
-    // 星や日付の数値ノイズが本文頭に残ることがあるので、日付文字列は本文から除く
-    if (dateRaw) body = body.split(dateRaw).join(" ").trim();
-
-    // 商品レビューは商品名/販促文の混入を除去
-    if (kind === "item") body = stripProductNameLines(body, titleWords);
-
-    // 本文が短すぎる/星が無いものはレビューではないとみなす
-    if (!body || body.length < 4) continue;
-
-    reviews.push({
-      kind,
-      rating: rating,
-      date,
-      author: extractAuthor(block),
-      body,
-    });
-  }
-  return reviews;
-}
-
-// 投稿者名（"○○さん" 等）。取れなければ空。
-function extractAuthor(block) {
-  const m =
-    block.match(/([^\s<>　]{1,20})\s*さん/) ||
-    block.match(/購入者[:：]?\s*([^\s<>　]{1,20})/);
-  return m ? m[1].trim() : "";
+  return out;
 }
