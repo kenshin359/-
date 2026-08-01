@@ -1,0 +1,43 @@
+# ============================================================
+#  売上明細アプリの「選択肢」を最新に揃える（必要なときだけ）
+# ------------------------------------------------------------
+#  商品 / 販売先 / 入力方法 のドロップダウンに、
+#  対応表（config/sku-map.json）とコードが期待する選択肢を足します。
+#
+#  ★「増やすだけ」です。既にある選択肢は消しません。
+#
+#  いつ使う？
+#    ・新しい商品を config/sku-map.json に足したとき
+#    ・取込が「選択肢に無い値」エラー（CB_VA01）で止まったとき
+# ============================================================
+name: キントーンの選択肢を更新
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: kintone-sync-options
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: daily-report-system
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 選択肢を揃える
+        env:
+          KINTONE_BASE_URL: ${{ secrets.KINTONE_BASE_URL }}
+          KINTONE_USER: ${{ secrets.KINTONE_USER }}
+          KINTONE_PASSWORD: ${{ secrets.KINTONE_PASSWORD }}
+          KINTONE_SALES_DETAIL_APP_ID: ${{ secrets.KINTONE_SALES_DETAIL_APP_ID }}
+          APP_ENV: production
+        run: node kintone/syncSalesOptions.js
