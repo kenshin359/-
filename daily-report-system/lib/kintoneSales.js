@@ -31,10 +31,13 @@ function baseUrl() {
  */
 export async function fetchSalesRecords() {
   const url = `${baseUrl()}/k/v1/records.json?app=${encodeURIComponent(salesAppId())}`;
+  // 売上アプリ用のAPIトークンがあれば最小権限（読み取り専用）で接続。
+  // 無ければ KINTONE_USER / KINTONE_PASSWORD のパスワード認証にフォールバックする。
+  const token = optional('KINTONE_API_TOKEN_SALES') || null;
   // ★GET に Content-Type を付けると kintone は 400 を返すため付けない
   const res = await fetchWithRetry(
     url,
-    { method: 'GET', headers: authHeadersFor(null) },
+    { method: 'GET', headers: authHeadersFor(token) },
     { label: 'kintone 売上アプリ取得' }
   );
   return res.json?.records ?? [];
