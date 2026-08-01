@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>業務タスク カレンダー可視化ツール</title>
+<style>
+  /* ============================================================
+     配色トークン（dashboard/template.html と同系のデザイン言語）
+     明 / 暗 両モード対応。系列色は種別ごとに固定。
+     ============================================================ */
+  :root {
+    color-scheme: light;
+    --plane:      #f6f6f3;
+    --surface:    #fcfcfb;
+    --surface-2:  #f1f1ed;
+    --ink:        #0b0b0b;
+    --ink-2:      #52514e;
+    --ink-3:      #898781;
+    --grid:       #e1e0d9;
+    --axis:       #c3c2b7;
+    --hairline:   rgba(11,11,11,0.10);
+
+    /* 種別（カテゴリ）色 */
+    --c-meeting:  #2a78d6;  /* 会議 */
+    --c-doc:      #1baf7a;  /* 資料作成 */
+    --c-cs:       #eb6834;  /* 顧客対応 */
+    --c-ship:     #8a63d2;  /* 出荷・物流 */
+    --c-analyze:  #eda100;  /* 分析 */
+    --c-dev:      #17a2b8;  /* 開発 */
+    --c-review:   #d0679a;  /* レビュー */
+
+    /* ステータス色 */
+    --st-todo:    #898781;  /* 未着手 */
+    --st-doing:   #2a78d6;  /* 進行中 */
+    --st-done:    #1e9e5a;  /* 完了 */
+    --st-late:    #d03b3b;  /* 遅延 */
+
+    /* 負荷ヒートマップ */
+    --heat-0: transparent;
+    --heat-1: rgba(42,120,214,0.10);
+    --heat-2: rgba(42,120,214,0.22);
+    --heat-3: rgba(235,104,52,0.28);
+    --heat-4: rgba(208,59,59,0.34);
+
+    --good:     #006300;
+    --warning:  #fab219;
+    --critical: #d03b3b;
+    --focus:    #2a78d6;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:where(:not([data-theme="light"])) {
+      color-scheme: dark;
+      --plane:     #0d0d0d;
+      --surface:   #1a1a19;
+      --surface-2: #232322;
+      --ink:       #ffffff;
+      --ink-2:     #c3c2b7;
+      --ink-3:     #898781;
+      --grid:      #2c2c2a;
+      --axis:      #383835;
+      --hairline:  rgba(255,255,255,0.10);
+
+      --c-meeting: #3987e5;
+      --c-doc:     #199e70;
+      --c-cs:      #d95926;
+      --c-ship:    #9b78e0;
+      --c-analyze: #c98500;
+      --c-dev:     #23b4c9;
+      --c-review:  #de7aac;
+
+      --heat-1: rgba(57,135,229,0.14);
+      --heat-2: rgba(57,135,229,0.30);
+      --heat-3: rgba(217,89,38,0.34);
+      --heat-4: rgba(208,59,59,0.42);
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --plane:#0d0d0d; --surface:#1a1a19; --surface-2:#232322;
+    --ink:#fff; --ink-2:#c3c2b7; --ink-3:#898781;
+    --grid:#2c2c2a; --axis:#383835; --hairline:rgba(255,255,255,0.10);
+    --c-meeting:#3987e5; --c-doc:#199e70; --c-cs:#d95926; --c-ship:#9b78e0;
+    --c-analyze:#c98500; --c-dev:#23b4c9; --c-review:#de7aac;
+    --heat-1:rgba(57,135,229,0.14); --heat-2:rgba(57,135,229,0.30);
+    --heat-3:rgba(217,89,38,0.34); --heat-4:rgba(208,59,59,0.42);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--plane); color: var(--ink);
+    font-family: system-ui, -apple-system, "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
+    font-size: 15px; line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  .app { max-width: 1280px; margin: 0 auto; padding: 24px 18px 80px; display: flex; flex-direction: column; gap: 18px; }
+
+  /* ── 見出し ─────────────────────────── */
+  .masthead { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+  .masthead .lead { display: flex; flex-direction: column; gap: 5px; }
+  .eyebrow { font-size: 11px; font-weight: 600; letter-spacing: 0.13em; text-transform: uppercase; color: var(--ink-3); }
+  h1 { margin: 0; font-size: 24px; font-weight: 650; letter-spacing: -0.015em; }
+  .sub { margin: 0; color: var(--ink-2); font-size: 13px; }
+  .theme-btn {
+    font: inherit; font-size: 12.5px; padding: 7px 12px; border-radius: 8px;
+    border: 1px solid var(--hairline); background: var(--surface); color: var(--ink-2); cursor: pointer;
+  }
+  .theme-btn:hover { border-color: var(--axis); }
+
+  /* ── KPIタイル ──────────────────────── */
+  .kpi-row { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+  .tile { background: var(--surface); border: 1px solid var(--hairline); border-radius: 10px; padding: 13px 15px; display: flex; flex-direction: column; gap: 3px; }
+  .tile .label { font-size: 12px; color: var(--ink-2); }
+  .tile .value { font-size: 26px; font-weight: 650; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+  .tile .foot { font-size: 11.5px; color: var(--ink-3); }
+  .tile .value.late { color: var(--critical); }
+  .tile .value.done { color: var(--good); }
+
+  /* ── フィルター（タスク選択ボタン） ── */
+  .panel { background: var(--surface); border: 1px solid var(--hairline); border-radius: 10px; padding: 14px 16px; }
+  .filters { display: flex; flex-direction: column; gap: 13px; }
+  .filter-group { display: flex; flex-direction: column; gap: 7px; }
+  .filter-head { display: flex; align-items: center; gap: 10px; }
+  .filter-label { font-size: 10.5px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-3); }
+  .filter-all { font: inherit; font-size: 11px; background: none; border: none; color: var(--focus); cursor: pointer; padding: 0; text-decoration: underline; text-underline-offset: 2px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip {
+    font: inherit; font-size: 13px; line-height: 1; padding: 7px 12px; border-radius: 999px;
+    border: 1px solid var(--hairline); background: var(--surface-2); color: var(--ink-2);
+    cursor: pointer; white-space: nowrap; display: inline-flex; align-items: center; gap: 7px;
+    transition: background 120ms, color 120ms, border-color 120ms;
+  }
+  .chip:hover { background: var(--surface); border-color: var(--axis); }
+  .chip[aria-pressed="true"] { background: var(--ink); color: var(--surface); border-color: var(--ink); font-weight: 600; }
+  .chip .key { width: 10px; height: 10px; border-radius: 3px; flex: none; }
+  .chip[aria-pressed="false"] .key { opacity: 0.4; }
+  .chip .cnt { font-size: 11px; opacity: 0.7; font-variant-numeric: tabular-nums; }
+  .search-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .search-row input {
+    font: inherit; font-size: 13px; padding: 7px 11px; border-radius: 8px;
+    border: 1px solid var(--hairline); background: var(--surface-2); color: var(--ink); min-width: 200px;
+  }
+  .search-row input:focus { outline: 2px solid var(--focus); outline-offset: 1px; }
+  .reset-btn { font: inherit; font-size: 12.5px; padding: 7px 13px; border-radius: 8px; border: 1px solid var(--hairline); background: var(--surface); color: var(--ink-2); cursor: pointer; }
+  .reset-btn:hover { border-color: var(--axis); }
+
+  :is(button, a, input, [tabindex]):focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 4px; }
+
+  /* ── レイアウト（カレンダー＋詳細） ── */
+  .layout { display: grid; grid-template-columns: minmax(0,1fr) 340px; gap: 16px; align-items: start; }
+  @media (max-width: 940px) { .layout { grid-template-columns: 1fr; } }
+
+  /* ── カレンダー ─────────────────────── */
+  .cal-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+  .cal-nav { display: flex; align-items: center; gap: 8px; }
+  .cal-nav button { font: inherit; width: 34px; height: 34px; border-radius: 8px; border: 1px solid var(--hairline); background: var(--surface-2); color: var(--ink); cursor: pointer; font-size: 16px; display: inline-flex; align-items: center; justify-content: center; }
+  .cal-nav button:hover { border-color: var(--axis); }
+  .cal-nav .today-btn { width: auto; padding: 0 12px; font-size: 13px; }
+  .cal-title { font-size: 18px; font-weight: 650; letter-spacing: -0.01em; min-width: 130px; text-align: center; font-variant-numeric: tabular-nums; }
+  .view-toggle { display: inline-flex; border: 1px solid var(--hairline); border-radius: 8px; overflow: hidden; }
+  .view-toggle button { font: inherit; font-size: 12.5px; padding: 6px 12px; background: var(--surface-2); color: var(--ink-2); border: none; cursor: pointer; }
+  .view-toggle button[aria-pressed="true"] { background: var(--ink); color: var(--surface); font-weight: 600; }
+
+  .dow { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-bottom: 5px; }
+  .dow span { text-align: center; font-size: 11.5px; font-weight: 600; color: var(--ink-3); padding: 2px 0; }
+  .dow span.sun { color: var(--critical); }
+  .dow span.sat { color: var(--focus); }
+
+  .grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
+  .cell {
+    position: relative; min-height: 96px; border: 1px solid var(--hairline); border-radius: 8px;
+    background: var(--surface); padding: 5px 6px 6px; cursor: pointer; text-align: left; font: inherit;
+    display: flex; flex-direction: column; gap: 4px; transition: border-color 110ms, box-shadow 110ms;
+    overflow: hidden;
+  }
+  .cell:hover { border-color: var(--axis); }
+  .cell.blank { background: transparent; border: none; cursor: default; }
+  .cell.today { border-color: var(--focus); box-shadow: inset 0 0 0 1px var(--focus); }
+  .cell.selected { border-color: var(--ink); box-shadow: inset 0 0 0 2px var(--ink); }
+  .cell .dnum { font-size: 12.5px; font-weight: 600; color: var(--ink-2); font-variant-numeric: tabular-nums; display: flex; justify-content: space-between; align-items: center; }
+  .cell.today .dnum { color: var(--focus); }
+  .cell .dnum .badge { font-size: 10.5px; font-weight: 700; padding: 1px 6px; border-radius: 999px; background: var(--surface-2); color: var(--ink-2); font-variant-numeric: tabular-nums; }
+  .cell .dnum .badge.hot { background: var(--critical); color: #fff; }
+  .cell.sun .dnum { color: var(--critical); }
+  .cell.sat .dnum { color: var(--focus); }
+
+  /* 負荷ヒートマップ層 */
+  .cell .heat { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+  .cell > * { position: relative; z-index: 1; }
+
+  /* ステータス内訳バー */
+  .statbar { display: flex; height: 6px; border-radius: 3px; overflow: hidden; background: var(--surface-2); }
+  .statbar i { display: block; height: 100%; }
+  /* 種別ドット */
+  .dots { display: flex; flex-wrap: wrap; gap: 3px; margin-top: auto; }
+  .dot { width: 8px; height: 8px; border-radius: 2px; }
+  .task-line { font-size: 11px; color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 5px; }
+  .task-line .tk { width: 7px; height: 7px; border-radius: 2px; flex: none; }
+  .more { font-size: 10.5px; color: var(--ink-3); }
+  .cell.empty .dnum { color: var(--ink-3); }
+
+  /* ── 詳細パネル ─────────────────────── */
+  .detail { position: sticky; top: 14px; }
+  .detail-head { display: flex; flex-direction: column; gap: 3px; margin-bottom: 12px; }
+  .detail-date { font-size: 16px; font-weight: 650; }
+  .detail-sub { font-size: 12px; color: var(--ink-3); }
+  .mini-kpis { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+  .mini-kpi { flex: 1; min-width: 70px; background: var(--surface-2); border-radius: 8px; padding: 8px 10px; }
+  .mini-kpi .v { font-size: 18px; font-weight: 650; font-variant-numeric: tabular-nums; }
+  .mini-kpi .l { font-size: 10.5px; color: var(--ink-3); }
+  .task-list { display: flex; flex-direction: column; gap: 7px; max-height: 560px; overflow-y: auto; padding-right: 2px; }
+  .task-card { border: 1px solid var(--hairline); border-left-width: 3px; border-radius: 7px; padding: 8px 10px; background: var(--surface); display: flex; flex-direction: column; gap: 3px; }
+  .task-card .t1 { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+  .task-card .ttl { font-size: 13px; font-weight: 600; }
+  .task-card .st { font-size: 10.5px; font-weight: 700; padding: 1px 7px; border-radius: 999px; white-space: nowrap; }
+  .st.todo  { background: var(--surface-2); color: var(--ink-2); }
+  .st.doing { background: rgba(42,120,214,0.15); color: var(--st-doing); }
+  .st.done  { background: rgba(30,158,90,0.15); color: var(--st-done); }
+  .st.late  { background: rgba(208,59,59,0.15); color: var(--st-late); }
+  .task-card .t2 { font-size: 11.5px; color: var(--ink-2); display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .task-card .t2 .who { font-weight: 600; }
+  .task-card .t2 .pill { font-size: 10.5px; padding: 0 6px; border-radius: 999px; background: var(--surface-2); color: var(--ink-3); }
+  .task-card .t2 .prio-高 { color: var(--critical); font-weight: 700; }
+  .task-card .t2 .prio-中 { color: var(--warning); font-weight: 600; }
+  .empty-note { color: var(--ink-3); font-size: 13px; padding: 24px 6px; text-align: center; }
+
+  /* ── ランキング / 凡例 ──────────────── */
+  .side-card { margin-top: 14px; }
+  .side-title { font-size: 13px; font-weight: 640; margin: 0 0 9px; }
+  .rank-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; padding: 5px 0; border-bottom: 1px solid var(--grid); font-size: 12.5px; }
+  .rank-row:last-child { border-bottom: none; }
+  .rank-bar { height: 6px; border-radius: 3px; background: var(--c-meeting); }
+  .rank-row .nm { display: flex; flex-direction: column; gap: 3px; }
+  .rank-row .v { font-variant-numeric: tabular-nums; font-weight: 650; color: var(--ink-2); }
+  .legend { display: flex; flex-wrap: wrap; gap: 9px 14px; }
+  .legend-item { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ink-2); }
+  .legend-key { width: 11px; height: 11px; border-radius: 3px; flex: none; }
+
+  footer { color: var(--ink-3); font-size: 12px; border-top: 1px solid var(--hairline); padding-top: 12px; }
+  .hint { font-size: 12px; color: var(--ink-3); }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="masthead">
+    <div class="lead">
+      <span class="eyebrow">Team Task Calendar</span>
+      <h1>業務タスク カレンダー可視化ツール</h1>
+      <p class="sub">100名規模の業務タスクを、カレンダーとタスク選択ボタンでその場で可視化。負荷の偏り・遅延・締切集中を一目で把握します。</p>
+    </div>
+    <button class="theme-btn" id="themeBtn" type="button">🌗 表示切替</button>
+  </div>
+
+  <!-- KPI -->
+  <div class="kpi-row" id="kpiRow"></div>
+
+  <!-- タスク選択ボタン（フィルター） -->
+  <div class="panel">
+    <div class="filters">
+      <div class="filter-group">
+        <div class="filter-head"><span class="filter-label">部門</span><button class="filter-all" data-all="dept" type="button">すべて</button></div>
+        <div class="chips" id="fltDept"></div>
+      </div>
+      <div class="filter-group">
+        <div class="filter-head"><span class="filter-label">タスク種別</span><button class="filter-all" data-all="cat" type="button">すべて</button></div>
+        <div class="chips" id="fltCat"></div>
+      </div>
+      <div class="filter-group">
+        <div class="filter-head"><span class="filter-label">ステータス</span><button class="filter-all" data-all="status" type="button">すべて</button></div>
+        <div class="chips" id="fltStatus"></div>
+      </div>
+      <div class="filter-group">
+        <div class="filter-head"><span class="filter-label">優先度</span><button class="filter-all" data-all="prio" type="button">すべて</button></div>
+        <div class="chips" id="fltPrio"></div>
+      </div>
+      <div class="search-row">
+        <input type="search" id="searchBox" placeholder="担当者名・タスク名で検索" autocomplete="off" />
+        <button class="reset-btn" id="resetBtn" type="button">絞り込みをリセット</button>
+        <span class="hint" id="matchHint"></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="layout">
+    <!-- カレンダー -->
+    <div class="panel">
+      <div class="cal-head">
+        <div class="cal-nav">
+          <button id="prevBtn" type="button" aria-label="前の月">‹</button>
+          <button class="today-btn" id="todayBtn" type="button">今日</button>
+          <button id="nextBtn" type="button" aria-label="次の月">›</button>
+        </div>
+        <div class="cal-title" id="calTitle"></div>
+        <div class="view-toggle" id="viewToggle">
+          <button data-view="load" aria-pressed="true" type="button">負荷ヒートマップ</button>
+          <button data-view="status" aria-pressed="false" type="button">ステータス</button>
+          <button data-view="cat" aria-pressed="false" type="button">種別</button>
+        </div>
+      </div>
+      <div class="dow" id="dowRow"></div>
+      <div class="grid" id="calGrid"></div>
+      <div class="legend" id="calLegend" style="margin-top:14px"></div>
+    </div>
+
+    <!-- 詳細パネル -->
+    <div>
+      <div class="panel detail">
+        <div class="detail-head">
+          <span class="detail-date" id="detailDate">日付を選択</span>
+          <span class="detail-sub" id="detailSub">カレンダーの日付をクリックすると、その日のタスク明細を表示します。</span>
+        </div>
+        <div class="mini-kpis" id="miniKpis"></div>
+        <div class="task-list" id="taskList"></div>
+      </div>
+
+      <div class="panel side-card">
+        <p class="side-title">担当者・負荷ランキング（表示中の絞り込み / 当月）</p>
+        <div id="rankList"></div>
+      </div>
+    </div>
+  </div>
+
+  <footer id="footer"></footer>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ============================================================
+     マスタ定義
+     ============================================================ */
+  const DEPTS = [
+    { id: "sales",  name: "営業部" },
+    { id: "mkt",    name: "マーケ部" },
+    { id: "cs",     name: "CS部" },
+    { id: "prod",   name: "商品部" },
+    { id: "logi",   name: "物流部" },
+    { id: "dev",    name: "開発部" },
+    { id: "admin",  name: "管理部" },
+  ];
+  const CATS = [
+    { id: "meeting", name: "会議",     v: "var(--c-meeting)" },
+    { id: "doc",     name: "資料作成", v: "var(--c-doc)" },
+    { id: "cs",      name: "顧客対応", v: "var(--c-cs)" },
+    { id: "ship",    name: "出荷・物流", v: "var(--c-ship)" },
+    { id: "analyze", name: "分析",     v: "var(--c-analyze)" },
+    { id: "dev",     name: "開発",     v: "var(--c-dev)" },
+    { id: "review",  name: "レビュー", v: "var(--c-review)" },
+  ];
+  const STATUSES = [
+    { id: "todo",  name: "未着手", cls: "todo",  v: "var(--st-todo)" },
+    { id: "doing", name: "進行中", cls: "doing", v: "var(--st-doing)" },
+    { id: "done",  name: "完了",   cls: "done",  v: "var(--st-done)" },
+    { id: "late",  name: "遅延",   cls: "late",  v: "var(--st-late)" },
+  ];
+  const PRIOS = [
+    { id: "高", name: "高" },
+    { id: "中", name: "中" },
+    { id: "低", name: "低" },
+  ];
+  const catMap    = Object.fromEntries(CATS.map(c => [c.id, c]));
+  const deptMap   = Object.fromEntries(DEPTS.map(d => [d.id, d]));
+  const statusMap = Object.fromEntries(STATUSES.map(s => [s.id, s]));
+
+  // 部門ごとに使われやすい種別（サンプルを現実的にするため）
+  const DEPT_CATS = {
+    sales: ["meeting","cs","doc","analyze","review"],
+    mkt:   ["analyze","doc","meeting","review"],
+    cs:    ["cs","doc","meeting"],
+    prod:  ["doc","review","meeting","analyze"],
+    logi:  ["ship","doc","meeting"],
+    dev:   ["dev","review","meeting","doc"],
+    admin: ["doc","meeting","analyze"],
+  };
+  const DEPT_SIZE = { sales: 24, mkt: 12, cs: 20, prod: 10, logi: 16, dev: 12, admin: 6 }; // 計100名
+
+  const SEI = ["佐藤","鈴木","高橋","田中","伊藤","渡辺","山本","中村","小林","加藤","吉田","山田","佐々木","山口","松本","井上","木村","林","清水","森"];
+  const MEI = ["太郎","花子","健","美咲","翔","結衣","大輔","彩","涼","さくら","蓮","陽菜","颯太","楓","悠","杏","駿","凛","匠","葵"];
+
+  /* ---- 決定的な擬似乱数（毎回同じサンプル） ---- */
+  let _seed = 20260801;
+  function rand() { _seed = (_seed * 1103515245 + 12345) & 0x7fffffff; return _seed / 0x7fffffff; }
+  function pick(arr) { return arr[Math.floor(rand() * arr.length)]; }
+  function randint(a, b) { return a + Math.floor(rand() * (b - a + 1)); }
+
+  /* ---- メンバー生成（100名） ---- */
+  const MEMBERS = [];
+  let mid = 0;
+  for (const d of DEPTS) {
+    for (let i = 0; i < DEPT_SIZE[d.id]; i++) {
+      MEMBERS.push({ id: "u" + (++mid), name: pick(SEI) + " " + pick(MEI), dept: d.id });
+    }
+  }
+
+  /* ---- タスク雛形 ---- */
+  const TITLE_BY_CAT = {
+    meeting: ["定例MTG","部門会議","案件打合せ","1on1","キックオフ","週次レビュー会"],
+    doc:     ["提案資料作成","見積書作成","報告書作成","マニュアル更新","議事録作成","企画書作成"],
+    cs:      ["問い合わせ対応","クレーム対応","返品処理","顧客フォロー","電話対応","メール返信"],
+    ship:    ["出荷手配","在庫確認","入荷検品","棚卸し","配送手配","梱包作業"],
+    analyze: ["売上分析","広告効果測定","KPIレポート","市場調査","データ集計","競合分析"],
+    dev:     ["機能実装","バグ修正","コードレビュー","デプロイ作業","API連携","テスト実施"],
+    review:  ["承認依頼","内容確認","品質チェック","校正","最終確認","承認処理"],
+  };
+
+  /* ---- タスク生成（当月中心・前後月も少量） ---- */
+  const TASKS = [];
+  const today = new Date();
+  const baseY = today.getFullYear();
+  const baseM = today.getMonth();
+  let tid = 0;
+
+  function genForMonth(year, month, densityFactor) {
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    for (const m of MEMBERS) {
+      const perMember = Math.round(randint(4, 9) * densityFactor);
+      for (let k = 0; k < perMember; k++) {
+        const day = randint(1, daysInMonth);
+        const dow = new Date(year, month, day).getDay();
+        if ((dow === 0 || dow === 6) && rand() > 0.18) continue; // 週末は少なめ
+        const cat = pick(DEPT_CATS[m.dept]);
+        const title = pick(TITLE_BY_CAT[cat]);
+        // ステータス：過去日は完了/遅延多め、未来日は未着手多め
+        const dateObj = new Date(year, month, day);
+        const isPast = dateObj < new Date(today.getFullYear(), today.getMonth(), today.getDate());
+        const isToday = dateObj.getTime() === new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
+        let status;
+        if (isPast) { status = rand() < 0.82 ? "done" : "late"; }
+        else if (isToday) { status = pick(["doing","doing","todo","done","late"]); }
+        else {
+          const r = rand();
+          status = r < 0.55 ? "todo" : r < 0.80 ? "doing" : r < 0.97 ? "done" : "late";
+        }
+        const prioR = rand();
+        const prio = prioR < 0.20 ? "高" : prioR < 0.60 ? "中" : "低";
+        TASKS.push({
+          id: "t" + (++tid),
+          title,
+          cat,
+          dept: m.dept,
+          member: m.id,
+          memberName: m.name,
+          status,
+          prio,
+          y: year, mo: month, d: day,
+          key: `${year}-${String(month+1).padStart(2,"0")}-${String(day).padStart(2,"0")}`,
+        });
+      }
+    }
+  }
+  genForMonth(baseY, baseM, 1.0);
+  // 前後月も少量（月移動しても中身がある）
+  const prev = new Date(baseY, baseM - 1, 1);
+  const next = new Date(baseY, baseM + 1, 1);
+  genForMonth(prev.getFullYear(), prev.getMonth(), 0.5);
+  genForMonth(next.getFullYear(), next.getMonth(), 0.5);
+
+  /* ============================================================
+     状態
+     ============================================================ */
+  const state = {
+    year: baseY, month: baseM,
+    dept: new Set(DEPTS.map(d => d.id)),
+    cat: new Set(CATS.map(c => c.id)),
+    status: new Set(STATUSES.map(s => s.id)),
+    prio: new Set(PRIOS.map(p => p.id)),
+    search: "",
+    view: "load",
+    selectedKey: null,
+  };
+
+  /* ============================================================
+     フィルター適用
+     ============================================================ */
+  function matches(t) {
+    if (!state.dept.has(t.dept)) return false;
+    if (!state.cat.has(t.cat)) return false;
+    if (!state.status.has(t.status)) return false;
+    if (!state.prio.has(t.prio)) return false;
+    if (state.search) {
+      const q = state.search.toLowerCase();
+      if (!(t.memberName.toLowerCase().includes(q) || t.title.toLowerCase().includes(q))) return false;
+    }
+    return true;
+  }
+  function monthTasks() {
+    return TASKS.filter(t => t.y === state.year && t.mo === state.month && matches(t));
+  }
+
+  /* ============================================================
+     フィルターUI生成
+     ============================================================ */
+  function chip(label, active, keyColor, count) {
+    const b = document.createElement("button");
+    b.className = "chip"; b.type = "button";
+    b.setAttribute("aria-pressed", active ? "true" : "false");
+    if (keyColor) { const k = document.createElement("span"); k.className = "key"; k.style.background = keyColor; b.appendChild(k); }
+    const txt = document.createElement("span"); txt.textContent = label; b.appendChild(txt);
+    if (count != null) { const c = document.createElement("span"); c.className = "cnt"; c.textContent = count; b.appendChild(c); }
+    return b;
+  }
+  function buildFilters() {
+    const dEl = document.getElementById("fltDept"); dEl.innerHTML = "";
+    DEPTS.forEach(d => {
+      const b = chip(d.name, state.dept.has(d.id), null, DEPT_SIZE[d.id] + "名");
+      b.onclick = () => { toggle(state.dept, d.id); render(); };
+      dEl.appendChild(b);
+    });
+    const cEl = document.getElementById("fltCat"); cEl.innerHTML = "";
+    CATS.forEach(c => {
+      const b = chip(c.name, state.cat.has(c.id), c.v);
+      b.onclick = () => { toggle(state.cat, c.id); render(); };
+      cEl.appendChild(b);
+    });
+    const sEl = document.getElementById("fltStatus"); sEl.innerHTML = "";
+    STATUSES.forEach(s => {
+      const b = chip(s.name, state.status.has(s.id), s.v);
+      b.onclick = () => { toggle(state.status, s.id); render(); };
+      sEl.appendChild(b);
+    });
+    const pEl = document.getElementById("fltPrio"); pEl.innerHTML = "";
+    PRIOS.forEach(p => {
+      const b = chip(p.name, state.prio.has(p.id), null);
+      b.onclick = () => { toggle(state.prio, p.id); render(); };
+      pEl.appendChild(b);
+    });
+  }
+  function toggle(set, id) { if (set.has(id)) set.delete(id); else set.add(id); }
+
+  document.querySelectorAll(".filter-all").forEach(btn => {
+    btn.onclick = () => {
+      const which = btn.dataset.all;
+      const target = which === "cat" ? state.cat : which === "status" ? state.status : which === "prio" ? state.prio : state.dept;
+      const full = which === "cat" ? CATS : which === "status" ? STATUSES : which === "prio" ? PRIOS : DEPTS;
+      const allOn = target.size === full.length;
+      target.clear();
+      if (allOn) { /* 全ONなら全解除 */ } else { full.forEach(x => target.add(x.id)); }
+      buildFilters(); render();
+    };
+  });
+  document.getElementById("searchBox").addEventListener("input", (e) => { state.search = e.target.value.trim(); render(); });
+  document.getElementById("resetBtn").onclick = () => {
+    state.dept = new Set(DEPTS.map(d => d.id));
+    state.cat = new Set(CATS.map(c => c.id));
+    state.status = new Set(STATUSES.map(s => s.id));
+    state.prio = new Set(PRIOS.map(p => p.id));
+    state.search = ""; document.getElementById("searchBox").value = "";
+    buildFilters(); render();
+  };
+
+  /* ============================================================
+     ビュー切替
+     ============================================================ */
+  document.getElementById("viewToggle").querySelectorAll("button").forEach(b => {
+    b.onclick = () => {
+      document.getElementById("viewToggle").querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed","false"));
+      b.setAttribute("aria-pressed","true");
+      state.view = b.dataset.view; render();
+    };
+  });
+  document.getElementById("prevBtn").onclick = () => { shiftMonth(-1); };
+  document.getElementById("nextBtn").onclick = () => { shiftMonth(1); };
+  document.getElementById("todayBtn").onclick = () => { state.year = today.getFullYear(); state.month = today.getMonth(); state.selectedKey = null; render(); };
+  function shiftMonth(delta) {
+    const d = new Date(state.year, state.month + delta, 1);
+    state.year = d.getFullYear(); state.month = d.getMonth(); state.selectedKey = null; render();
+  }
+
+  document.getElementById("themeBtn").onclick = () => {
+    const root = document.documentElement;
+    const cur = root.getAttribute("data-theme");
+    const isDark = cur === "dark" || (!cur && matchMedia("(prefers-color-scheme: dark)").matches);
+    root.setAttribute("data-theme", isDark ? "light" : "dark");
+  };
+
+  /* ============================================================
+     描画
+     ============================================================ */
+  const WD = ["日","月","火","水","木","金","土"];
+  function buildDow() {
+    const el = document.getElementById("dowRow"); el.innerHTML = "";
+    WD.forEach((w, i) => { const s = document.createElement("span"); s.textContent = w; if (i===0) s.className="sun"; if (i===6) s.className="sat"; el.appendChild(s); });
+  }
+
+  function heatColor(n, max) {
+    if (n === 0) return "var(--heat-0)";
+    const r = n / (max || 1);
+    if (r > 0.75) return "var(--heat-4)";
+    if (r > 0.5)  return "var(--heat-3)";
+    if (r > 0.25) return "var(--heat-2)";
+    return "var(--heat-1)";
+  }
+
+  function renderKpis(mtasks) {
+    const total = mtasks.length;
+    const doing = mtasks.filter(t => t.status === "doing").length;
+    const late  = mtasks.filter(t => t.status === "late").length;
+    const done  = mtasks.filter(t => t.status === "done").length;
+    const rate  = total ? Math.round(done / total * 100) : 0;
+    const people = new Set(mtasks.map(t => t.member)).size;
+    const items = [
+      { l: "対象タスク", v: total, f: `${state.year}年${state.month+1}月` },
+      { l: "稼働メンバー", v: people + "名", f: "絞り込み後" },
+      { l: "進行中", v: doing, f: "対応中のタスク" },
+      { l: "遅延", v: late, f: "要フォロー", cls: late ? "late" : "" },
+      { l: "完了率", v: rate + "%", f: `完了 ${done}件`, cls: "done" },
+    ];
+    const row = document.getElementById("kpiRow"); row.innerHTML = "";
+    items.forEach(it => {
+      const d = document.createElement("div"); d.className = "tile";
+      d.innerHTML = `<span class="label">${it.l}</span><span class="value ${it.cls||''}">${it.v}</span><span class="foot">${it.f}</span>`;
+      row.appendChild(d);
+    });
+  }
+
+  function renderCalendar(mtasks) {
+    document.getElementById("calTitle").textContent = `${state.year}年 ${state.month + 1}月`;
+
+    // 日別集計
+    const byDay = {};
+    mtasks.forEach(t => { (byDay[t.d] = byDay[t.d] || []).push(t); });
+    let maxLoad = 0; Object.values(byDay).forEach(a => { if (a.length > maxLoad) maxLoad = a.length; });
+
+    const first = new Date(state.year, state.month, 1);
+    const startDow = first.getDay();
+    const daysInMonth = new Date(state.year, state.month + 1, 0).getDate();
+    const grid = document.getElementById("calGrid"); grid.innerHTML = "";
+
+    for (let i = 0; i < startDow; i++) { const b = document.createElement("div"); b.className = "cell blank"; grid.appendChild(b); }
+
+    const todayKey = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,"0")}-${String(today.getDate()).padStart(2,"0")}`;
+
+    for (let day = 1; day <= daysInMonth; day++) {
+      const key = `${state.year}-${String(state.month+1).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
+      const dow = new Date(state.year, state.month, day).getDay();
+      const list = byDay[day] || [];
+      const cell = document.createElement("button"); cell.type = "button";
+      cell.className = "cell";
+      if (dow === 0) cell.classList.add("sun");
+      if (dow === 6) cell.classList.add("sat");
+      if (key === todayKey) cell.classList.add("today");
+      if (key === state.selectedKey) cell.classList.add("selected");
+      if (list.length === 0) cell.classList.add("empty");
+
+      // 負荷ヒートマップ層
+      if (state.view === "load" && list.length) {
+        const heat = document.createElement("div"); heat.className = "heat";
+        heat.style.background = heatColor(list.length, maxLoad);
+        cell.appendChild(heat);
+      }
+
+      // 日付＋件数バッジ
+      const dnum = document.createElement("div"); dnum.className = "dnum";
+      const badgeHot = list.length >= Math.max(6, maxLoad * 0.75);
+      dnum.innerHTML = `<span>${day}</span>` + (list.length ? `<span class="badge ${badgeHot?'hot':''}">${list.length}</span>` : "");
+      cell.appendChild(dnum);
+
+      if (list.length) {
+        if (state.view === "status") {
+          const bar = document.createElement("div"); bar.className = "statbar";
+          STATUSES.forEach(s => {
+            const n = list.filter(t => t.status === s.id).length;
+            if (n) { const seg = document.createElement("i"); seg.style.width = (n/list.length*100)+"%"; seg.style.background = s.v; bar.appendChild(seg); }
+          });
+          cell.appendChild(bar);
+          // 上位2件のタスク名
+          list.slice(0,2).forEach(t => {
+            const ln = document.createElement("div"); ln.className = "task-line";
+            ln.innerHTML = `<span class="tk" style="background:${statusMap[t.status].v}"></span>${t.title}`;
+            cell.appendChild(ln);
+          });
+        } else if (state.view === "cat") {
+          list.slice(0,3).forEach(t => {
+            const ln = document.createElement("div"); ln.className = "task-line";
+            ln.innerHTML = `<span class="tk" style="background:${catMap[t.cat].v}"></span>${t.title}`;
+            cell.appendChild(ln);
+          });
+          if (list.length > 3) { const m = document.createElement("div"); m.className="more"; m.textContent = `他 ${list.length-3} 件`; cell.appendChild(m); }
+        } else {
+          // load: 種別ドット
+          const dots = document.createElement("div"); dots.className = "dots";
+          list.slice(0,12).forEach(t => { const dt = document.createElement("span"); dt.className="dot"; dt.style.background = catMap[t.cat].v; dots.appendChild(dt); });
+          cell.appendChild(dots);
+        }
+      }
+
+      cell.onclick = () => { state.selectedKey = key; render(); };
+      grid.appendChild(cell);
+    }
+
+    // 凡例
+    const leg = document.getElementById("calLegend"); leg.innerHTML = "";
+    let legendSrc = state.view === "status" ? STATUSES.map(s=>({name:s.name,v:s.v})) : CATS.map(c=>({name:c.name,v:c.v}));
+    if (state.view === "load") {
+      leg.innerHTML = '<span class="legend-item"><span class="legend-key" style="background:var(--heat-1)"></span>軽</span>' +
+        '<span class="legend-item"><span class="legend-key" style="background:var(--heat-2)"></span>中</span>' +
+        '<span class="legend-item"><span class="legend-key" style="background:var(--heat-3)"></span>多</span>' +
+        '<span class="legend-item"><span class="legend-key" style="background:var(--heat-4)"></span>過負荷</span>' +
+        '<span class="legend-item" style="color:var(--ink-3)">色は当日のタスク件数（数字バッジ）に対応。ドットは種別。</span>';
+    } else {
+      legendSrc.forEach(x => { const s = document.createElement("span"); s.className="legend-item"; s.innerHTML = `<span class="legend-key" style="background:${x.v}"></span>${x.name}`; leg.appendChild(s); });
+    }
+  }
+
+  function renderDetail() {
+    const dateEl = document.getElementById("detailDate");
+    const subEl = document.getElementById("detailSub");
+    const mk = document.getElementById("miniKpis");
+    const listEl = document.getElementById("taskList");
+    mk.innerHTML = ""; listEl.innerHTML = "";
+
+    if (!state.selectedKey) {
+      dateEl.textContent = "日付を選択";
+      subEl.textContent = "カレンダーの日付をクリックすると、その日のタスク明細を表示します。";
+      listEl.innerHTML = '<div class="empty-note">← 左のカレンダーで日付を選んでください</div>';
+      return;
+    }
+    const [y,m,d] = state.selectedKey.split("-").map(Number);
+    const dow = WD[new Date(y, m-1, d).getDay()];
+    const list = TASKS.filter(t => t.key === state.selectedKey && matches(t));
+    dateEl.textContent = `${y}年${m}月${d}日（${dow}）`;
+    subEl.textContent = `${list.length} 件のタスク（絞り込み後）`;
+
+    const doing = list.filter(t=>t.status==="doing").length;
+    const late  = list.filter(t=>t.status==="late").length;
+    const done  = list.filter(t=>t.status==="done").length;
+    [["合計",list.length],["進行中",doing],["遅延",late],["完了",done]].forEach(([l,v]) => {
+      const el = document.createElement("div"); el.className="mini-kpi";
+      el.innerHTML = `<div class="v">${v}</div><div class="l">${l}</div>`;
+      mk.appendChild(el);
+    });
+
+    if (!list.length) { listEl.innerHTML = '<div class="empty-note">条件に合うタスクはありません</div>'; return; }
+    // 優先度→ステータスで並べ替え
+    const prioOrder = { "高":0, "中":1, "低":2 };
+    list.sort((a,b) => (prioOrder[a.prio]-prioOrder[b.prio]) || a.status.localeCompare(b.status));
+    list.forEach(t => {
+      const c = document.createElement("div"); c.className = "task-card";
+      c.style.borderLeftColor = catMap[t.cat].v;
+      const st = statusMap[t.status];
+      c.innerHTML =
+        `<div class="t1"><span class="ttl">${t.title}</span><span class="st ${st.cls}">${st.name}</span></div>` +
+        `<div class="t2"><span class="who">${t.memberName}</span>` +
+        `<span class="pill">${deptMap[t.dept].name}</span>` +
+        `<span class="pill">${catMap[t.cat].name}</span>` +
+        `<span class="prio-${t.prio}">優先度 ${t.prio}</span></div>`;
+      listEl.appendChild(c);
+    });
+  }
+
+  function renderRank(mtasks) {
+    // 担当者別 件数トップ10
+    const byMember = {};
+    mtasks.forEach(t => { byMember[t.member] = (byMember[t.member]||0) + 1; });
+    const rows = Object.entries(byMember).map(([id,n]) => {
+      const mem = MEMBERS.find(x=>x.id===id);
+      return { name: mem?mem.name:id, dept: mem?deptMap[mem.dept].name:"", n };
+    }).sort((a,b)=>b.n-a.n).slice(0,10);
+    const max = rows.length ? rows[0].n : 1;
+    const el = document.getElementById("rankList"); el.innerHTML = "";
+    if (!rows.length) { el.innerHTML = '<div class="hint">該当なし</div>'; return; }
+    rows.forEach(r => {
+      const row = document.createElement("div"); row.className = "rank-row";
+      row.innerHTML = `<div class="nm"><div>${r.name} <span style="color:var(--ink-3);font-size:11px">${r.dept}</span></div>` +
+        `<div class="rank-bar" style="width:${Math.max(8, r.n/max*100)}%"></div></div><div class="v">${r.n}</div>`;
+      el.appendChild(row);
+    });
+  }
+
+  function updateHint(mtasks) {
+    const totalMonth = TASKS.filter(t => t.y===state.year && t.mo===state.month).length;
+    document.getElementById("matchHint").textContent = `該当 ${mtasks.length} / 当月 ${totalMonth} 件`;
+  }
+
+  function render() {
+    const mtasks = monthTasks();
+    renderKpis(mtasks);
+    renderCalendar(mtasks);
+    renderDetail();
+    renderRank(mtasks);
+    updateHint(mtasks);
+    document.getElementById("footer").textContent =
+      `サンプルデータ: 全${MEMBERS.length}名 / 総タスク ${TASKS.length}件（デモ用に自動生成・決定的）。kintone等の実データに差し替えて運用できます。`;
+  }
+
+  // 初期化
+  buildFilters();
+  buildDow();
+  render();
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", render);
+})();
+</script>
+</body>
+</html>
