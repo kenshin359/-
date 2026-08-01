@@ -78,6 +78,10 @@ jobs:
           SHOPIFY_SHOP_DOMAIN: ${{ secrets.SHOPIFY_SHOP_DOMAIN }}
           SHOPIFY_ADMIN_TOKEN: ${{ secrets.SHOPIFY_ADMIN_TOKEN }}
           SHOPIFY_API_VERSION: ${{ secrets.SHOPIFY_API_VERSION }}
+          # 取込結果をChatworkに知らせる（売上グループ）
+          CHATWORK_API_TOKEN: ${{ secrets.CHATWORK_API_TOKEN }}
+          CHATWORK_SALES_ROOM_ID: ${{ secrets.CHATWORK_SALES_ROOM_ID }}
+          CHATWORK_ROOM_ID: ${{ secrets.CHATWORK_ROOM_ID }}
           APP_ENV: production
           REPORT_TIMEZONE: Asia/Tokyo
         run: |

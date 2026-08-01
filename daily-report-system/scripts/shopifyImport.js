@@ -21,8 +21,50 @@ import { aggregateByProduct, loadSkuMap } from '../lib/salesDetail.js';
 import { salesAppId, upsertDay } from '../lib/salesDetailWrite.js';
 import { yen } from '../lib/salesValues.js';
 import { todayISO } from '../lib/date.js';
+import { pushChatwork } from '../lib/chatwork.js';
+import { optional } from '../lib/env.js';
 
 const CHANNEL = '自社サイト';
+
+/**
+ * 取込結果をChatworkに知らせる（毎朝のリスト）。
+ * 送り先: CHATWORK_SALES_ROOM_ID（無ければ CHATWORK_ROOM_ID）。
+ * 通知の失敗で取込そのものを失敗にはしない。
+ */
+async function notifyResult({ dates, agg, orders, unmapped }) {
+  const roomId = optional('CHATWORK_SALES_ROOM_ID') || optional('CHATWORK_ROOM_ID');
+  if (!roomId || !optional('CHATWORK_API_TOKEN')) return;
+
+  for (const d of dates) {
+    const dayRows = agg.filter((r) => r.date === d).sort((a, b) => b.amount - a.amount);
+    const total = dayRows.reduce((s, r) => s + r.amount, 0);
+    const qty = dayRows.reduce((s, r) => s + r.qty, 0);
+
+    const lines = [
+      `[info][title]🛒 自社サイト（Shopify）売上 ${d}[/title]`,
+      `売上 ${yen(total)} ／ ${qty}個 ／ 注文 ${orders.length}件`,
+      '',
+      ...dayRows.map((r) => {
+        const mark = r.confidence === '確定' ? '' : '（要確認）';
+        return `・${r.product}${mark} ×${r.qty} ${yen(r.amount)}`;
+      }),
+    ];
+    if (unmapped.length) {
+      lines.push('');
+      lines.push(`⚠ 対応表に無いSKUが ${unmapped.length}件あります（「未分類・要確認」で記録）`);
+    }
+    lines.push('');
+    lines.push('※ キントーン「売上明細（自動取込）」に登録済みです。');
+    lines.push('[/info]');
+
+    try {
+      await pushChatwork(lines.join('\n'), { roomId });
+      console.log(`  Chatwork（ルーム ${roomId}）に通知しました`);
+    } catch (e) {
+      console.warn(`  ⚠ Chatworkへの通知に失敗（取込は完了しています）: ${e.message}`);
+    }
+  }
+}
 
 function arg(name) {
   const hit = process.argv.slice(2).find((a) => a.startsWith(`--${name}=`));
@@ -97,6 +139,10 @@ async function main() {
       source: 'API自動連携',
     });
     console.log(`  ${d}  ${dayRows.length}商品 ${yen(dayTotal)} を${action}`);
+  }
+
+  if (!isDry) {
+    await notifyResult({ dates, agg, orders, unmapped });
   }
 
   if (unmapped.length) {
