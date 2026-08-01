@@ -24,6 +24,11 @@ export const APP_NAME = '売上明細（自動取込）';
 
 export const CHANNEL_OPTIONS = ['Amazon', '楽天', '自社サイト', 'TikTok Shop', 'その他'];
 
+/** 商品名が分からないときに使う選択肢。中身が分かる名前にしておく */
+export const UNKNOWN_PRODUCT = '未分類';
+/** 元ファイルに商品別の内訳が入っていなかったとき（楽天の店舗データなど） */
+export const NO_BREAKDOWN = '(商品別内訳なし)';
+
 /** 商品の選択肢（売上・広告の対応表から作る。1か所直せば全部に効く） */
 export function productOptions() {
   const names = new Set();
@@ -35,7 +40,10 @@ export function productOptions() {
       // 対応表が無くてもアプリは作れるようにしておく
     }
   }
-  names.add('未分類');
+  names.add(UNKNOWN_PRODUCT);
+  // ★店舗全体の合計しか無いファイル（楽天RMSの日次店舗データ）を入れる先。
+  //   金額は正しいので捨てず、「内訳が無い」ことが画面で分かるようにします。
+  names.add(NO_BREAKDOWN);
   return [...names];
 }
 

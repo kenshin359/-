@@ -58,11 +58,21 @@ export function intakeAppId() {
   return id;
 }
 
-/** その日のレコードを取る（無ければ null） */
+/**
+ * その日のレコードを取る（無ければ null）。
+ *
+ * ★人がkintoneの画面から手で作ったレコードには、重複防止キーが入っていません。
+ *   キーだけで探すと「ファイルは置いてあるのに無い」と言ってしまうため、
+ *   見つからなければ対象日そのもので探し直します。
+ */
 export async function findDay(dateISO, app = intakeAppId()) {
-  const q = encodeURIComponent(`dedup_key = "${dedupKey(dateISO)}" limit 1`);
-  const r = await call('GET', `/k/v1/records.json?app=${app}&query=${q}`);
-  return r.records?.[0] ?? null;
+  const byKey = encodeURIComponent(`dedup_key = "${dedupKey(dateISO)}" limit 1`);
+  const r = await call('GET', `/k/v1/records.json?app=${app}&query=${byKey}`);
+  if (r.records?.[0]) return r.records[0];
+
+  const byDate = encodeURIComponent(`report_date = "${dateISO}" order by $id desc limit 1`);
+  const r2 = await call('GET', `/k/v1/records.json?app=${app}&query=${byDate}`);
+  return r2.records?.[0] ?? null;
 }
 
 /** その日の空レコードを作る（毎朝の受け皿を先に用意しておくため） */

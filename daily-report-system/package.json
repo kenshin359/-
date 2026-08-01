@@ -52,6 +52,7 @@
     "intake:check": "node scripts/intakeCheck.js",
     "intake:import": "node scripts/intakeImport.js",
     "stock:check": "node scripts/stockCheck.js",
-    "sales:import": "node scripts/salesImport.js"
+    "sales:import": "node scripts/salesImport.js",
+    "kintone:sync-products": "node kintone/syncProductOptions.js"
   }
 }

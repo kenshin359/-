@@ -22,7 +22,8 @@ import { optional } from '../lib/env.js';
 import { call, checkDay, downloadFile, intakeAppId } from '../lib/intake.js';
 import { SALES_SLOTS } from '../kintone/intakeSchema.js';
 import { readSalesReport, aggregateByProduct, loadSkuMap } from '../lib/salesDetail.js';
-import { dedupKey } from '../kintone/salesDetailSchema.js';
+import { looksLikeStoreDaily, readStoreDaily, summarizeStoreDaily } from '../lib/rakutenStore.js';
+import { dedupKey, NO_BREAKDOWN } from '../kintone/salesDetailSchema.js';
 import { yen } from '../lib/salesValues.js';
 import { todayISO } from '../lib/date.js';
 
@@ -111,6 +112,52 @@ async function collectFiles(date) {
   return out;
 }
 
+/**
+ * 店舗全体の日次データ（商品別の内訳が無いファイル）を取り込む。
+ * ★売れた商品は分からないので、分からないと書きます。推測はしません。
+ */
+async function importStoreDaily(app, f) {
+  const parsed = readStoreDaily(f.buffer);
+  if (!parsed.ok) {
+    console.log(`  ⚠ 読めませんでした: ${parsed.reason}`);
+    return;
+  }
+  const s = summarizeStoreDaily(parsed);
+  console.log(`  文字コード ${parsed.encoding} ／ 店舗全体の日次データ（商品別の内訳なし）`);
+  console.log(`  期間 ${parsed.rows[0]?.date} 〜 ${parsed.rows.at(-1)?.date}（${s.days}日）`);
+  console.log(`  売上 ${yen(s.total)} ／ ${s.orders}件 ／ アクセス ${s.access.toLocaleString()}人`);
+  console.log(`  転換率 ${s.cvr.toFixed(2)}% ／ 客単価 ${yen(s.aov)}`);
+  if (parsed.skippedDeviceRows) {
+    console.log(`  ※ デバイス別の行 ${parsed.skippedDeviceRows}件は「すべて」と重複するため除外しました`);
+  }
+  console.log('  ※ どの商品が売れたかは、このファイルには入っていません。');
+  console.log('     商品別が必要な場合は RMS の「商品別データ」をダウンロードしてください。');
+
+  for (const r of parsed.rows) {
+    const row = {
+      date: r.date,
+      channel: f.channel,
+      product: NO_BREAKDOWN,
+      confidence: '要確認',
+      sku: '',
+      asin: '',
+      title: '店舗全体の日次データ',
+      qty: 0,
+      amount: r.amount,
+      orders: r.orders,
+    };
+    const log = [
+      `取込日時: ${new Date().toLocaleString('ja-JP')}`,
+      `元ファイル: ${f.name}`,
+      `販売先: ${f.channel}（店舗全体の日次データ）`,
+      `売上 ${yen(r.amount)} / ${r.orders}件 / アクセス ${r.access}人 / 転換率 ${r.cvr}% / 客単価 ${yen(r.aov)}`,
+      '商品別の内訳はこのファイルに含まれていません。',
+    ].join('\n');
+    const action = await upsertDay(app, r.date, f.channel, [row], log);
+    console.log(`    ${r.date}  ${yen(r.amount)}（${r.orders}件）を${action}`);
+  }
+}
+
 async function main() {
   const date = arg('date') || todayISO();
   const app = salesAppId();
@@ -128,6 +175,16 @@ async function main() {
 
   for (const f of files) {
     console.log(`\n▶ ${f.name}（${f.channel}）`);
+
+    // ★楽天RMSの「日次 店舗データ」は、商品別の内訳が入っていません。
+    //   金額は正しいので日ごとの合計として取り込み、
+    //   商品名は「(商品別内訳なし)」と正直に書きます。
+    //   あとで商品別ファイルを同じ日に入れれば、その日の楽天ぶんは差し替わります。
+    if (looksLikeStoreDaily(f.buffer)) {
+      await importStoreDaily(app, f);
+      continue;
+    }
+
     const parsed = readSalesReport(f.buffer, { channel: f.channel });
     if (!parsed.ok) {
       console.log(`  ⚠ 読めませんでした: ${parsed.reason}`);
