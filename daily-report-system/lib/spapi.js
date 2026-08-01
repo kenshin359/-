@@ -41,20 +41,53 @@ export async function lwaAccessToken() {
   if (cachedToken && cachedToken.expiresAt > Date.now() + 60_000) {
     return cachedToken.token;
   }
-  const res = await fetchWithRetry(
-    'https://api.amazon.com/auth/o2/token',
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({
-        grant_type: 'refresh_token',
-        refresh_token: required('SPAPI_REFRESH_TOKEN'),
-        client_id: required('SPAPI_CLIENT_ID'),
-        client_secret: required('SPAPI_CLIENT_SECRET'),
-      }).toString(),
-    },
-    { label: 'amazon-lwa', retries: 3 }
-  );
+  // ★コピペ時に紛れ込みがちな空白・改行はここで取り除く
+  const refreshToken = required('SPAPI_REFRESH_TOKEN').trim();
+  const clientId = required('SPAPI_CLIENT_ID').trim();
+  const clientSecret = required('SPAPI_CLIENT_SECRET').trim();
+
+  // 値そのものは出さずに、形だけ確かめられるようにする（原因の切り分け用）
+  if (!clientId.startsWith('amzn1.application-oa2-client.')) {
+    console.warn(
+      `  ⚠ SPAPI_CLIENT_ID の形が想定と違います（amzn1.application-oa2-client.… で始まるはず。現在: 長さ${clientId.length}）`
+    );
+  }
+  if (!refreshToken.startsWith('Atzr|')) {
+    console.warn(`  ⚠ SPAPI_REFRESH_TOKEN の形が想定と違います（Atzr| で始まるはず。現在: 長さ${refreshToken.length}）`);
+  }
+
+  let res;
+  try {
+    res = await fetchWithRetry(
+      'https://api.amazon.com/auth/o2/token',
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          grant_type: 'refresh_token',
+          refresh_token: refreshToken,
+          client_id: clientId,
+          client_secret: clientSecret,
+        }).toString(),
+      },
+      { label: 'amazon-lwa', retries: 3 }
+    );
+  } catch (e) {
+    const kind = e.body?.error;
+    if (kind === 'invalid_client') {
+      e.message =
+        'Amazonが「クライアントIDとシークレットのペアが違う」と言っています（invalid_client）。\n' +
+        `  ・SPAPI_CLIENT_ID（長さ${clientId.length}）と SPAPI_CLIENT_SECRET（長さ${clientSecret.length}）が\n` +
+        '    同じアプリ（本番）の「LWA認証情報」画面から取ったものか確認してください。\n' +
+        '  ・直しても失敗する場合は、その画面の「資格情報のローテーション」で新しいシークレットを発行し、\n' +
+        '    表示された新しい値を SPAPI_CLIENT_SECRET に登録し直してください。';
+    } else if (kind === 'invalid_grant') {
+      e.message =
+        'Amazonが「リフレッシュトークンが無効」と言っています（invalid_grant）。\n' +
+        '  「認可の管理」→「アプリを承認」でトークンを作り直し、SPAPI_REFRESH_TOKEN を上書きしてください。';
+    }
+    throw e;
+  }
   const token = res.json?.access_token;
   if (!token) throw new Error('Amazonのアクセストークンを取得できませんでした');
   cachedToken = { token, expiresAt: Date.now() + (res.json.expires_in ?? 3600) * 1000 };
