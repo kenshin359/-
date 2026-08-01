@@ -1,0 +1,83 @@
+# ============================================================
+#  Shopifyのアクセストークンを発行する（最初の1回だけ）
+# ------------------------------------------------------------
+#  Shopify が「ストア専用アプリ」を廃止したため、
+#  トークンは画面に表示されません。正規の手順（OAuth）で発行します。
+#
+#  使い方（2回まわします）
+#    1回目: 何も入れずに実行 → 承認用URLがログに出ます
+#    2回目: 承認後のアドレス欄を「code」に貼って実行 → Chatworkに届きます
+#
+#  ★トークンは実行ログに出しません。
+#    このリポジトリは公開されているため、ログに出すと誰でも読めてしまいます。
+#    受け取りは Chatwork 経由にしています。
+#
+#  ★発行したトークンに期限はありません。この作業は最初の1回だけです。
+# ============================================================
+name: Shopifyトークンを発行（初回のみ）
+
+on:
+  workflow_dispatch:
+    inputs:
+      code:
+        description: '承認後のアドレス欄をまるごと貼る（1回目は空のまま実行）'
+        required: false
+
+concurrency:
+  group: shopify-token
+  cancel-in-progress: false
+
+jobs:
+  token:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: daily-report-system
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 設定の確認
+        env:
+          SHOPIFY_SHOP_DOMAIN: ${{ secrets.SHOPIFY_SHOP_DOMAIN }}
+          SHOPIFY_CLIENT_ID: ${{ secrets.SHOPIFY_CLIENT_ID }}
+          SHOPIFY_CLIENT_SECRET: ${{ secrets.SHOPIFY_CLIENT_SECRET }}
+          CHATWORK_API_TOKEN: ${{ secrets.CHATWORK_API_TOKEN }}
+          CODE: ${{ inputs.code }}
+        run: |
+          missing=""
+          [ -z "$SHOPIFY_SHOP_DOMAIN" ] && missing="$missing SHOPIFY_SHOP_DOMAIN"
+          [ -z "$SHOPIFY_CLIENT_ID" ]   && missing="$missing SHOPIFY_CLIENT_ID"
+          # 2回目（交換）だけ必要なもの
+          if [ -n "$CODE" ]; then
+            [ -z "$SHOPIFY_CLIENT_SECRET" ] && missing="$missing SHOPIFY_CLIENT_SECRET"
+            [ -z "$CHATWORK_API_TOKEN" ]    && missing="$missing CHATWORK_API_TOKEN"
+          fi
+          if [ -n "$missing" ]; then
+            echo "::error::次の設定（Secrets）が足りません:$missing"
+            exit 1
+          fi
+          echo "設定OK"
+
+      - name: 承認用URLを表示 / トークンに交換
+        env:
+          SHOPIFY_SHOP_DOMAIN: ${{ secrets.SHOPIFY_SHOP_DOMAIN }}
+          SHOPIFY_CLIENT_ID: ${{ secrets.SHOPIFY_CLIENT_ID }}
+          SHOPIFY_CLIENT_SECRET: ${{ secrets.SHOPIFY_CLIENT_SECRET }}
+          CHATWORK_API_TOKEN: ${{ secrets.CHATWORK_API_TOKEN }}
+          CHATWORK_SECRET_ROOM_ID: ${{ secrets.CHATWORK_SECRET_ROOM_ID }}
+          CHATWORK_ROOM_ID: ${{ secrets.CHATWORK_ROOM_ID }}
+          APP_ENV: production
+          # ★codeは環境変数で渡す。コマンド行に直接書くと、
+          #   記号の入った値でシェルが誤作動することがあるため。
+          SHOPIFY_OAUTH_CODE: ${{ inputs.code }}
+        run: |
+          if [ -n "$SHOPIFY_OAUTH_CODE" ]; then
+            node scripts/shopifyToken.js --code="$SHOPIFY_OAUTH_CODE"
+          else
+            node scripts/shopifyToken.js
+          fi

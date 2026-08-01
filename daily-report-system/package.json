@@ -54,6 +54,7 @@
     "stock:check": "node scripts/stockCheck.js",
     "sales:import": "node scripts/salesImport.js",
     "kintone:sync-options": "node kintone/syncSalesOptions.js",
-    "shopify:import": "node scripts/shopifyImport.js"
+    "shopify:import": "node scripts/shopifyImport.js",
+    "shopify:token": "node scripts/shopifyToken.js"
   }
 }
