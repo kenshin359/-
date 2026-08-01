@@ -51,6 +51,7 @@
     "rakuten:items": "node scripts/resolveRakutenItems.js",
     "intake:check": "node scripts/intakeCheck.js",
     "intake:import": "node scripts/intakeImport.js",
-    "stock:check": "node scripts/stockCheck.js"
+    "stock:check": "node scripts/stockCheck.js",
+    "sales:import": "node scripts/salesImport.js"
   }
 }
