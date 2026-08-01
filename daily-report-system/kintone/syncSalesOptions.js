@@ -125,7 +125,22 @@ async function main() {
     }
   }
 
-  if (!totalAdded) {
+  // 日次CSVの添付欄が無ければ作る（1日1レコードにチャネル別CSVを自動添付するため）
+  let addedFileField = false;
+  if (!form.properties?.day_files) {
+    console.log('「日次CSV（自動添付）」の欄を追加します');
+    if (!isDry) {
+      await call('POST', '/k/v1/preview/app/form/fields.json', {
+        app,
+        properties: {
+          day_files: { type: 'FILE', code: 'day_files', label: '日次CSV（自動添付）' },
+        },
+      });
+    }
+    addedFileField = true;
+  }
+
+  if (!totalAdded && !addedFileField) {
     console.log('✅ 選択肢はすでに最新です。変更はありません。');
     return;
   }
@@ -134,7 +149,9 @@ async function main() {
     return;
   }
 
-  await call('PUT', '/k/v1/preview/app/form/fields.json', { app, properties });
+  if (totalAdded) {
+    await call('PUT', '/k/v1/preview/app/form/fields.json', { app, properties });
+  }
   await call('POST', '/k/v1/preview/app/deploy.json', { apps: [{ app }] });
   console.log('デプロイ中 …');
   await waitDeploy(app);

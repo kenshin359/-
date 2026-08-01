@@ -76,3 +76,18 @@ test('認証ヘッダーは ESA + base64(secret:key)', () => {
   assert.ok(h.startsWith('ESA '));
   assert.equal(Buffer.from(h.slice(4), 'base64').toString(), 'SPtest:SLtest');
 });
+
+// ── 日次CSV添付のテスト ──
+import { rowsToCsv } from '../lib/salesDetailFiles.js';
+
+test('日次CSVはExcelで開ける形（BOM付き・カンマや引用符も安全）', () => {
+  const buf = rowsToCsv([
+    { date: '2026-08-01', channel: '楽天', product: 'スーツケースM', confidence: '確定',
+      sku: '207', asin: '', title: '多機能, "M"', qty: 2, amount: 71600 },
+  ]);
+  const s = buf.toString('utf8');
+  assert.ok(s.startsWith('﻿'), 'BOMが付いていること（Excelの文字化け防止）');
+  assert.ok(s.includes('日付,販売先,商品'), '見出しがあること');
+  assert.ok(s.includes('"多機能, ""M"""'), 'カンマと引用符が壊れないこと');
+  assert.ok(s.includes('71600'));
+});

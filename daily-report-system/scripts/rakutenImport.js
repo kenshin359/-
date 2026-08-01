@@ -18,6 +18,7 @@ import { aggregateByProduct, loadSkuMap } from '../lib/salesDetail.js';
 import { salesAppId, upsertDay } from '../lib/salesDetailWrite.js';
 import { yen } from '../lib/salesValues.js';
 import { pushChatwork } from '../lib/chatwork.js';
+import { attachDayCsv } from '../lib/salesDetailFiles.js';
 import { optional } from '../lib/env.js';
 import { resolveRange } from './shopifyImport.js';
 
@@ -103,6 +104,14 @@ async function main() {
       source: 'API自動連携',
     });
     console.log(`  ${d}  ${dayRows.length}商品 ${yen(dayTotal)} を${action}`);
+    if (!isDry) {
+      try {
+        const r = await attachDayCsv(app, d, CHANNEL, dayRows);
+        console.log(`    日次CSV: ${r}`);
+      } catch (e) {
+        console.warn(`    ⚠ 日次CSVの添付に失敗（取込は完了しています）: ${e.message}`);
+      }
+    }
   }
 
   if (!isDry) {
