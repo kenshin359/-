@@ -1,0 +1,454 @@
+{
+  "name": "Libetee ⑦ Shopify売上 → キントーン（毎朝8:00）",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 8 * * *"
+            }
+          ]
+        }
+      },
+      "id": "毎朝8:00",
+      "name": "毎朝8:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -380,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// 昨日の日付（日本時間）を作ります。\n// ★UTCのまま計算すると、朝9時前の注文が前日に入ってしまいます。\nconst jst = new Date(Date.now() + 9 * 60 * 60 * 1000);\njst.setUTCDate(jst.getUTCDate() - 1);\nconst date = jst.toISOString().slice(0, 10);\n\nreturn [{\n  json: {\n    date,\n    q: `created_at:>='${date}T00:00:00+09:00' created_at:<='${date}T23:59:59+09:00'`,\n  },\n}];"
+      },
+      "id": "対象日を決める",
+      "name": "対象日を決める",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -160,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://{{$vars.SHOPIFY_SHOP_DOMAIN}}/admin/api/{{$vars.SHOPIFY_API_VERSION || '2026-01'}}/graphql.json",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Shopify-Access-Token",
+              "value": "={{$vars.SHOPIFY_ADMIN_TOKEN}}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ query: \"query Orders($q: String!) {\\n  orders(first: 250, query: $q, sortKey: CREATED_AT) {\\n    pageInfo { hasNextPage }\\n    nodes {\\n      id name createdAt cancelledAt test taxesIncluded\\n      lineItems(first: 100) {\\n        pageInfo { hasNextPage }\\n        nodes {\\n          sku title quantity\\n          discountedTotalSet { shopMoney { amount } }\\n          taxLines { priceSet { shopMoney { amount } } }\\n        }\\n      }\\n    }\\n  }\\n}\", variables: { q: $json.q } }) }}",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "Shopifyから注文を取る",
+      "name": "Shopifyから注文を取る",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        60,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// ============================================================\n//  Shopifyの注文を、商品ごとにまとめます。\n//  ★計算はすべてここで行います。AIには渡しません。\n//\n//  ★SKU対応表はここに書きます。\n//    新しい商品が増えたら、この SKU_MAP に1行足してください。\n//    （config/sku-map.json と同じ内容にしておくこと）\n// ============================================================\nconst SKU_MAP = {\n  '101': 'スーツケースS', '105': 'スーツケースS', '106': 'スーツケースS',\n  '107': 'スーツケースS', '108': 'スーツケースS', '109': 'スーツケースS',\n  '110': 'スーツケースS', '111': 'スーツケースS',\n  '201': 'スーツケースM', '206': 'スーツケースM', '210': 'スーツケースM',\n  '211': 'スーツケースM', 'A207': 'スーツケースM', 'A208': 'スーツケースM',\n  '301': 'スーツケースL', '306': 'スーツケースL', '307': 'スーツケースL',\n  '308': 'スーツケースL', '310': 'スーツケースL',\n  'ARUMI01': '多機能アルミ', 'ARUMI02': '多機能アルミ',\n  'N_ARUMI01': 'クラシックアルミ', 'N_ARUMI02': 'クラシックアルミ',\n  'OUTDOORSK002': 'アウトドア', 'BAG003': '圧縮バッグ',\n  'F53K01': 'ハンディファン(首振り)', 'F53K01A': 'ハンディファン(首振り)',\n  'F53K02': 'ハンディファン(首振り)',\n  'X05001': 'ハンディファン(スケルトン)', 'X05002': 'ハンディファン(スケルトン)',\n  'MSF002': 'ミニハンディファン', 'MSF003': 'ミニハンディファン',\n  'MSF004': 'ミニハンディファン',\n  'CF001': 'クリップファン', 'CF002': 'クリップファン',\n  'MPD001': 'ツヤリスドライヤー', 'MPD002': 'ツヤリスドライヤー',\n  'MPD003': 'ツヤリスドライヤー', 'MPD004': 'ツヤリスドライヤー',\n  'ST-FC002': '電動洗顔ブラシ', 'ST-FC003': '電動洗顔ブラシ',\n  'ST-FC004': '電動洗顔ブラシ', 'ST-FC006': '電動洗顔ブラシ',\n};\n\nconst date = $('対象日を決める').first().json.date;\nconst res = $input.first().json;\n\nif (res.errors && res.errors.length) {\n  throw new Error('Shopifyが拒否しました: ' + res.errors.map(e => e.message).join(' / '));\n}\n\nconst conn = res.data && res.data.orders;\nconst orders = (conn && conn.nodes) || [];\nconst warnings = [];\nif (conn && conn.pageInfo && conn.pageInfo.hasNextPage) {\n  warnings.push('注文が250件を超えました。超えたぶんは読めていません。');\n}\n\nconst byProduct = new Map();\nlet cancelled = 0, testOrders = 0;\nconst orderIds = new Set();\n\nfor (const o of orders) {\n  if (o.cancelledAt) { cancelled++; continue; }\n  if (o.test) { testOrders++; continue; }\n  if (o.lineItems && o.lineItems.pageInfo && o.lineItems.pageInfo.hasNextPage) {\n    warnings.push('商品が100点を超える注文がありました: ' + o.name);\n  }\n  orderIds.add(o.name || o.id);\n\n  const taxIncluded = o.taxesIncluded === true;\n  for (const li of (o.lineItems && o.lineItems.nodes) || []) {\n    const base = Number((li.discountedTotalSet && li.discountedTotalSet.shopMoney.amount) || 0);\n    const tax = ((li.taxLines) || []).reduce(\n      (s, t) => s + Number((t.priceSet && t.priceSet.shopMoney.amount) || 0), 0);\n    const amount = taxIncluded ? base : base + tax;\n\n    const sku = String(li.sku || '').trim();\n    const mapped = SKU_MAP[sku.toUpperCase()];\n    // ★対応表に無いものは断定しません。「未分類・要確認」として残します。\n    const product = mapped || '未分類';\n    const confidence = mapped ? '確定' : '要確認';\n\n    const key = product + '__' + confidence;\n    if (!byProduct.has(key)) {\n      byProduct.set(key, { product, confidence, sku, title: li.title || '', qty: 0, amount: 0 });\n    }\n    const b = byProduct.get(key);\n    b.qty += Number(li.quantity) || 0;\n    b.amount += amount;\n  }\n}\n\nconst rows = [...byProduct.values()];\nconst total = rows.reduce((s, r) => s + r.amount, 0);\nconst qty = rows.reduce((s, r) => s + r.qty, 0);\nconst unmapped = rows.filter(r => r.confidence !== '確定');\n\nreturn [{ json: {\n  date, rows, total, qty,\n  orders: orderIds.size,\n  cancelled, testOrders, warnings,\n  unmappedCount: unmapped.length,\n} }];"
+      },
+      "id": "商品ごとにまとめる",
+      "name": "商品ごとにまとめる",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        280,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=https://{{$vars.KINTONE_SUBDOMAIN}}.cybozu.com/k/v1/records.json",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "app",
+              "value": "={{$vars.KINTONE_SALES_DETAIL_APP_ID}}"
+            },
+            {
+              "name": "query",
+              "value": "=dedup_key = \"{{$json.date}}\" limit 1"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Cybozu-API-Token",
+              "value": "={{$vars.KINTONE_API_TOKEN_SALES_DETAIL}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "その日のレコードを探す",
+      "name": "その日のレコードを探す",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        500,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// キントーンに入れる形にします。\n// ★同じ日をもう一度入れても二重にならないよう、\n//   「自社サイト」の明細だけを入れ替え、Amazon・楽天の明細は必ず残します。\nconst agg = $('商品ごとにまとめる').first().json;\nconst found = $input.first().json;\nconst existing = (found.records && found.records[0]) || null;\n\nconst kept = existing\n  ? (existing.detail.value || []).filter(r => r.value.s_channel.value !== '自社サイト')\n  : [];\n\nconst num = v => String(Math.round(Number(v) || 0));\nconst newRows = agg.rows.map(r => ({ value: {\n  s_channel:    { value: '自社サイト' },\n  s_product:    { value: r.product },\n  s_sku:        { value: String(r.sku || '').slice(0, 64) },\n  s_asin:       { value: '' },\n  s_title:      { value: String(r.title || '').slice(0, 64) },\n  s_qty:        { value: num(r.qty) },\n  s_amount:     { value: num(r.amount) },\n  s_orders:     { value: '' },\n  s_confidence: { value: r.confidence },\n} }));\n\nconst log = [\n  '取込日時: ' + new Date().toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' }),\n  '取得元: Shopify Admin API（n8n 自動連携）',\n  '注文 ' + agg.orders + '件 / ' + agg.rows.length + '商品 / ' + agg.qty + '個',\n  'キャンセル除外 ' + agg.cancelled + '件 / テスト注文除外 ' + agg.testOrders + '件',\n].concat(agg.warnings.length ? ['⚠ ' + agg.warnings.join(' / ')] : []).join('\\n');\n\nreturn [{ json: {\n  isUpdate: !!existing,\n  recordId: existing ? existing.$id.value : null,\n  hasRows: newRows.length > 0,\n  summary: agg,\n  record: {\n    report_date: { value: agg.date },\n    dedup_key:   { value: agg.date },\n    source:      { value: 'API自動連携' },\n    detail:      { value: kept.concat(newRows) },\n    import_log:  { value: log },\n  },\n} }];"
+      },
+      "id": "キントーン用に組み立てる",
+      "name": "キントーン用に組み立てる",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        720,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "hasRows",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              },
+              "leftValue": "={{$json.hasRows}}",
+              "rightValue": ""
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "注文があった?",
+      "name": "注文があった?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        940,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "isUpdate",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              },
+              "leftValue": "={{$json.isUpdate}}",
+              "rightValue": ""
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "すでにある日?",
+      "name": "すでにある日?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1160,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "=https://{{$vars.KINTONE_SUBDOMAIN}}.cybozu.com/k/v1/record.json",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Cybozu-API-Token",
+              "value": "={{$vars.KINTONE_API_TOKEN_SALES_DETAIL}}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ app: $vars.KINTONE_SALES_DETAIL_APP_ID, id: $json.recordId, record: $json.record }) }}",
+        "options": {}
+      },
+      "id": "上書きする",
+      "name": "上書きする",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1380,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://{{$vars.KINTONE_SUBDOMAIN}}.cybozu.com/k/v1/record.json",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Cybozu-API-Token",
+              "value": "={{$vars.KINTONE_API_TOKEN_SALES_DETAIL}}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ app: $vars.KINTONE_SALES_DETAIL_APP_ID, record: $json.record }) }}",
+        "options": {}
+      },
+      "id": "新しく登録する",
+      "name": "新しく登録する",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1380,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Chatworkに送る文面を作ります（数字はすでに確定したものだけを並べます）\nconst d = $('キントーン用に組み立てる').first().json;\nconst s = d.summary;\nconst yen = n => '¥' + Math.round(n).toLocaleString('ja-JP');\n\nconst L = [];\nL.push('[info][title]🛒 自社サイト（Shopify）売上 ' + s.date + '[/title]');\nL.push('売上　' + yen(s.total) + '（' + s.qty + '個 / ' + s.orders + '注文）');\nL.push('');\nfor (const r of s.rows.slice().sort((a, b) => b.amount - a.amount)) {\n  L.push('　' + r.product + (r.confidence === '確定' ? '' : '（要確認）') +\n         '　' + yen(r.amount) + '　' + r.qty + '個');\n}\nif (s.cancelled || s.testOrders) {\n  L.push('');\n  L.push('除外　キャンセル ' + s.cancelled + '件 / テスト注文 ' + s.testOrders + '件');\n}\nif (s.unmappedCount) {\n  L.push('');\n  L.push('⚠ 対応表に無いSKUが ' + s.unmappedCount + '件あります（未分類として計上）');\n}\nif (s.warnings.length) {\n  L.push('');\n  L.push('⚠ ' + s.warnings.join(' / '));\n}\nL.push('');\nL.push('キントーン「売上明細（自動取込）」に' + (d.isUpdate ? '上書き' : '登録') + 'しました。');\nL.push('[/info]');\n\nreturn [{ json: { body: L.join('\\n') } }];"
+      },
+      "id": "報告の文面を作る",
+      "name": "報告の文面を作る",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1600,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.chatwork.com/v2/rooms/{{$vars.CHATWORK_SALES_ROOM_ID}}/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-ChatWorkToken",
+              "value": "={{$vars.CHATWORK_API_TOKEN}}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "body",
+              "value": "={{$json.body}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "Chatworkに送る",
+      "name": "Chatworkに送る",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1820,
+        200
+      ]
+    }
+  ],
+  "connections": {
+    "毎朝8:00": {
+      "main": [
+        [
+          {
+            "node": "対象日を決める",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "対象日を決める": {
+      "main": [
+        [
+          {
+            "node": "Shopifyから注文を取る",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Shopifyから注文を取る": {
+      "main": [
+        [
+          {
+            "node": "商品ごとにまとめる",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "商品ごとにまとめる": {
+      "main": [
+        [
+          {
+            "node": "その日のレコードを探す",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "その日のレコードを探す": {
+      "main": [
+        [
+          {
+            "node": "キントーン用に組み立てる",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "キントーン用に組み立てる": {
+      "main": [
+        [
+          {
+            "node": "注文があった?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "注文があった?": {
+      "main": [
+        [
+          {
+            "node": "すでにある日?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "すでにある日?": {
+      "main": [
+        [
+          {
+            "node": "上書きする",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "新しく登録する",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "上書きする": {
+      "main": [
+        [
+          {
+            "node": "報告の文面を作る",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "新しく登録する": {
+      "main": [
+        [
+          {
+            "node": "報告の文面を作る",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "報告の文面を作る": {
+      "main": [
+        [
+          {
+            "node": "Chatworkに送る",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Asia/Tokyo",
+    "saveDataErrorExecution": "all"
+  },
+  "staticData": null,
+  "meta": {
+    "instanceId": "libetee"
+  },
+  "tags": []
+}

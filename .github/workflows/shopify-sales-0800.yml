@@ -1,0 +1,87 @@
+# ============================================================
+#  Shopify（自社サイト）の売上を自動でキントーンに入れる
+#  毎朝 8:00（日本時間）
+# ------------------------------------------------------------
+#  CSVのダウンロードは要りません。Shopify から直接取ってきます。
+#
+#  書き込むのは「売上明細（自動取込）」アプリだけです。
+#  売上・転換率報告アプリ（人が手で入力）には一切触れません。
+#
+#  ★何度動いても二重になりません。
+#    その日の「自社サイト」ぶんだけを入れ替えます。
+#
+#  ★鍵（トークン類）は GitHub の Secrets に入れます。
+#    リポジトリ → Settings → Secrets and variables → Actions
+# ============================================================
+name: Shopify売上取込（毎朝8:00）
+
+on:
+  schedule:
+    # GitHub の時刻は UTC。日本時間 8:00 = 前日 23:00 UTC
+    - cron: '0 23 * * *'
+  workflow_dispatch:
+    inputs:
+      from:
+        description: '開始日（YYYY-MM-DD／空なら昨日）'
+        required: false
+      to:
+        description: '終了日（YYYY-MM-DD／空なら開始日と同じ）'
+        required: false
+
+concurrency:
+  group: shopify-sales
+  cancel-in-progress: false
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: daily-report-system
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 設定の確認
+        env:
+          KINTONE_BASE_URL: ${{ secrets.KINTONE_BASE_URL }}
+          KINTONE_USER: ${{ secrets.KINTONE_USER }}
+          KINTONE_PASSWORD: ${{ secrets.KINTONE_PASSWORD }}
+          KINTONE_SALES_DETAIL_APP_ID: ${{ secrets.KINTONE_SALES_DETAIL_APP_ID }}
+          SHOPIFY_SHOP_DOMAIN: ${{ secrets.SHOPIFY_SHOP_DOMAIN }}
+          SHOPIFY_ADMIN_TOKEN: ${{ secrets.SHOPIFY_ADMIN_TOKEN }}
+        run: |
+          missing=""
+          [ -z "$KINTONE_BASE_URL" ]             && missing="$missing KINTONE_BASE_URL"
+          [ -z "$KINTONE_USER" ]                 && missing="$missing KINTONE_USER"
+          [ -z "$KINTONE_PASSWORD" ]             && missing="$missing KINTONE_PASSWORD"
+          [ -z "$KINTONE_SALES_DETAIL_APP_ID" ]  && missing="$missing KINTONE_SALES_DETAIL_APP_ID"
+          [ -z "$SHOPIFY_SHOP_DOMAIN" ]          && missing="$missing SHOPIFY_SHOP_DOMAIN"
+          [ -z "$SHOPIFY_ADMIN_TOKEN" ]          && missing="$missing SHOPIFY_ADMIN_TOKEN"
+          if [ -n "$missing" ]; then
+            echo "::error::次の設定（Secrets）が足りません:$missing"
+            echo "リポジトリ → Settings → Secrets and variables → Actions で登録してください。"
+            exit 1
+          fi
+          echo "設定OK"
+
+      - name: Shopifyの売上を取り込む
+        env:
+          KINTONE_BASE_URL: ${{ secrets.KINTONE_BASE_URL }}
+          KINTONE_USER: ${{ secrets.KINTONE_USER }}
+          KINTONE_PASSWORD: ${{ secrets.KINTONE_PASSWORD }}
+          KINTONE_SALES_DETAIL_APP_ID: ${{ secrets.KINTONE_SALES_DETAIL_APP_ID }}
+          SHOPIFY_SHOP_DOMAIN: ${{ secrets.SHOPIFY_SHOP_DOMAIN }}
+          SHOPIFY_ADMIN_TOKEN: ${{ secrets.SHOPIFY_ADMIN_TOKEN }}
+          SHOPIFY_API_VERSION: ${{ secrets.SHOPIFY_API_VERSION }}
+          APP_ENV: production
+          REPORT_TIMEZONE: Asia/Tokyo
+        run: |
+          args=""
+          if [ -n "${{ inputs.from }}" ]; then args="$args --from=${{ inputs.from }}"; fi
+          if [ -n "${{ inputs.to }}" ];   then args="$args --to=${{ inputs.to }}"; fi
+          node scripts/shopifyImport.js $args

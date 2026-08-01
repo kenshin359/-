@@ -24,6 +24,9 @@ export const APP_NAME = '売上明細（自動取込）';
 
 export const CHANNEL_OPTIONS = ['Amazon', '楽天', '自社サイト', 'TikTok Shop', 'その他'];
 
+/** 入力方法。API自動連携 は Shopify のように直接つないで取ってきたもの */
+export const SOURCE_OPTIONS = ['CSV取込', '手入力', 'API自動連携'];
+
 /** 商品名が分からないときに使う選択肢。中身が分かる名前にしておく */
 export const UNKNOWN_PRODUCT = '未分類';
 /** 元ファイルに商品別の内訳が入っていなかったとき（楽天の店舗データなど） */
@@ -122,7 +125,7 @@ export const FIELDS = {
 
   source: {
     type: 'DROP_DOWN', code: 'source', label: '入力方法', required: false,
-    options: toOptions(['CSV取込', '手入力']),
+    options: toOptions(SOURCE_OPTIONS),
     defaultValue: 'CSV取込',
   },
   import_log: {
