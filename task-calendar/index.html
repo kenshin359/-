@@ -245,7 +245,7 @@
     <div class="lead">
       <span class="eyebrow">Team Task Calendar</span>
       <h1>業務タスク カレンダー可視化ツール</h1>
-      <p class="sub">100名規模の業務タスクを、カレンダーとタスク選択ボタンでその場で可視化。負荷の偏り・遅延・締切集中を一目で把握します。</p>
+      <p class="sub">チームの業務タスクを、カレンダーとタスク選択ボタンでその場で可視化。負荷の偏り・遅延・締切集中を一目で把握します。</p>
     </div>
     <button class="theme-btn" id="themeBtn" type="button">🌗 表示切替</button>
   </div>
@@ -330,13 +330,14 @@
      マスタ定義
      ============================================================ */
   const DEPTS = [
-    { id: "sales",  name: "営業部" },
-    { id: "mkt",    name: "マーケ部" },
-    { id: "cs",     name: "CS部" },
-    { id: "prod",   name: "商品部" },
-    { id: "logi",   name: "物流部" },
-    { id: "dev",    name: "開発部" },
-    { id: "admin",  name: "管理部" },
+    { id: "sales",   name: "営業部" },
+    { id: "mkt",     name: "マーケ部" },
+    { id: "cs",      name: "CS部" },
+    { id: "prod",    name: "商品部" },
+    { id: "logi",    name: "物流部" },
+    { id: "dev",     name: "開発部" },
+    { id: "admin",   name: "管理部" },
+    { id: "newteam", name: "新チーム" },
   ];
   const CATS = [
     { id: "meeting", name: "会議",     v: "var(--c-meeting)" },
@@ -364,15 +365,16 @@
 
   // 部門ごとに使われやすい種別（サンプルを現実的にするため）
   const DEPT_CATS = {
-    sales: ["meeting","cs","doc","analyze","review"],
-    mkt:   ["analyze","doc","meeting","review"],
-    cs:    ["cs","doc","meeting"],
-    prod:  ["doc","review","meeting","analyze"],
-    logi:  ["ship","doc","meeting"],
-    dev:   ["dev","review","meeting","doc"],
-    admin: ["doc","meeting","analyze"],
+    sales:   ["meeting","cs","doc","analyze","review"],
+    mkt:     ["analyze","doc","meeting","review"],
+    cs:      ["cs","doc","meeting"],
+    prod:    ["doc","review","meeting","analyze"],
+    logi:    ["ship","doc","meeting"],
+    dev:     ["dev","review","meeting","doc"],
+    admin:   ["doc","meeting","analyze"],
+    newteam: ["meeting","analyze","dev","doc","review"],
   };
-  const DEPT_SIZE = { sales: 24, mkt: 12, cs: 20, prod: 10, logi: 16, dev: 12, admin: 6 }; // 計100名
+  const DEPT_SIZE = { sales: 6, mkt: 3, cs: 4, prod: 2, logi: 3, dev: 3, admin: 2, newteam: 2 }; // 計25名
 
   const SEI = ["佐藤","鈴木","高橋","田中","伊藤","渡辺","山本","中村","小林","加藤","吉田","山田","佐々木","山口","松本","井上","木村","林","清水","森"];
   const MEI = ["太郎","花子","健","美咲","翔","結衣","大輔","彩","涼","さくら","蓮","陽菜","颯太","楓","悠","杏","駿","凛","匠","葵"];
@@ -384,11 +386,15 @@
   function randint(a, b) { return a + Math.floor(rand() * (b - a + 1)); }
 
   /* ---- メンバー生成（100名） ---- */
+  // 固定メンバー（新チームにイーロン・マスクを配属）
+  const FIXED = { newteam: ["イーロン・マスク"] };
   const MEMBERS = [];
   let mid = 0;
   for (const d of DEPTS) {
+    const fixed = FIXED[d.id] || [];
     for (let i = 0; i < DEPT_SIZE[d.id]; i++) {
-      MEMBERS.push({ id: "u" + (++mid), name: pick(SEI) + " " + pick(MEI), dept: d.id });
+      const name = i < fixed.length ? fixed[i] : pick(SEI) + " " + pick(MEI);
+      MEMBERS.push({ id: "u" + (++mid), name, dept: d.id });
     }
   }
 
