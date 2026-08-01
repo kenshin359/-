@@ -48,6 +48,8 @@
 
     { "sku": "201", "asin": "B0FGJ7GDHC", "product": "スーツケースM", "_色": "エナメルシルバー" },
     { "sku": "206", "asin": "B0F8Q7PX8M", "product": "スーツケースM", "_色": "マットブラック" },
+    { "sku": "207", "product": "スーツケースM", "_色": "商品名が切れており未確認", "_備考": "Shopifyで確認したSKU" },
+    { "sku": "rental01", "product": "スーツケースM", "_備考": "レンタル10日間（Shopify）。売上はMサイズに合算" },
     { "sku": "210", "asin": "B0FGJ6JXGS", "product": "スーツケースM", "_色": "商品名が切れており未確認" },
     { "sku": "211", "asin": "B0H62CQFY1", "product": "スーツケースM", "_色": "エナメルカーキ" },
     { "sku": "a207", "asin": "B0FCFF8BC3", "product": "スーツケースM", "_色": "マットシルバー" },
