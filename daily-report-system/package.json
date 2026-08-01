@@ -28,6 +28,7 @@
     "test": "node --test \"test/*.test.js\"",
     "build:n8n": "node scripts/buildN8nSales.js",
     "monthly": "node scripts/monthlySalesReport.js",
+    "summary": "node scripts/salesSummary.js",
     "dashboard:data": "node scripts/exportDashboardData.js",
     "dashboard": "node scripts/exportDashboardData.js && node scripts/buildDashboard.js",
     "dashboard:build": "node scripts/buildDashboard.js",
