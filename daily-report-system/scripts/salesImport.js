@@ -22,6 +22,7 @@ import { checkDay, downloadFile, intakeAppId } from '../lib/intake.js';
 import { SALES_SLOTS } from '../kintone/intakeSchema.js';
 import { readSalesReport, aggregateByProduct, loadSkuMap } from '../lib/salesDetail.js';
 import { looksLikeStoreDaily, readStoreDaily, summarizeStoreDaily } from '../lib/rakutenStore.js';
+import { looksLikeShopifyOrders, readShopifyOrders, describeSubtotalGap } from '../lib/shopifyCsv.js';
 import { NO_BREAKDOWN } from '../kintone/salesDetailSchema.js';
 import { salesAppId, upsertDay as writeDay } from '../lib/salesDetailWrite.js';
 import { yen } from '../lib/salesValues.js';
@@ -130,7 +131,11 @@ async function main() {
       continue;
     }
 
-    const parsed = readSalesReport(f.buffer, { channel: f.channel });
+    // ★Shopifyの注文CSVは1注文が複数行に分かれ、2行目以降は注文日が空です。
+    //   普通の読み方をすると2行目以降が丸ごと捨てられるので、専用に読みます。
+    const parsed = looksLikeShopifyOrders(f.buffer)
+      ? readShopifyOrders(f.buffer, { channel: f.channel })
+      : readSalesReport(f.buffer, { channel: f.channel });
     if (!parsed.ok) {
       console.log(`  ⚠ 読めませんでした: ${parsed.reason}`);
       continue;
@@ -145,7 +150,11 @@ async function main() {
     console.log(`  期間 ${dates[0]} 〜 ${dates.at(-1)}（${dates.length}日）`);
     console.log(`  売上 ${yen(total)} ／ ${qty}個`);
     console.log(`  紐づけ確定 ${sure.length}件 ／ 要確認 ${rows.length - sure.length}件`);
-    if (parsed.skipped.cancelled) console.log(`  キャンセル・返品を除外: ${parsed.skipped.cancelled}行`);
+    if (parsed.skipped.cancelled) console.log(`  キャンセル・返品を除外: ${parsed.skipped.cancelled}件`);
+    if (parsed.skipped.test) console.log(`  テスト注文を除外: ${parsed.skipped.test}件`);
+    if (parsed.refunded) console.log(`  ※ 返品額 ${yen(parsed.refunded)}（Amazonと揃えるため差し引いていません）`);
+    const gap = parsed.headers ? describeSubtotalGap(parsed) : null;
+    if (gap) console.log(`  ⚠ ${gap}`);
 
     for (const u of unmapped) {
       const k = u.sku || u.asin || u.title;
