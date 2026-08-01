@@ -14,5 +14,8 @@
   "excludeTags": ["納期関連"],
 
   "_faqTagContains_comment": "FAQ分類用タグにこの文字を含む行は『よくある質問』として除外。",
-  "faqTagContains": "よくある質問"
+  "faqTagContains": "よくある質問",
+
+  "_scrubNamesInDetail_comment": "詳細内容の自由記述に残る名前（例:『○○様購入分』や括弧書きの『（○○様）』）を報告前に自動で消す。個人情報を制作チームに渡さないための処置。",
+  "scrubNamesInDetail": true
 }

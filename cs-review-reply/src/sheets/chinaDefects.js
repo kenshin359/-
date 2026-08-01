@@ -16,6 +16,20 @@ function findHeader(headers, needle, fallback) {
   return headers.find((h) => h.includes(needle)) || fallback || needle;
 }
 
+// ★詳細内容の自由記述に残る名前を消す（個人情報を制作チームへ渡さないため）。
+//   狙いを絞って誤削除を避ける：
+//   1) 括弧内に「様」「さん」を含むもの（例:「（○○様購入分）」）を丸ごと除去
+//   2) 括弧なしの「○○様購入分」も除去
+//   これ以外の本文（不具合の中身）は残します。
+export function scrubNames(text) {
+  if (!text) return text;
+  let t = text;
+  t = t.replace(/（[^）]*[様さん][^）]*）/g, ""); // 全角括弧
+  t = t.replace(/\([^)]*[様さん][^)]*\)/g, ""); // 半角括弧
+  t = t.replace(/[^\s、。,.:：（(]{1,10}様購入分/g, ""); // 「○○様購入分」
+  return t.replace(/\s{2,}/g, " ").trim();
+}
+
 // 1行の「有効な不具合カテゴリ」を判定。対象外なら null。
 export function effectiveCategory(catRaw, tagRaw, rule) {
   const cat = String(catRaw || "").trim();
@@ -66,12 +80,16 @@ export function extractChinaDefects(headers, records, rule, opts = {}) {
       if (date < opts.sinceDate) continue;
     }
 
+    let detail = (r[cDetail] || "").trim();
+    // ★個人情報保護：設定が有効なら詳細から名前を除去
+    if (rule.scrubNamesInDetail) detail = scrubNames(detail);
+
     defects.push({
       date,
       product: (r[cProduct] || "").trim() || "（商品名なし）",
       color: (r[cColor] || "").trim(),
       category,
-      detail: (r[cDetail] || "").trim(),
+      detail,
       status: (r[cStatus] || "").trim(),
     });
   }

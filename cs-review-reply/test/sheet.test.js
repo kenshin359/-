@@ -5,7 +5,7 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import { parseCsv, toRecords } from "../src/sheets/fetchSheet.js";
-import { effectiveCategory, extractChinaDefects } from "../src/sheets/chinaDefects.js";
+import { effectiveCategory, extractChinaDefects, scrubNames } from "../src/sheets/chinaDefects.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const rule = JSON.parse(readFileSync(join(__dirname, "../config/china-defects.json"), "utf8"));
@@ -69,6 +69,25 @@ test("抽出: sinceDate で直近だけに絞る（古い行・日付なしは�
   assert.equal(defects.length, 1);
   assert.equal(defects[0].product, "新しい商品");
   assert.equal(skippedNoDate, 1); // 日付なしは除外して件数記録
+});
+
+test("名前除去: 詳細内の『○○様購入分』や括弧内の名前を消し、不具合の中身は残す", () => {
+  assert.equal(scrubNames("開いて真ん中部分のカバー外れ（イングリウッド様購入分）"), "開いて真ん中部分のカバー外れ");
+  assert.equal(scrubNames("四つ角ビス外れ エルスタイル様購入分"), "四つ角ビス外れ");
+  assert.equal(scrubNames("（田中様）キャスター不具合"), "キャスター不具合");
+  // 名前が無い普通の詳細はそのまま
+  assert.equal(scrubNames("キャスターロック不具合"), "キャスターロック不具合");
+});
+
+test("抽出: scrubNamesInDetail=true のとき詳細から名前が消える", () => {
+  const csv =
+    "日付,商品名,問い合わせ内容分類（商品改良/納期/初期不良/クレーム/交換/その他）,詳細内容,FAQ分類用タグ\n" +
+    "2026-07-30,スーツケースM,初期不良,カバー外れ（イングリウッド様購入分）,初期不良\n";
+  const { headers, records } = toRecords(csv);
+  const rule2 = { ...rule, scrubNamesInDetail: true };
+  const { defects } = extractChinaDefects(headers, records, rule2, { sinceDate: "2026-07-01" });
+  assert.equal(defects[0].detail, "カバー外れ");
+  assert.ok(!JSON.stringify(defects[0]).includes("イングリウッド"), "名前が残っている");
 });
 
 test("除外: 納期・FAQ 行は抽出されない", () => {
