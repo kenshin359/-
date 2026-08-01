@@ -53,7 +53,7 @@ async function sendSecret(body) {
   return roomId;
 }
 
-function showAuthorizeUrl() {
+async function showAuthorizeUrl() {
   const shop = required('SHOPIFY_SHOP_DOMAIN');
   const clientId = required('SHOPIFY_CLIENT_ID');
   const url = authorizeUrl({ shop, clientId, redirectUri: REDIRECT_URI, state: 'libetee' });
@@ -75,6 +75,31 @@ function showAuthorizeUrl() {
   console.log('④ もう一度このワークフローを実行し、「code」の欄にそれを貼り付けてください。');
   console.log('   ★codeは数分で切れます。③のあとすぐに実行してください。');
   console.log('');
+
+  // ★GitHub Actionsのログは、Secretsに登録した値（ストア名・クライアントID）を
+  //   自動で「***」に伏字にするため、上のURLはログからコピーできません。
+  //   完全なURLはChatworkに送ります。承認用URLに秘密の情報は入っていません。
+  try {
+    const body = [
+      '[info][title]🛍 Shopify承認用URL（①ブラウザで開く）[/title]',
+      '下のURLをブラウザで開いて、「インストール」を押してください。',
+      '',
+      url,
+      '',
+      '承認後は「このサイトにアクセスできません」という画面になれば正常です。',
+      'そのときのアドレス欄（https://localhost/shopify/callback?code=… ）をまるごとコピーして、',
+      'GitHubの「Shopifyトークンを発行」を もう一度実行し、code欄に貼ってください。',
+      '★codeは数分で切れます。コピーしたらすぐに実行してください。',
+      '[/info]',
+    ].join('\n');
+    const roomId = await sendSecret(body);
+    console.log(`★ログ上のURLは一部が「***」に伏字になります。`);
+    console.log(`  完全なURLを Chatwork（ルーム ${roomId}）に送りました。そちらから開いてください。`);
+  } catch (e) {
+    console.log('（Chatworkへの送信は省略しました: ' + e.message + '）');
+    console.log('★ログのURLが「***」に伏字になっている場合は、CHATWORK_API_TOKEN と');
+    console.log('  CHATWORK_SECRET_ROOM_ID を設定して、もう一度このワークフローを実行してください。');
+  }
 }
 
 async function exchange(raw) {
@@ -119,7 +144,7 @@ async function exchange(raw) {
 async function main() {
   const raw = arg('code');
   if (!raw) {
-    showAuthorizeUrl();
+    await showAuthorizeUrl();
     return;
   }
   await exchange(raw);

@@ -60,11 +60,10 @@ https://localhost/shopify/callback
 
 **`code` の欄は空のまま**実行してください。
 
-ログに、次のようなURLが出ます。
+承認用のURLが **Chatwork（`CHATWORK_SECRET_ROOM_ID` のルーム）に届きます。**
 
-```
-https://qawrc2-vf.myshopify.com/admin/oauth/authorize?client_id=…&scope=read_orders,read_products&…
-```
+> GitHubのログにもURLは出ますが、Secretsに登録した値（ストア名・クライアントID）が
+> 自動で `***` に伏字になるため、**ログからはコピーできません**。Chatworkのほうを使ってください。
 
 ---
 
