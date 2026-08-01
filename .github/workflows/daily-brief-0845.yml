@@ -1,0 +1,53 @@
+# ============================================================
+#  参謀レポート（毎朝8:45・全チャネルまとめ）
+# ------------------------------------------------------------
+#  Shopify(8:00)・Amazon(8:15)・楽天(8:30)の取込が終わった後に、
+#  1日の全体像を1通にまとめてChatworkへ送ります。
+#  ★キントーンは読むだけ。書き込みは一切しません。
+# ============================================================
+name: 参謀レポート（毎朝8:45）
+
+on:
+  schedule:
+    # 日本時間 8:45 = 前日 23:45 UTC
+    - cron: '45 23 * * *'
+  workflow_dispatch:
+    inputs:
+      date:
+        description: '対象日（YYYY-MM-DD／空なら昨日）'
+        required: false
+
+concurrency:
+  group: daily-brief
+  cancel-in-progress: false
+
+jobs:
+  brief:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: daily-report-system
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: レポートを作って送る
+        env:
+          KINTONE_BASE_URL: ${{ secrets.KINTONE_BASE_URL }}
+          KINTONE_USER: ${{ secrets.KINTONE_USER }}
+          KINTONE_PASSWORD: ${{ secrets.KINTONE_PASSWORD }}
+          KINTONE_SALES_DETAIL_APP_ID: ${{ secrets.KINTONE_SALES_DETAIL_APP_ID }}
+          SALES_TARGET_MONTHLY: ${{ secrets.SALES_TARGET_MONTHLY }}
+          CHATWORK_API_TOKEN: ${{ secrets.CHATWORK_API_TOKEN }}
+          CHATWORK_SALES_ROOM_ID: ${{ secrets.CHATWORK_SALES_ROOM_ID }}
+          CHATWORK_ROOM_ID: ${{ secrets.CHATWORK_ROOM_ID }}
+          APP_ENV: production
+          REPORT_TIMEZONE: Asia/Tokyo
+        run: |
+          args=""
+          if [ -n "${{ inputs.date }}" ]; then args="--date=${{ inputs.date }}"; fi
+          node scripts/dailyBrief.js $args
