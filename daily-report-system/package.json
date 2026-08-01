@@ -56,6 +56,7 @@
     "kintone:sync-options": "node kintone/syncSalesOptions.js",
     "shopify:import": "node scripts/shopifyImport.js",
     "amazon:import": "node scripts/amazonImport.js",
+    "rakuten:import": "node scripts/rakutenImport.js",
     "shopify:token": "node scripts/shopifyToken.js"
   }
 }

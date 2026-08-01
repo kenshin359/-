@@ -1,0 +1,85 @@
+# ============================================================
+#  楽天の売上を自動でキントーンに入れる
+#  毎朝 8:30（日本時間）— Shopify(8:00)・Amazon(8:15)のあと
+# ------------------------------------------------------------
+#  CSVのダウンロードは要りません。RMSの公式APIから直接取ってきます。
+#
+#  書き込むのは「売上明細（自動取込）」アプリだけです。
+#
+#  ★何度動いても二重になりません。
+#    その日の「楽天」ぶんだけを入れ替えます。
+# ============================================================
+name: 楽天売上取込（毎朝8:30）
+
+on:
+  schedule:
+    # GitHub の時刻は UTC。日本時間 8:30 = 前日 23:30 UTC
+    - cron: '30 23 * * *'
+  workflow_dispatch:
+    inputs:
+      from:
+        description: '開始日（YYYY-MM-DD／空なら昨日）'
+        required: false
+      to:
+        description: '終了日（YYYY-MM-DD／空なら開始日と同じ）'
+        required: false
+
+concurrency:
+  group: rakuten-sales
+  cancel-in-progress: false
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: daily-report-system
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 設定の確認
+        env:
+          KINTONE_BASE_URL: ${{ secrets.KINTONE_BASE_URL }}
+          KINTONE_USER: ${{ secrets.KINTONE_USER }}
+          KINTONE_PASSWORD: ${{ secrets.KINTONE_PASSWORD }}
+          KINTONE_SALES_DETAIL_APP_ID: ${{ secrets.KINTONE_SALES_DETAIL_APP_ID }}
+          RAKUTEN_SERVICE_SECRET: ${{ secrets.RAKUTEN_SERVICE_SECRET }}
+          RAKUTEN_LICENSE_KEY: ${{ secrets.RAKUTEN_LICENSE_KEY }}
+        run: |
+          missing=""
+          [ -z "$KINTONE_BASE_URL" ]            && missing="$missing KINTONE_BASE_URL"
+          [ -z "$KINTONE_USER" ]                && missing="$missing KINTONE_USER"
+          [ -z "$KINTONE_PASSWORD" ]            && missing="$missing KINTONE_PASSWORD"
+          [ -z "$KINTONE_SALES_DETAIL_APP_ID" ] && missing="$missing KINTONE_SALES_DETAIL_APP_ID"
+          [ -z "$RAKUTEN_SERVICE_SECRET" ]      && missing="$missing RAKUTEN_SERVICE_SECRET"
+          [ -z "$RAKUTEN_LICENSE_KEY" ]         && missing="$missing RAKUTEN_LICENSE_KEY"
+          if [ -n "$missing" ]; then
+            echo "::error::次の設定（Secrets）が足りません:$missing"
+            exit 1
+          fi
+          echo "設定OK"
+
+      - name: 楽天の売上を取り込む
+        env:
+          KINTONE_BASE_URL: ${{ secrets.KINTONE_BASE_URL }}
+          KINTONE_USER: ${{ secrets.KINTONE_USER }}
+          KINTONE_PASSWORD: ${{ secrets.KINTONE_PASSWORD }}
+          KINTONE_SALES_DETAIL_APP_ID: ${{ secrets.KINTONE_SALES_DETAIL_APP_ID }}
+          RAKUTEN_SERVICE_SECRET: ${{ secrets.RAKUTEN_SERVICE_SECRET }}
+          RAKUTEN_LICENSE_KEY: ${{ secrets.RAKUTEN_LICENSE_KEY }}
+          # 取込結果をChatworkに知らせる（売上グループ）
+          CHATWORK_API_TOKEN: ${{ secrets.CHATWORK_API_TOKEN }}
+          CHATWORK_SALES_ROOM_ID: ${{ secrets.CHATWORK_SALES_ROOM_ID }}
+          CHATWORK_ROOM_ID: ${{ secrets.CHATWORK_ROOM_ID }}
+          APP_ENV: production
+          REPORT_TIMEZONE: Asia/Tokyo
+        run: |
+          args=""
+          if [ -n "${{ inputs.from }}" ]; then args="$args --from=${{ inputs.from }}"; fi
+          if [ -n "${{ inputs.to }}" ];   then args="$args --to=${{ inputs.to }}"; fi
+          node scripts/rakutenImport.js $args
