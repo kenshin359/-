@@ -180,6 +180,99 @@ function line(t) {
   return `・${p}${t.title}（${t.memberName}）[${statusNameById[t.status] || t.status}]`;
 }
 
+// チームIDからチーム名（未知なら素のID）
+export function teamName(id) {
+  return teamNameById[id] || id;
+}
+
+/**
+ * 前回スナップショットと現在のタスクを比べ、通知すべき変化を洗い出す（純関数）。
+ * 定期実行（cron/n8n）で呼び、Webhookなしでも「随時通知」を実現する。
+ *
+ * @param {object} prev  前回のスナップショット { [taskId]: {status,key,flags:{overdue,stall}} }
+ * @param {Array}  tasks 現在のタスク配列
+ * @param {object} opts  { todayKey:'YYYY-MM-DD', stallDays?:number }
+ * @returns {{events:Array, next:object}}
+ *   events: [{type:'start'|'done'|'overdue'|'stall', t, days?}]
+ *   next  : 保存する新しいスナップショット
+ */
+export function diffEvents(prev, tasks, opts = {}) {
+  const todayKey = opts.todayKey;
+  const stallDays = opts.stallDays == null ? 2 : opts.stallDays;
+  const daysUntil = (key) => Math.round((Date.parse(key + 'T00:00:00') - Date.parse(todayKey + 'T00:00:00')) / 86400000);
+
+  const events = [];
+  const next = {};
+
+  for (const t of tasks) {
+    const p = prev[t.id];
+    const prevStatus = p ? p.status : null;
+    const prevFlags = (p && p.flags) || {};
+
+    const overdueNow = t.status !== 'done' && (t.key < todayKey || t.status === 'late');
+    const stallActive = t.status === 'todo' && !overdueNow && daysUntil(t.key) <= stallDays && t.key >= todayKey;
+
+    // ステータス遷移
+    if (t.status === 'doing' && prevStatus !== 'doing') events.push({ type: 'start', t });
+    if (t.status === 'done' && prevStatus !== 'done') events.push({ type: 'done', t });
+
+    // 遅延（期限超過 or ステータス遅延）: 立ち上がりだけ通知
+    if (overdueNow && !prevFlags.overdue) events.push({ type: 'overdue', t });
+
+    // 停滞（未着手のまま期限が近い）: 立ち上がりだけ通知
+    if (stallActive && !prevFlags.stall) events.push({ type: 'stall', t, days: daysUntil(t.key) });
+
+    next[t.id] = {
+      status: t.status,
+      key: t.key,
+      title: t.title,
+      memberName: t.memberName,
+      dept: t.dept,
+      prio: t.prio,
+      flags: { overdue: overdueNow, stall: stallActive },
+    };
+  }
+  return { events, next };
+}
+
+const EVENT_META = {
+  start:   { icon: '🚀', label: '着手' },
+  done:    { icon: '✅', label: '完了' },
+  overdue: { icon: '⚠', label: '遅延' },
+  stall:   { icon: '⏰', label: '未着手（要着手）' },
+};
+const EVENT_ORDER = ['overdue', 'stall', 'start', 'done'];
+
+/**
+ * diffEvents の結果を Chatwork本文に整形する（1行目＝見出し）。
+ * @param {Array} events
+ * @param {object} opts { todayKey, title? }
+ * @returns {string|null}  変化が無ければ null
+ */
+export function formatEvents(events, opts = {}) {
+  if (!events.length) return null;
+  const title = opts.title || `【業務進捗通知】タスク更新 ${events.length}件`;
+  const lines = [title];
+
+  for (const type of EVENT_ORDER) {
+    const list = events.filter((e) => e.type === type);
+    if (!list.length) continue;
+    const meta = EVENT_META[type];
+    lines.push('');
+    lines.push(`${meta.icon} ${meta.label}（${list.length}）`);
+    for (const e of list) {
+      const t = e.t;
+      const who = `${t.memberName} / ${teamName(t.dept)}`;
+      let tail = '';
+      if (type === 'overdue') tail = `　期限 ${t.key.slice(5)}`;
+      else if (type === 'stall') tail = e.days === 0 ? '　本日締切' : `　期限まで${e.days}日`;
+      const pr = t.prio === '高' ? '【高】' : '';
+      lines.push(`・${pr}${t.title}（${who}）${tail}`);
+    }
+  }
+  return lines.join('\n');
+}
+
 /**
  * サマリー → Chatwork本文。1行目が見出し（pushChatworkが[info]装飾）。
  * @param {object} digest  buildDigest の戻り値

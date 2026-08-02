@@ -34,9 +34,13 @@ KINTONE_TASK_APP_ID=＜業務タスクアプリのID＞
 KINTONE_API_TOKEN_TASK=＜レコード閲覧の権限をつけたAPIトークン＞
 
 CHATWORK_API_TOKEN=＜ChatworkのAPIトークン＞
-CHATWORK_ROOM_ID=＜通知したいルームID＞
+CHATWORK_TASK_ROOM_ID=＜【業務進捗通知】ルームのID＞   # 進捗通知の送信先
+CHATWORK_ROOM_ID=＜通知したいルームID＞               # 予備（TASK未設定時に使用）
 APP_ENV=test        # 動作確認の間は test（送信されません）。本番送信は production
 ```
+
+> 進捗の通知は `CHATWORK_TASK_ROOM_ID` に届きます（例：Chatworkの「【業務進捗通知】」
+> グループ。ルームIDは、そのルームを開いたURL末尾の数字、またはルーム情報の「ルームID」）。
 
 ## 2. 「業務タスク」アプリを用意する
 
@@ -95,14 +99,62 @@ APP_ENV=production npm run task:notify   # 本番送信
 ● ・【高】広告レポート作成（角南）[進行中]
 ```
 
-## 5. 毎朝の自動実行
+## 5. 進捗の随時通知（着手・完了・遅延・停滞）
 
-サーバーの cron や n8n から、毎朝（例：8:30）に次を実行するだけです。
+タスクの状態が変わったら、その都度 Chatwork に通知します。Webhookは不要で、
+**定期実行するたびに「前回との変化」を検知**して送ります。
+
+| 通知 | いつ |
+|---|---|
+| 🚀 **着手** | 未着手／遅延 → 進行中 になったとき |
+| ✅ **完了** | → 完了 になったとき |
+| ⚠ **遅延** | 期限を過ぎても未完了、またはステータスが遅延になったとき（未完了の間、1回だけ） |
+| ⏰ **未着手（要着手）** | 未着手のまま期限が近い（既定：2日以内。`--stall-days=3` で変更可） |
 
 ```
-cd daily-report-system && APP_ENV=production npm run task:notify
-# カレンダーも最新化するなら
-cd daily-report-system && npm run task:sync
+# はじめに1回だけ：今の状態を基準として登録（この時は通知しません）
+node scripts/watchTasks.js --baseline
+
+# 以降、これを定期実行（変化があった時だけ通知）
+npm run task:watch                       # test：送らずプレビュー
+APP_ENV=production npm run task:watch     # 本番送信
+```
+
+- 送信先は `CHATWORK_TASK_ROOM_ID`（無ければ `CHATWORK_ROOM_ID`）。
+- 遅延が含まれるときは `[toall]` で全員に注意喚起します。
+- 変化が無ければ何も送りません（頻繁に回しても静かです）。
+- 同じ遅延・停滞を毎回くり返さないよう、`state/task-status.json` で記録します（gitignore済み）。
+
+**通知の例**
+
+```
+【業務進捗通知】タスク更新 3件
+
+⏰ 未着手（要着手）（1）
+・【高】新規バナー作成（内田 / SNSチーム）　本日締切
+
+🚀 着手（1）
+・LP改修（黒葛原 / LPチーム）
+
+✅ 完了（1）
+・広告レポート作成（角南 / 広告運用チーム）
+```
+
+## 6. 定期実行の設定（cron / n8n）
+
+- **進捗の随時通知**：15〜30分おきがおすすめ（早いほど “随時” に近づきます）。
+- **締切サマリー**：毎朝1回（例：8:30）。
+- **カレンダー最新化**：数時間おき、または朝1回。
+
+cron の例（Linux サーバー）：
+
+```
+# 15分おきに進捗通知
+*/15 * * * *  cd /path/to/daily-report-system && APP_ENV=production npm run task:watch  >> /var/log/task-watch.log 2>&1
+# 毎朝8:30に締切サマリー
+30 8 * * *    cd /path/to/daily-report-system && APP_ENV=production npm run task:notify
+# 毎朝8:00にカレンダー最新化
+0 8 * * *     cd /path/to/daily-report-system && npm run task:sync
 ```
 
 ---

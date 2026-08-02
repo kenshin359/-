@@ -55,7 +55,7 @@ async function main() {
   // ① 全体サマリー → CHATWORK_ROOM_ID
   const overall = buildDigest(tasks, { todayKey });
   const overallText = formatDigest(overall, { title: `【業務タスク】本日の締切・遅延サマリー ${todayKey}` });
-  const mainRoom = optional('CHATWORK_ROOM_ID');
+  const mainRoom = optional('CHATWORK_TASK_ROOM_ID') || optional('CHATWORK_ROOM_ID');
   if (mainRoom) {
     // 遅延が1件でもあれば全員宛て（[toall]）で注意喚起
     const mentionAll = overall.overall.overdue.length > 0;

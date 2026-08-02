@@ -20,11 +20,14 @@ kintone の「業務タスク」アプリと接続し、実データのカレン
 ```
 cd daily-report-system
 npm run task:sync     # kintoneから取得 → out/task-calendar.html を生成（実データのカレンダー）
-npm run task:notify   # その日の締切・遅延を Chatwork へ通知（test中は送らずプレビュー）
+npm run task:watch    # 着手・完了・遅延・停滞を随時 Chatwork へ通知（定期実行）
+npm run task:notify   # その日の締切・遅延サマリーを Chatwork へ（毎朝1回）
 ```
 
+- **随時通知**：`task:watch` を15〜30分おきに実行すると、タスクが「着手／完了／遅延」に
+  なった時や「未着手のまま期限が近い（停滞）」時に、その都度 Chatwork に届きます。
 - kintone は**読むだけ**（変更しません）。APIトークンは生成HTMLに含めない安全方式です。
-- 遅延が1件でもあれば、Chatwork通知は `[toall]` で全員に注意喚起します。
+- 遅延が含まれるときは `[toall]` で全員に注意喚起します。
 
 ## できること
 
