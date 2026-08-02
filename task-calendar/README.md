@@ -8,9 +8,23 @@
 `task-calendar/index.html` を **ダブルクリックしてブラウザで開くだけ**です。
 インストール不要・サーバー不要・ネット接続不要。1ファイルで完結します。
 
-（デモ用に **25名分・約260件** のタスクを内部で自動生成しています。数字は毎回同じになります。
-部門は「営業部・マーケ部・CS部・商品部・物流部・開発部・管理部・**新チーム**」の8チーム。
-新チームには **イーロン・マスク** と **柳井 正** を配属しています。）
+（実データを入れるまでは、デモ用のサンプルタスクを内部で自動生成して表示します。
+チームは「本部チーム・広告運用チーム・SNSチーム・LPチーム・CSチーム・社長室・TikTok・アルバイト」の8チーム。
+兼務者（例：黒葛原さん＝広告運用チーム＋LPチーム）は、両方のチームに表示されます。）
+
+## kintone と接続して、実データで動かす
+
+kintone の「業務タスク」アプリと接続し、実データのカレンダー表示と Chatwork 通知ができます。
+手順は **[`daily-report-system/docs/task-calendar-setup.md`](../daily-report-system/docs/task-calendar-setup.md)** を参照してください。
+
+```
+cd daily-report-system
+npm run task:sync     # kintoneから取得 → out/task-calendar.html を生成（実データのカレンダー）
+npm run task:notify   # その日の締切・遅延を Chatwork へ通知（test中は送らずプレビュー）
+```
+
+- kintone は**読むだけ**（変更しません）。APIトークンは生成HTMLに含めない安全方式です。
+- 遅延が1件でもあれば、Chatwork通知は `[toall]` で全員に注意喚起します。
 
 ## できること
 

@@ -58,6 +58,11 @@
     "amazon:import": "node scripts/amazonImport.js",
     "rakuten:import": "node scripts/rakutenImport.js",
     "daily:brief": "node scripts/dailyBrief.js",
-    "shopify:token": "node scripts/shopifyToken.js"
+    "shopify:token": "node scripts/shopifyToken.js",
+    "task:create-app": "node kintone/createTaskApp.js",
+    "task:export": "node scripts/exportTasks.js",
+    "task:build": "node scripts/buildTaskCalendar.js",
+    "task:sync": "node scripts/exportTasks.js && node scripts/buildTaskCalendar.js",
+    "task:notify": "node scripts/notifyTasksChatwork.js"
   }
 }

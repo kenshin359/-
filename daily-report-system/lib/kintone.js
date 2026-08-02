@@ -118,6 +118,31 @@ export async function fetchDailyReports(dateISO) {
 }
 
 /**
+ * 業務タスクアプリの全レコードを取得する（$id カーソルで全件ページング）。
+ * カレンダー可視化・Chatwork通知の両方で使う。
+ * ※ Kintone は読むだけ。一切変更しません。
+ *
+ * @returns {Promise<Array>} レコード配列（kintone 形式）
+ */
+export async function fetchAllTaskRecords() {
+  const app = required('KINTONE_TASK_APP_ID');
+  const token = optional('KINTONE_API_TOKEN_TASK') || null; // 無ければパスワード認証
+
+  const all = [];
+  let lastId = 0;
+  for (;;) {
+    const query = `$id > ${lastId} order by $id asc limit 500`;
+    const res = await api('GET', `/k/v1/records.json?${qs({ app, query })}`, token);
+    const records = res.records ?? [];
+    if (!records.length) break;
+    all.push(...records);
+    lastId = Number(records[records.length - 1].$id.value);
+    if (records.length < 500) break;
+  }
+  return all;
+}
+
+/**
  * AI経営日報アプリへ1レコード追加する。
  * @param {object} record  kintone のフィールド形式 { field_code: { value } }
  * @returns {Promise<{id, revision}>}

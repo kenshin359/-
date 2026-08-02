@@ -436,23 +436,29 @@
 </div>
 <div class="toast" id="toast"></div>
 
+<!--__TASK_DATA__-->
 <script>
 (function () {
   "use strict";
 
+  // kintone等から注入された実データ（buildCalendar.js が埋め込む）。無ければサンプル。
+  const EMBEDDED = (typeof window !== "undefined" && window.__TASK_DATA__) ? window.__TASK_DATA__ : null;
+
   /* ============================================================
      マスタ定義
      ============================================================ */
-  const DEPTS = [
-    { id: "sales",   name: "営業部" },
-    { id: "mkt",     name: "マーケ部" },
-    { id: "cs",      name: "CS部" },
-    { id: "prod",    name: "商品部" },
-    { id: "logi",    name: "物流部" },
-    { id: "dev",     name: "開発部" },
-    { id: "admin",   name: "管理部" },
-    { id: "newteam", name: "新チーム" },
+  // チーム編成（実データ）。kintone連携時は window.__TASK_DATA__.teams で上書き可能。
+  const DEFAULT_TEAMS = [
+    { id: "honbu",  name: "本部チーム" },
+    { id: "ad",     name: "広告運用チーム" },
+    { id: "sns",    name: "SNSチーム" },
+    { id: "lp",     name: "LPチーム" },
+    { id: "cs",     name: "CSチーム" },
+    { id: "exec",   name: "社長室" },
+    { id: "tiktok", name: "TikTok" },
+    { id: "part",   name: "アルバイト" },
   ];
+  const DEPTS = (EMBEDDED && EMBEDDED.teams) ? EMBEDDED.teams : DEFAULT_TEAMS;
   const CATS = [
     { id: "meeting", name: "会議",     v: "var(--c-meeting)" },
     { id: "doc",     name: "資料作成", v: "var(--c-doc)" },
@@ -477,21 +483,44 @@
   const deptMap   = Object.fromEntries(DEPTS.map(d => [d.id, d]));
   const statusMap = Object.fromEntries(STATUSES.map(s => [s.id, s]));
 
-  // 部門ごとに使われやすい種別（サンプルを現実的にするため）
-  const DEPT_CATS = {
-    sales:   ["meeting","cs","doc","analyze","review"],
-    mkt:     ["analyze","doc","meeting","review"],
-    cs:      ["cs","doc","meeting"],
-    prod:    ["doc","review","meeting","analyze"],
-    logi:    ["ship","doc","meeting"],
-    dev:     ["dev","review","meeting","doc"],
-    admin:   ["doc","meeting","analyze"],
-    newteam: ["meeting","analyze","dev","doc","review"],
+  // チームごとに使われやすい種別（サンプルを現実的にするため）
+  const TEAM_CATS = {
+    honbu:  ["meeting","analyze","doc","review"],
+    ad:     ["analyze","doc","meeting","review"],
+    sns:    ["analyze","doc","meeting","review"],
+    lp:     ["doc","dev","review","meeting"],
+    cs:     ["cs","doc","meeting"],
+    exec:   ["meeting","analyze","doc","review"],
+    tiktok: ["analyze","doc","meeting","review"],
+    part:   ["cs","ship","doc"],
   };
-  const DEPT_SIZE = { sales: 6, mkt: 3, cs: 4, prod: 2, logi: 3, dev: 3, admin: 2, newteam: 2 }; // 計25名
+  const CATS_DEFAULT = ["doc","meeting","review"];
 
-  const SEI = ["佐藤","鈴木","高橋","田中","伊藤","渡辺","山本","中村","小林","加藤","吉田","山田","佐々木","山口","松本","井上","木村","林","清水","森"];
-  const MEI = ["太郎","花子","健","美咲","翔","結衣","大輔","彩","涼","さくら","蓮","陽菜","颯太","楓","悠","杏","駿","凛","匠","葵"];
+  // 実際の名簿（黒葛原さんは広告運用チームとLPチームを兼務）
+  const ROSTER = [
+    { name: "塚本",   teams: ["honbu"] },
+    { name: "北野",   teams: ["honbu"] },
+    { name: "角南",   teams: ["ad"] },
+    { name: "黒葛原", teams: ["ad", "lp"] },
+    { name: "倉内",   teams: ["sns"] },
+    { name: "内田",   teams: ["sns"] },
+    { name: "桝田",   teams: ["sns"] },
+    { name: "ミンジ", teams: ["lp"] },
+    { name: "三浦",   teams: ["lp"] },
+    { name: "久保",   teams: ["lp"] },
+    { name: "笹本",   teams: ["cs"] },
+    { name: "村田",   teams: ["cs"] },
+    { name: "関本",   teams: ["cs"] },
+    { name: "淵田",   teams: ["exec"] },
+    { name: "西岡",   teams: ["exec"] },
+    { name: "山本",   teams: ["tiktok"] },
+    { name: "山近",   teams: ["tiktok"] },
+    { name: "杉本",   teams: ["part"] },
+    { name: "辰巳",   teams: ["part"] },
+    { name: "小西",   teams: ["part"] },
+    { name: "村方",   teams: ["part"] },
+    { name: "山下",   teams: ["part"] },
+  ];
 
   /* ---- 決定的な擬似乱数（毎回同じサンプル） ---- */
   let _seed = 20260801;
@@ -499,18 +528,13 @@
   function pick(arr) { return arr[Math.floor(rand() * arr.length)]; }
   function randint(a, b) { return a + Math.floor(rand() * (b - a + 1)); }
 
-  /* ---- メンバー生成 ---- */
-  // 固定メンバー（新チームにイーロン・マスクと柳井正を配属）
-  const FIXED = { newteam: ["イーロン・マスク", "柳井 正"] };
-  const MEMBERS = [];
-  let mid = 0;
-  for (const d of DEPTS) {
-    const fixed = FIXED[d.id] || [];
-    for (let i = 0; i < DEPT_SIZE[d.id]; i++) {
-      const name = i < fixed.length ? fixed[i] : pick(SEI) + " " + pick(MEI);
-      MEMBERS.push({ id: "u" + (++mid), name, dept: d.id });
-    }
-  }
+  /* ---- メンバー生成（名簿から。兼務者は複数チームに所属） ---- */
+  const SAMPLE_MEMBERS = ROSTER.map((p, i) => ({
+    id: "u" + (i + 1),
+    name: p.name,
+    teams: p.teams,
+    dept: p.teams[0],  // 表示上の主所属
+  }));
 
   /* ---- タスク雛形 ---- */
   const TITLE_BY_CAT = {
@@ -524,56 +548,59 @@
   };
 
   /* ---- タスク生成（当月中心・前後月も少量） ---- */
-  const TASKS = [];
   const today = new Date();
   const baseY = today.getFullYear();
   const baseM = today.getMonth();
-  let tid = 0;
 
-  function genForMonth(year, month, densityFactor) {
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    for (const m of MEMBERS) {
-      const perMember = Math.round(randint(4, 9) * densityFactor);
-      for (let k = 0; k < perMember; k++) {
-        const day = randint(1, daysInMonth);
-        const dow = new Date(year, month, day).getDay();
-        if ((dow === 0 || dow === 6) && rand() > 0.18) continue; // 週末は少なめ
-        const cat = pick(DEPT_CATS[m.dept]);
-        const title = pick(TITLE_BY_CAT[cat]);
-        // ステータス：過去日は完了/遅延多め、未来日は未着手多め
-        const dateObj = new Date(year, month, day);
-        const isPast = dateObj < new Date(today.getFullYear(), today.getMonth(), today.getDate());
-        const isToday = dateObj.getTime() === new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
-        let status;
-        if (isPast) { status = rand() < 0.82 ? "done" : "late"; }
-        else if (isToday) { status = pick(["doing","doing","todo","done","late"]); }
-        else {
-          const r = rand();
-          status = r < 0.55 ? "todo" : r < 0.80 ? "doing" : r < 0.97 ? "done" : "late";
+  function teamCats(teamId) { return TEAM_CATS[teamId] || CATS_DEFAULT; }
+
+  function buildSample() {
+    const tasks = [];
+    let tid = 0;
+    function genForMonth(year, month, densityFactor) {
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      for (const m of SAMPLE_MEMBERS) {
+        // 兼務者はチームごとにタスクを持つ
+        for (const teamId of m.teams) {
+          const perTeam = Math.round(randint(4, 8) * densityFactor);
+          for (let k = 0; k < perTeam; k++) {
+            const day = randint(1, daysInMonth);
+            const dow = new Date(year, month, day).getDay();
+            if ((dow === 0 || dow === 6) && rand() > 0.18) continue; // 週末は少なめ
+            const cat = pick(teamCats(teamId));
+            const title = pick(TITLE_BY_CAT[cat] || TITLE_BY_CAT.doc);
+            const dateObj = new Date(year, month, day);
+            const isPast = dateObj < new Date(today.getFullYear(), today.getMonth(), today.getDate());
+            const isToday = dateObj.getTime() === new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
+            let status;
+            if (isPast) { status = rand() < 0.82 ? "done" : "late"; }
+            else if (isToday) { status = pick(["doing","doing","todo","done","late"]); }
+            else { const r = rand(); status = r < 0.55 ? "todo" : r < 0.80 ? "doing" : r < 0.97 ? "done" : "late"; }
+            const prioR = rand();
+            const prio = prioR < 0.20 ? "高" : prioR < 0.60 ? "中" : "低";
+            tasks.push({
+              id: "t" + (++tid), title, cat, dept: teamId,
+              member: m.id, memberName: m.name, status, prio,
+              y: year, mo: month, d: day,
+              key: `${year}-${String(month+1).padStart(2,"0")}-${String(day).padStart(2,"0")}`,
+            });
+          }
         }
-        const prioR = rand();
-        const prio = prioR < 0.20 ? "高" : prioR < 0.60 ? "中" : "低";
-        TASKS.push({
-          id: "t" + (++tid),
-          title,
-          cat,
-          dept: m.dept,
-          member: m.id,
-          memberName: m.name,
-          status,
-          prio,
-          y: year, mo: month, d: day,
-          key: `${year}-${String(month+1).padStart(2,"0")}-${String(day).padStart(2,"0")}`,
-        });
       }
     }
+    genForMonth(baseY, baseM, 1.0);
+    const prev = new Date(baseY, baseM - 1, 1);
+    const next = new Date(baseY, baseM + 1, 1);
+    genForMonth(prev.getFullYear(), prev.getMonth(), 0.5);
+    genForMonth(next.getFullYear(), next.getMonth(), 0.5);
+    return { members: SAMPLE_MEMBERS, tasks };
   }
-  genForMonth(baseY, baseM, 1.0);
-  // 前後月も少量（月移動しても中身がある）
-  const prev = new Date(baseY, baseM - 1, 1);
-  const next = new Date(baseY, baseM + 1, 1);
-  genForMonth(prev.getFullYear(), prev.getMonth(), 0.5);
-  genForMonth(next.getFullYear(), next.getMonth(), 0.5);
+
+  // 実データ（kintone注入）があればそれを、無ければサンプルを使う
+  const SOURCE = EMBEDDED ? { members: EMBEDDED.members, tasks: EMBEDDED.tasks.slice() } : buildSample();
+  const MEMBERS = SOURCE.members;
+  const TASKS = SOURCE.tasks;
+  const IS_LIVE = !!EMBEDDED;
 
   /* ============================================================
      データ層：追加・編集・削除を localStorage に保存
@@ -719,7 +746,7 @@
   function buildFilters() {
     const dEl = document.getElementById("fltDept"); dEl.innerHTML = "";
     DEPTS.forEach(d => {
-      const b = chip(d.name, state.dept.has(d.id), null, MEMBERS.filter(m => m.dept === d.id).length + "名");
+      const b = chip(d.name, state.dept.has(d.id), null, MEMBERS.filter(m => m.teams ? m.teams.includes(d.id) : m.dept === d.id).length + "名");
       b.onclick = () => { toggle(state.dept, d.id); render(); };
       dEl.appendChild(b);
     });
@@ -1015,8 +1042,11 @@
     renderDetail();
     renderRank(mtasks);
     updateHint(mtasks);
+    const src = IS_LIVE
+      ? `kintone連携データ（${(EMBEDDED && EMBEDDED.generatedAt) ? new Date(EMBEDDED.generatedAt).toLocaleString("ja-JP") : "最新取得"}）`
+      : "サンプルデータ（デモ用に自動生成）";
     document.getElementById("footer").textContent =
-      `サンプルデータ: 全${MEMBERS.length}名 / 総タスク ${TASKS.length}件（デモ用に自動生成）。右上「＋タスクを追加」で入力、日別明細の「完了にする」で状態変更（この端末に保存されます）。kintone等の実データにも差し替え可能。`;
+      `${src}: 全${MEMBERS.length}名 / 総タスク ${TASKS.length}件。右上「＋タスクを追加」で入力、日別明細の「完了にする」で状態変更（この端末に保存されます）。`;
   }
 
   /* ============================================================
