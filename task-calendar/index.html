@@ -147,6 +147,27 @@
   .done-toggle.is-done { background: var(--st-done); color: #fff; }
   .done-toggle:hover { filter: brightness(1.05); }
   .status-select { font: inherit; font-size: 12px; padding: 5px 8px; border-radius: 8px; border: 1px solid var(--hairline); background: var(--surface-2); color: var(--ink-2); cursor: pointer; margin-left: auto; }
+  .edit-link { font: inherit; font-size: 12px; padding: 5px 10px; border-radius: 999px; border: 1px solid var(--hairline); background: var(--surface-2); color: var(--ink-2); cursor: pointer; }
+  .edit-link:hover { border-color: var(--axis); }
+
+  /* ── データツール（CSV等） ─────────── */
+  .data-tools { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding-top: 4px; border-top: 1px dashed var(--hairline); margin-top: 3px; }
+  .tool-btn { font: inherit; font-size: 12.5px; padding: 7px 12px; border-radius: 8px; border: 1px solid var(--hairline); background: var(--surface-2); color: var(--ink); cursor: pointer; }
+  .tool-btn:hover { border-color: var(--axis); }
+  .tool-btn.danger { color: var(--critical); border-color: rgba(208,59,59,0.4); }
+  .btn-danger { background: transparent; color: var(--critical); border: 1px solid rgba(208,59,59,0.5); font-weight: 600; }
+  .btn-danger:hover { background: rgba(208,59,59,0.08); }
+
+  /* ── 印刷 ───────────────────────────── */
+  @media print {
+    .app { max-width: none; padding: 0; }
+    .add-btn, .theme-btn, .view-toggle, .cal-nav, .data-tools, .search-row, .filter-all, .card-actions, .modal-back, .toast { display: none !important; }
+    .panel, .tile, .cell, .task-card { border-color: #bbb !important; box-shadow: none !important; }
+    body { background: #fff; font-size: 12px; }
+    .layout { grid-template-columns: 1fr; }
+    .cell { min-height: 74px; }
+    a[href]:after { content: ""; }
+  }
 
   /* ── KPIタイル ──────────────────────── */
   .kpi-row { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
@@ -322,6 +343,14 @@
         <button class="reset-btn" id="resetBtn" type="button">絞り込みをリセット</button>
         <span class="hint" id="matchHint"></span>
       </div>
+      <div class="data-tools">
+        <button class="tool-btn" id="importBtn" type="button">📥 CSV読み込み</button>
+        <button class="tool-btn" id="exportBtn" type="button">📤 CSVで書き出し</button>
+        <button class="tool-btn" id="templateBtn" type="button">📄 テンプレDL</button>
+        <button class="tool-btn danger" id="resetDataBtn" type="button">↺ サンプルに戻す</button>
+        <input type="file" id="csvFile" accept=".csv,text/csv" hidden />
+        <span class="hint">100名分の実データもCSVで一括取込／書き出しできます</span>
+      </div>
     </div>
   </div>
 
@@ -371,7 +400,7 @@
 <div class="modal-back" id="modalBack">
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
     <h2 id="modalTitle">タスクを追加</h2>
-    <p class="m-sub">担当者・種別・期日を選んで「追加する」を押すと、カレンダーにすぐ反映されます。</p>
+    <p class="m-sub" id="modalSub">担当者・種別・期日を選んで「追加する」を押すと、カレンダーにすぐ反映されます。</p>
     <form id="addForm">
       <div class="field">
         <label for="fTitle">タスク名</label>
@@ -398,8 +427,9 @@
         <select id="fStatus"></select>
       </div>
       <div class="modal-actions">
+        <button type="button" class="btn-danger" id="deleteBtn" hidden>削除</button>
         <button type="button" class="btn-ghost" id="cancelBtn">キャンセル</button>
-        <button type="submit" class="btn-primary">追加する</button>
+        <button type="submit" class="btn-primary" id="submitBtn">追加する</button>
       </div>
     </form>
   </div>
@@ -469,9 +499,9 @@
   function pick(arr) { return arr[Math.floor(rand() * arr.length)]; }
   function randint(a, b) { return a + Math.floor(rand() * (b - a + 1)); }
 
-  /* ---- メンバー生成（100名） ---- */
-  // 固定メンバー（新チームにイーロン・マスクを配属）
-  const FIXED = { newteam: ["イーロン・マスク"] };
+  /* ---- メンバー生成 ---- */
+  // 固定メンバー（新チームにイーロン・マスクと柳井正を配属）
+  const FIXED = { newteam: ["イーロン・マスク", "柳井 正"] };
   const MEMBERS = [];
   let mid = 0;
   for (const d of DEPTS) {
@@ -546,44 +576,101 @@
   genForMonth(next.getFullYear(), next.getMonth(), 0.5);
 
   /* ============================================================
-     画面からの追加・完了を保存（localStorage）
-     ・追加したタスク    → LS_TASKS
-     ・変更したステータス → LS_STATUS（{taskId: status}）
-     これにより、追加も「完了にする」操作もページを閉じても残ります。
+     データ層：追加・編集・削除を localStorage に保存
+     ・追加したタスク  → LS_TASKS  （配列）
+     ・編集した内容    → LS_OVER   （{id: {field: 値, ...}}）
+     ・削除したタスク  → LS_DEL    （[id, ...]）
+     ・取り込んだ担当者 → LS_MEM    （CSVで増えたメンバー）
+     追加・編集・完了・削除・CSV取込は、ページを閉じても残ります。
      ============================================================ */
-  const LS_TASKS = "taskcal.userTasks.v1";
-  const LS_STATUS = "taskcal.status.v1";
+  const LS_TASKS = "taskcal.userTasks.v2";
+  const LS_OVER  = "taskcal.overrides.v2";
+  const LS_DEL   = "taskcal.deleted.v2";
+  const LS_MEM   = "taskcal.members.v2";
+  const LS_KEYS  = [LS_TASKS, LS_OVER, LS_DEL, LS_MEM];
   function loadLS(k) { try { return JSON.parse(localStorage.getItem(k) || "null"); } catch (e) { return null; } }
   function saveLS(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
 
   const userTasks = loadLS(LS_TASKS) || [];
-  const statusOverrides = loadLS(LS_STATUS) || {};
+  const overrides = loadLS(LS_OVER) || {};
+  const deleted   = loadLS(LS_DEL) || [];
+  const extraMems = loadLS(LS_MEM) || [];
+  const delSet = new Set(deleted);
+
+  // 取り込み済みメンバーを復元
+  extraMems.forEach(m => { if (!MEMBERS.find(x => x.id === m.id)) MEMBERS.push(m); });
+
+  // 追加タスクを反映 → 削除を除外 → 編集を上書き
   userTasks.forEach(t => TASKS.push(t));
-  TASKS.forEach(t => { if (statusOverrides[t.id] != null) t.status = statusOverrides[t.id]; });
+  for (let i = TASKS.length - 1; i >= 0; i--) { if (delSet.has(TASKS[i].id)) TASKS.splice(i, 1); }
+  TASKS.forEach(t => { if (overrides[t.id]) applyFields(t, overrides[t.id]); });
+
   let userSeq = userTasks.reduce((mx, t) => {
     const n = parseInt(String(t.id).replace(/\D/g, ""), 10);
     return isNaN(n) ? mx : Math.max(mx, n);
   }, 0);
 
-  function addTask(o) {
+  function applyFields(t, o) {
+    if (o.title != null) t.title = o.title;
+    if (o.cat != null) t.cat = o.cat;
+    if (o.prio != null) t.prio = o.prio;
+    if (o.status != null) t.status = o.status;
+    if (o.member != null) {
+      t.member = o.member;
+      const m = MEMBERS.find(x => x.id === o.member);
+      if (m) { t.dept = m.dept; t.memberName = m.name; }
+    }
+    if (o.date != null) { const [y, mm, d] = o.date.split("-").map(Number); t.y = y; t.mo = mm - 1; t.d = d; t.key = o.date; }
+  }
+  function buildTask(o, id) {
     const [yy, mm, dd] = o.date.split("-").map(Number);
     const mem = MEMBERS.find(m => m.id === o.member);
-    const t = {
-      id: "x" + (++userSeq),
-      title: o.title, cat: o.cat,
-      dept: mem ? mem.dept : "admin",
-      member: o.member, memberName: mem ? mem.name : o.member,
+    return {
+      id, title: o.title, cat: o.cat,
+      dept: mem ? mem.dept : (o.dept || "admin"),
+      member: o.member, memberName: mem ? mem.name : (o.memberName || o.member),
       status: o.status, prio: o.prio,
       y: yy, mo: mm - 1, d: dd, key: o.date, user: true,
     };
+  }
+  function addTask(o) {
+    const t = buildTask(o, "x" + (++userSeq));
     TASKS.push(t); userTasks.push(t); saveLS(LS_TASKS, userTasks);
     return t;
   }
-  function setStatus(id, status) {
+  function updateTask(id, fields) {
     const t = TASKS.find(x => x.id === id);
     if (!t) return;
-    t.status = status; statusOverrides[id] = status; saveLS(LS_STATUS, statusOverrides);
+    applyFields(t, fields);
+    if (String(id).startsWith("x")) {
+      // 画面追加タスクは実体を更新
+      const ut = userTasks.find(x => x.id === id);
+      if (ut) { Object.assign(ut, t); saveLS(LS_TASKS, userTasks); }
+    } else {
+      overrides[id] = Object.assign(overrides[id] || {}, fields);
+      saveLS(LS_OVER, overrides);
+    }
   }
+  function setStatus(id, status) { updateTask(id, { status }); }
+  function deleteTask(id) {
+    const i = TASKS.findIndex(x => x.id === id);
+    if (i >= 0) TASKS.splice(i, 1);
+    if (String(id).startsWith("x")) {
+      const j = userTasks.findIndex(x => x.id === id);
+      if (j >= 0) { userTasks.splice(j, 1); saveLS(LS_TASKS, userTasks); }
+    } else {
+      if (!delSet.has(id)) { delSet.add(id); deleted.push(id); saveLS(LS_DEL, deleted); }
+    }
+  }
+  // CSV取込で新しい担当者を登録
+  function ensureMember(name, deptId) {
+    let m = MEMBERS.find(x => x.name === name && x.dept === deptId);
+    if (m) return m;
+    m = { id: "im" + (MEMBERS.length + 1), name, dept: deptId, imported: true };
+    MEMBERS.push(m); extraMems.push(m); saveLS(LS_MEM, extraMems);
+    return m;
+  }
+  function resetData() { LS_KEYS.forEach(k => { try { localStorage.removeItem(k); } catch (e) {} }); }
 
   /* ============================================================
      状態
@@ -632,7 +719,7 @@
   function buildFilters() {
     const dEl = document.getElementById("fltDept"); dEl.innerHTML = "";
     DEPTS.forEach(d => {
-      const b = chip(d.name, state.dept.has(d.id), null, DEPT_SIZE[d.id] + "名");
+      const b = chip(d.name, state.dept.has(d.id), null, MEMBERS.filter(m => m.dept === d.id).length + "名");
       b.onclick = () => { toggle(state.dept, d.id); render(); };
       dEl.appendChild(b);
     });
@@ -885,10 +972,13 @@
         setStatus(t.id, now); render();
         if (now === "done") toast(`「${t.title}」を完了にしました ✓`);
       };
+      const editBtn = document.createElement("button"); editBtn.type = "button"; editBtn.className = "edit-link";
+      editBtn.textContent = "編集";
+      editBtn.onclick = () => openEdit(t);
       const sel = document.createElement("select"); sel.className = "status-select";
       STATUSES.forEach(s => { const o = document.createElement("option"); o.value = s.id; o.textContent = s.name; if (s.id === t.status) o.selected = true; sel.appendChild(o); });
       sel.onchange = () => { setStatus(t.id, sel.value); render(); };
-      act.appendChild(doneBtn); act.appendChild(sel);
+      act.appendChild(doneBtn); act.appendChild(editBtn); act.appendChild(sel);
       c.appendChild(act);
       listEl.appendChild(c);
     });
@@ -948,8 +1038,16 @@
     sSel.value = "todo";
   }
   const modalBack = document.getElementById("modalBack");
+  const deleteBtn = document.getElementById("deleteBtn");
+  let editingId = null;
   function todayKeyStr() { return `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,"0")}-${String(today.getDate()).padStart(2,"0")}`; }
-  function openModal() {
+
+  function openAdd() {
+    editingId = null;
+    document.getElementById("modalTitle").textContent = "タスクを追加";
+    document.getElementById("modalSub").textContent = "担当者・種別・期日を選んで「追加する」を押すと、カレンダーにすぐ反映されます。";
+    document.getElementById("submitBtn").textContent = "追加する";
+    deleteBtn.hidden = true;
     document.getElementById("addForm").reset();
     document.getElementById("fDate").value = state.selectedKey || todayKeyStr();
     const mid = document.querySelector('input[name="prio"][value="中"]'); if (mid) mid.checked = true;
@@ -957,11 +1055,33 @@
     modalBack.classList.add("open");
     setTimeout(() => document.getElementById("fTitle").focus(), 30);
   }
-  function closeModal() { modalBack.classList.remove("open"); }
-  document.getElementById("addBtn").onclick = openModal;
+  function openEdit(t) {
+    editingId = t.id;
+    document.getElementById("modalTitle").textContent = "タスクを編集";
+    document.getElementById("modalSub").textContent = "内容を直して「保存する」。不要なら「削除」で消せます。";
+    document.getElementById("submitBtn").textContent = "保存する";
+    deleteBtn.hidden = false;
+    document.getElementById("fTitle").value = t.title;
+    document.getElementById("fMember").value = t.member;
+    document.getElementById("fCat").value = t.cat;
+    document.getElementById("fDate").value = t.key;
+    document.getElementById("fStatus").value = t.status;
+    const pr = document.querySelector(`input[name="prio"][value="${t.prio}"]`); if (pr) pr.checked = true;
+    modalBack.classList.add("open");
+  }
+  function closeModal() { modalBack.classList.remove("open"); editingId = null; }
+  document.getElementById("addBtn").onclick = openAdd;
   document.getElementById("cancelBtn").onclick = closeModal;
   modalBack.addEventListener("click", (e) => { if (e.target === modalBack) closeModal(); });
   document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeModal(); });
+  deleteBtn.onclick = () => {
+    if (!editingId) return;
+    const t = TASKS.find(x => x.id === editingId);
+    const nm = t ? t.title : "";
+    deleteTask(editingId);
+    closeModal(); render();
+    toast(`「${nm}」を削除しました`);
+  };
   document.getElementById("addForm").addEventListener("submit", (e) => {
     e.preventDefault();
     const title = document.getElementById("fTitle").value.trim();
@@ -972,12 +1092,19 @@
     const status = document.getElementById("fStatus").value;
     const prio = (document.querySelector('input[name="prio"]:checked') || {}).value || "中";
     if (!date) return;
-    const t = addTask({ title, member, cat, date, status, prio });
-    // 追加先の月へ移動し、その日を選択。フィルタで隠れないよう対象をON
-    state.year = t.y; state.month = t.mo; state.selectedKey = t.key;
-    state.dept.add(t.dept); state.cat.add(t.cat); state.status.add(t.status); state.prio.add(t.prio);
-    buildFilters(); closeModal(); render();
-    toast(`「${title}」を追加しました`);
+    if (editingId) {
+      updateTask(editingId, { title, member, cat, date, status, prio });
+      const t = TASKS.find(x => x.id === editingId);
+      if (t) { state.year = t.y; state.month = t.mo; state.selectedKey = t.key; state.dept.add(t.dept); state.cat.add(t.cat); state.status.add(t.status); state.prio.add(t.prio); }
+      buildFilters(); closeModal(); render();
+      toast(`「${title}」を更新しました`);
+    } else {
+      const t = addTask({ title, member, cat, date, status, prio });
+      state.year = t.y; state.month = t.mo; state.selectedKey = t.key;
+      state.dept.add(t.dept); state.cat.add(t.cat); state.status.add(t.status); state.prio.add(t.prio);
+      buildFilters(); closeModal(); render();
+      toast(`「${title}」を追加しました`);
+    }
   });
 
   let toastTimer;
@@ -985,8 +1112,115 @@
     const el = document.getElementById("toast");
     el.textContent = msg; el.classList.add("show");
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => el.classList.remove("show"), 2200);
+    toastTimer = setTimeout(() => el.classList.remove("show"), 2400);
   }
+
+  /* ============================================================
+     CSV：取り込み / 書き出し / テンプレート
+     列: 日付, タスク名, 担当者, 部門, 種別, 優先度, ステータス
+     ============================================================ */
+  const deptByName   = Object.fromEntries(DEPTS.map(d => [d.name, d.id]));
+  const catByName    = Object.fromEntries(CATS.map(c => [c.name, c.id]));
+  const statusByName = Object.fromEntries(STATUSES.map(s => [s.name, s.id]));
+  const CSV_HEADER = ["日付","タスク名","担当者","部門","種別","優先度","ステータス"];
+
+  function csvEscape(v) {
+    v = v == null ? "" : String(v);
+    return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v;
+  }
+  function parseCSV(text) {
+    text = text.replace(/^﻿/, "").replace(/\r\n?/g, "\n");
+    const rows = []; let row = [], field = "", q = false;
+    for (let i = 0; i < text.length; i++) {
+      const c = text[i];
+      if (q) {
+        if (c === '"') { if (text[i+1] === '"') { field += '"'; i++; } else q = false; }
+        else field += c;
+      } else {
+        if (c === '"') q = true;
+        else if (c === ",") { row.push(field); field = ""; }
+        else if (c === "\n") { row.push(field); rows.push(row); row = []; field = ""; }
+        else field += c;
+      }
+    }
+    if (field.length || row.length) { row.push(field); rows.push(row); }
+    return rows.filter(r => r.some(x => x.trim() !== ""));
+  }
+  function download(filename, text) {
+    const blob = new Blob(["﻿" + text], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a"); a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+  function exportCSV() {
+    const rows = [CSV_HEADER.join(",")];
+    TASKS.slice().sort((a,b) => a.key.localeCompare(b.key)).forEach(t => {
+      rows.push([t.key, t.title, t.memberName, (deptMap[t.dept]||{}).name || t.dept, (catMap[t.cat]||{}).name || t.cat, t.prio, (statusMap[t.status]||{}).name || t.status].map(csvEscape).join(","));
+    });
+    download("tasks.csv", rows.join("\n"));
+    toast(`${TASKS.length}件を書き出しました`);
+  }
+  function downloadTemplate() {
+    const sample = [
+      CSV_HEADER.join(","),
+      [todayKeyStr(), "提案資料の作成", "山田 太郎", "営業部", "資料作成", "高", "未着手"].map(csvEscape).join(","),
+      [todayKeyStr(), "週次定例MTG", "イーロン・マスク", "新チーム", "会議", "中", "進行中"].map(csvEscape).join(","),
+    ];
+    download("tasks_template.csv", sample.join("\n"));
+    toast("テンプレートを書き出しました");
+  }
+  function importCSV(text) {
+    const rows = parseCSV(text);
+    if (!rows.length) { toast("読み込める行がありません"); return; }
+    // ヘッダー判定
+    let start = 0;
+    const h0 = rows[0].map(x => x.trim());
+    if (h0.includes("タスク名") || h0.includes("日付")) start = 1;
+    let n = 0;
+    for (let i = start; i < rows.length; i++) {
+      const r = rows[i];
+      const date = normalizeDate((r[0] || "").trim());
+      const title = (r[1] || "").trim();
+      if (!date || !title) continue;
+      const memberName = (r[2] || "担当未定").trim();
+      const deptId = deptByName[(r[3] || "").trim()] || "admin";
+      const catId = catByName[(r[4] || "").trim()] || "doc";
+      const prio = ["高","中","低"].includes((r[5]||"").trim()) ? (r[5]||"").trim() : "中";
+      const statusId = statusByName[(r[6] || "").trim()] || "todo";
+      const mem = ensureMember(memberName, deptId);
+      addTask({ title, member: mem.id, cat: catId, date, status: statusId, prio });
+      n++;
+    }
+    // フィルタを全ONにして取込分が見えるように
+    state.dept = new Set(DEPTS.map(d => d.id));
+    state.cat = new Set(CATS.map(c => c.id));
+    state.status = new Set(STATUSES.map(s => s.id));
+    state.prio = new Set(PRIOS.map(p => p.id));
+    buildFilters(); fillSelects(); render();
+    toast(`${n}件を取り込みました`);
+  }
+  function normalizeDate(s) {
+    if (!s) return "";
+    s = s.replace(/\//g, "-").replace(/\./g, "-");
+    const m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+    if (!m) return "";
+    return `${m[1]}-${String(m[2]).padStart(2,"0")}-${String(m[3]).padStart(2,"0")}`;
+  }
+  document.getElementById("exportBtn").onclick = exportCSV;
+  document.getElementById("templateBtn").onclick = downloadTemplate;
+  document.getElementById("importBtn").onclick = () => document.getElementById("csvFile").click();
+  document.getElementById("csvFile").addEventListener("change", (e) => {
+    const f = e.target.files[0]; if (!f) return;
+    const reader = new FileReader();
+    reader.onload = () => { importCSV(String(reader.result)); e.target.value = ""; };
+    reader.readAsText(f, "utf-8");
+  });
+  document.getElementById("resetDataBtn").onclick = () => {
+    if (confirm("画面から追加・編集・取り込みした内容をすべて消して、サンプル状態に戻します。よろしいですか？")) {
+      resetData(); location.reload();
+    }
+  };
 
   // 初期化
   buildFilters();
