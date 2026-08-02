@@ -1,0 +1,43 @@
+# ============================================================
+#  月次の販売個数まとめ（手動実行のみ）
+# ------------------------------------------------------------
+#  キントーン「売上明細（自動取込）」から、指定月の
+#  媒体×商品の個数・売上をログに出力します。
+#  資料づくり（エクセル等）のための取り出し用。
+#  ★キントーンは読むだけ。書き込みは一切しません。
+# ============================================================
+name: 月次個数まとめ（手動）
+
+on:
+  workflow_dispatch:
+    inputs:
+      month:
+        description: '対象月（YYYY-MM／空なら先月）'
+        required: false
+
+jobs:
+  units:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: daily-report-system
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 集計してログに出す
+        env:
+          KINTONE_BASE_URL: ${{ secrets.KINTONE_BASE_URL }}
+          KINTONE_USER: ${{ secrets.KINTONE_USER }}
+          KINTONE_PASSWORD: ${{ secrets.KINTONE_PASSWORD }}
+          KINTONE_SALES_DETAIL_APP_ID: ${{ secrets.KINTONE_SALES_DETAIL_APP_ID }}
+          APP_ENV: production
+          REPORT_TIMEZONE: Asia/Tokyo
+        run: |
+          args=""
+          if [ -n "${{ inputs.month }}" ]; then args="--month=${{ inputs.month }}"; fi
+          node scripts/monthlyUnits.js $args

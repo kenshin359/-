@@ -58,6 +58,7 @@
     "amazon:import": "node scripts/amazonImport.js",
     "rakuten:import": "node scripts/rakutenImport.js",
     "daily:brief": "node scripts/dailyBrief.js",
+    "monthly:units": "node scripts/monthlyUnits.js",
     "shopify:token": "node scripts/shopifyToken.js"
   }
 }
