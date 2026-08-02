@@ -105,6 +105,48 @@
     border: 1px solid var(--hairline); background: var(--surface); color: var(--ink-2); cursor: pointer;
   }
   .theme-btn:hover { border-color: var(--axis); }
+  .masthead .actions { display: flex; gap: 8px; align-items: center; }
+  .add-btn {
+    font: inherit; font-size: 13px; font-weight: 600; padding: 8px 14px; border-radius: 8px;
+    border: 1px solid var(--focus); background: var(--focus); color: #fff; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .add-btn:hover { filter: brightness(1.07); }
+
+  /* ── 追加モーダル ───────────────────── */
+  .modal-back { position: fixed; inset: 0; background: rgba(0,0,0,0.45); display: none; align-items: flex-start; justify-content: center; z-index: 50; padding: 44px 16px; overflow-y: auto; }
+  .modal-back.open { display: flex; }
+  .modal { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; width: 100%; max-width: 440px; padding: 20px 22px 22px; box-shadow: 0 20px 60px rgba(0,0,0,0.32); }
+  .modal h2 { margin: 0 0 4px; font-size: 18px; }
+  .modal .m-sub { margin: 0 0 16px; font-size: 12.5px; color: var(--ink-3); }
+  .field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 13px; }
+  .field > label { font-size: 11.5px; font-weight: 600; color: var(--ink-2); }
+  .field input, .field select { font: inherit; font-size: 14px; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--hairline); background: var(--surface-2); color: var(--ink); width: 100%; }
+  .field input:focus, .field select:focus { outline: 2px solid var(--focus); outline-offset: 1px; }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .prio-radios { display: flex; gap: 6px; }
+  .prio-radios label { flex: 1; text-align: center; padding: 8px 0; border: 1px solid var(--hairline); border-radius: 8px; cursor: pointer; font-size: 13px; color: var(--ink-2); background: var(--surface-2); }
+  .prio-radios input { position: absolute; opacity: 0; pointer-events: none; }
+  .prio-radios label:has(input:checked) { background: var(--ink); color: var(--surface); border-color: var(--ink); font-weight: 600; }
+  .modal-actions { display: flex; gap: 10px; margin-top: 6px; }
+  .modal-actions button { font: inherit; font-size: 14px; padding: 10px 16px; border-radius: 8px; cursor: pointer; flex: 1; }
+  .btn-primary { background: var(--focus); color: #fff; border: 1px solid var(--focus); font-weight: 600; }
+  .btn-primary:hover { filter: brightness(1.07); }
+  .btn-ghost { background: var(--surface-2); color: var(--ink-2); border: 1px solid var(--hairline); }
+  .btn-ghost:hover { border-color: var(--axis); }
+
+  /* ── トースト ───────────────────────── */
+  .toast { position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%) translateY(10px); background: var(--ink); color: var(--surface); font-size: 13.5px; font-weight: 600; padding: 11px 18px; border-radius: 999px; box-shadow: 0 8px 24px rgba(0,0,0,0.28); opacity: 0; pointer-events: none; transition: opacity 200ms, transform 200ms; z-index: 60; }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* ── タスクカードの操作 ─────────────── */
+  .task-card.done { opacity: 0.72; }
+  .task-card.done .ttl { text-decoration: line-through; text-decoration-color: var(--ink-3); }
+  .card-actions { display: flex; gap: 7px; margin-top: 7px; align-items: center; }
+  .done-toggle { font: inherit; font-size: 12px; font-weight: 600; padding: 5px 11px; border-radius: 999px; border: 1px solid var(--st-done); background: transparent; color: var(--st-done); cursor: pointer; display: inline-flex; align-items: center; gap: 5px; }
+  .done-toggle.is-done { background: var(--st-done); color: #fff; }
+  .done-toggle:hover { filter: brightness(1.05); }
+  .status-select { font: inherit; font-size: 12px; padding: 5px 8px; border-radius: 8px; border: 1px solid var(--hairline); background: var(--surface-2); color: var(--ink-2); cursor: pointer; margin-left: auto; }
 
   /* ── KPIタイル ──────────────────────── */
   .kpi-row { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
@@ -247,7 +289,10 @@
       <h1>業務タスク カレンダー可視化ツール</h1>
       <p class="sub">チームの業務タスクを、カレンダーとタスク選択ボタンでその場で可視化。負荷の偏り・遅延・締切集中を一目で把握します。</p>
     </div>
-    <button class="theme-btn" id="themeBtn" type="button">🌗 表示切替</button>
+    <div class="actions">
+      <button class="add-btn" id="addBtn" type="button">＋ タスクを追加</button>
+      <button class="theme-btn" id="themeBtn" type="button">🌗 表示切替</button>
+    </div>
   </div>
 
   <!-- KPI -->
@@ -321,6 +366,45 @@
 
   <footer id="footer"></footer>
 </div>
+
+<!-- タスク追加モーダル -->
+<div class="modal-back" id="modalBack">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <h2 id="modalTitle">タスクを追加</h2>
+    <p class="m-sub">担当者・種別・期日を選んで「追加する」を押すと、カレンダーにすぐ反映されます。</p>
+    <form id="addForm">
+      <div class="field">
+        <label for="fTitle">タスク名</label>
+        <input type="text" id="fTitle" required placeholder="例：提案資料の作成" autocomplete="off" />
+      </div>
+      <div class="field">
+        <label for="fMember">担当者</label>
+        <select id="fMember" required></select>
+      </div>
+      <div class="field-row">
+        <div class="field"><label for="fCat">種別</label><select id="fCat"></select></div>
+        <div class="field"><label for="fDate">期日</label><input type="date" id="fDate" required /></div>
+      </div>
+      <div class="field">
+        <label>優先度</label>
+        <div class="prio-radios">
+          <label><input type="radio" name="prio" value="高" /><span>高</span></label>
+          <label><input type="radio" name="prio" value="中" checked /><span>中</span></label>
+          <label><input type="radio" name="prio" value="低" /><span>低</span></label>
+        </div>
+      </div>
+      <div class="field">
+        <label for="fStatus">ステータス</label>
+        <select id="fStatus"></select>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn-ghost" id="cancelBtn">キャンセル</button>
+        <button type="submit" class="btn-primary">追加する</button>
+      </div>
+    </form>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
 
 <script>
 (function () {
@@ -460,6 +544,46 @@
   const next = new Date(baseY, baseM + 1, 1);
   genForMonth(prev.getFullYear(), prev.getMonth(), 0.5);
   genForMonth(next.getFullYear(), next.getMonth(), 0.5);
+
+  /* ============================================================
+     画面からの追加・完了を保存（localStorage）
+     ・追加したタスク    → LS_TASKS
+     ・変更したステータス → LS_STATUS（{taskId: status}）
+     これにより、追加も「完了にする」操作もページを閉じても残ります。
+     ============================================================ */
+  const LS_TASKS = "taskcal.userTasks.v1";
+  const LS_STATUS = "taskcal.status.v1";
+  function loadLS(k) { try { return JSON.parse(localStorage.getItem(k) || "null"); } catch (e) { return null; } }
+  function saveLS(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+
+  const userTasks = loadLS(LS_TASKS) || [];
+  const statusOverrides = loadLS(LS_STATUS) || {};
+  userTasks.forEach(t => TASKS.push(t));
+  TASKS.forEach(t => { if (statusOverrides[t.id] != null) t.status = statusOverrides[t.id]; });
+  let userSeq = userTasks.reduce((mx, t) => {
+    const n = parseInt(String(t.id).replace(/\D/g, ""), 10);
+    return isNaN(n) ? mx : Math.max(mx, n);
+  }, 0);
+
+  function addTask(o) {
+    const [yy, mm, dd] = o.date.split("-").map(Number);
+    const mem = MEMBERS.find(m => m.id === o.member);
+    const t = {
+      id: "x" + (++userSeq),
+      title: o.title, cat: o.cat,
+      dept: mem ? mem.dept : "admin",
+      member: o.member, memberName: mem ? mem.name : o.member,
+      status: o.status, prio: o.prio,
+      y: yy, mo: mm - 1, d: dd, key: o.date, user: true,
+    };
+    TASKS.push(t); userTasks.push(t); saveLS(LS_TASKS, userTasks);
+    return t;
+  }
+  function setStatus(id, status) {
+    const t = TASKS.find(x => x.id === id);
+    if (!t) return;
+    t.status = status; statusOverrides[id] = status; saveLS(LS_STATUS, statusOverrides);
+  }
 
   /* ============================================================
      状態
@@ -741,7 +865,7 @@
     const prioOrder = { "高":0, "中":1, "低":2 };
     list.sort((a,b) => (prioOrder[a.prio]-prioOrder[b.prio]) || a.status.localeCompare(b.status));
     list.forEach(t => {
-      const c = document.createElement("div"); c.className = "task-card";
+      const c = document.createElement("div"); c.className = "task-card" + (t.status === "done" ? " done" : "");
       c.style.borderLeftColor = catMap[t.cat].v;
       const st = statusMap[t.status];
       c.innerHTML =
@@ -750,6 +874,22 @@
         `<span class="pill">${deptMap[t.dept].name}</span>` +
         `<span class="pill">${catMap[t.cat].name}</span>` +
         `<span class="prio-${t.prio}">優先度 ${t.prio}</span></div>`;
+
+      // 操作行：ワンクリックで完了 / プルダウンで状態変更
+      const act = document.createElement("div"); act.className = "card-actions";
+      const doneBtn = document.createElement("button"); doneBtn.type = "button";
+      doneBtn.className = "done-toggle" + (t.status === "done" ? " is-done" : "");
+      doneBtn.textContent = t.status === "done" ? "✓ 完了" : "完了にする";
+      doneBtn.onclick = () => {
+        const now = t.status === "done" ? "doing" : "done";
+        setStatus(t.id, now); render();
+        if (now === "done") toast(`「${t.title}」を完了にしました ✓`);
+      };
+      const sel = document.createElement("select"); sel.className = "status-select";
+      STATUSES.forEach(s => { const o = document.createElement("option"); o.value = s.id; o.textContent = s.name; if (s.id === t.status) o.selected = true; sel.appendChild(o); });
+      sel.onchange = () => { setStatus(t.id, sel.value); render(); };
+      act.appendChild(doneBtn); act.appendChild(sel);
+      c.appendChild(act);
       listEl.appendChild(c);
     });
   }
@@ -786,12 +926,72 @@
     renderRank(mtasks);
     updateHint(mtasks);
     document.getElementById("footer").textContent =
-      `サンプルデータ: 全${MEMBERS.length}名 / 総タスク ${TASKS.length}件（デモ用に自動生成・決定的）。kintone等の実データに差し替えて運用できます。`;
+      `サンプルデータ: 全${MEMBERS.length}名 / 総タスク ${TASKS.length}件（デモ用に自動生成）。右上「＋タスクを追加」で入力、日別明細の「完了にする」で状態変更（この端末に保存されます）。kintone等の実データにも差し替え可能。`;
+  }
+
+  /* ============================================================
+     タスク追加モーダル & トースト
+     ============================================================ */
+  function fillSelects() {
+    const mSel = document.getElementById("fMember"); mSel.innerHTML = "";
+    DEPTS.forEach(d => {
+      const og = document.createElement("optgroup"); og.label = d.name;
+      MEMBERS.filter(m => m.dept === d.id).forEach(m => {
+        const o = document.createElement("option"); o.value = m.id; o.textContent = m.name; og.appendChild(o);
+      });
+      mSel.appendChild(og);
+    });
+    const cSel = document.getElementById("fCat"); cSel.innerHTML = "";
+    CATS.forEach(c => { const o = document.createElement("option"); o.value = c.id; o.textContent = c.name; cSel.appendChild(o); });
+    const sSel = document.getElementById("fStatus"); sSel.innerHTML = "";
+    STATUSES.forEach(s => { const o = document.createElement("option"); o.value = s.id; o.textContent = s.name; sSel.appendChild(o); });
+    sSel.value = "todo";
+  }
+  const modalBack = document.getElementById("modalBack");
+  function todayKeyStr() { return `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,"0")}-${String(today.getDate()).padStart(2,"0")}`; }
+  function openModal() {
+    document.getElementById("addForm").reset();
+    document.getElementById("fDate").value = state.selectedKey || todayKeyStr();
+    const mid = document.querySelector('input[name="prio"][value="中"]'); if (mid) mid.checked = true;
+    document.getElementById("fStatus").value = "todo";
+    modalBack.classList.add("open");
+    setTimeout(() => document.getElementById("fTitle").focus(), 30);
+  }
+  function closeModal() { modalBack.classList.remove("open"); }
+  document.getElementById("addBtn").onclick = openModal;
+  document.getElementById("cancelBtn").onclick = closeModal;
+  modalBack.addEventListener("click", (e) => { if (e.target === modalBack) closeModal(); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeModal(); });
+  document.getElementById("addForm").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const title = document.getElementById("fTitle").value.trim();
+    if (!title) return;
+    const member = document.getElementById("fMember").value;
+    const cat = document.getElementById("fCat").value;
+    const date = document.getElementById("fDate").value;
+    const status = document.getElementById("fStatus").value;
+    const prio = (document.querySelector('input[name="prio"]:checked') || {}).value || "中";
+    if (!date) return;
+    const t = addTask({ title, member, cat, date, status, prio });
+    // 追加先の月へ移動し、その日を選択。フィルタで隠れないよう対象をON
+    state.year = t.y; state.month = t.mo; state.selectedKey = t.key;
+    state.dept.add(t.dept); state.cat.add(t.cat); state.status.add(t.status); state.prio.add(t.prio);
+    buildFilters(); closeModal(); render();
+    toast(`「${title}」を追加しました`);
+  });
+
+  let toastTimer;
+  function toast(msg) {
+    const el = document.getElementById("toast");
+    el.textContent = msg; el.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.classList.remove("show"), 2200);
   }
 
   // 初期化
   buildFilters();
   buildDow();
+  fillSelects();
   render();
   matchMedia("(prefers-color-scheme: dark)").addEventListener("change", render);
 })();
