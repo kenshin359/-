@@ -97,16 +97,20 @@ async function main() {
   }
   console.log(`日次レコード: ${records.length}件`);
 
-  // ① 日別×商品（媒体合算）
+  // ① 日別×商品（媒体合算）と 日別×媒体の売上金額
   const daily = {};
+  const dailyCh = {};
   for (const rec of records) {
     const d = rec.report_date?.value;
     if (!d) continue;
     const day = (daily[d] ??= {});
+    const dayCh = (dailyCh[d] ??= {});
     for (const row of rec.detail?.value ?? []) {
       const v = row.value ?? {};
       const pr = v.s_product?.value ?? '不明';
+      const ch = v.s_channel?.value ?? '不明';
       day[pr] = (day[pr] ?? 0) + Number(v.s_qty?.value ?? 0);
+      dayCh[ch] = (dayCh[ch] ?? 0) + Number(v.s_amount?.value ?? 0);
     }
   }
 
@@ -128,6 +132,8 @@ async function main() {
 
   console.log('\n===DAILY_B===');
   console.log(encodeDigits(JSON.stringify({ month, daily })));
+  console.log('===DAILY_CH_B===');
+  console.log(encodeDigits(JSON.stringify({ month, dailyCh })));
   console.log('===SKU_B===');
   console.log(encodeDigits(JSON.stringify({ month, sku: Object.fromEntries(sku) })));
 }
