@@ -1,0 +1,54 @@
+# ============================================================
+#  レビュー返信パック → Chatwork（手動実行）
+# ------------------------------------------------------------
+#  ショップレビューと全商品の商品レビューから
+#  「過去N日・未返信」を全部拾い、コピペ用の返信文つき
+#  エクセルにしてCSルームへ送ります。
+#  ★テンプレート方式なのでAIキーは不要です。
+#  ★楽天へは読み取りだけ。自動投稿はしません。
+# ============================================================
+name: レビュー返信パック送信（手動）
+
+on:
+  workflow_dispatch:
+    inputs:
+      days:
+        description: '何日ぶんさかのぼるか'
+        required: false
+        default: '7'
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: daily-report-system
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: エクセルライブラリを入れる
+        run: pip install --quiet openpyxl
+
+      - name: 未返信レビューを集めて返信文を付ける
+        env:
+          RAKUTEN_SHOP_ID: '407466'
+          RAKUTEN_SHOP_CODE: libetee
+          APP_ENV: production
+        run: node scripts/replyPack.js --days=${{ inputs.days || '7' }}
+
+      - name: エクセルにする
+        run: python3 scripts/buildReplyPackXlsx.py out/reply-pack.json out/reply-pack.xlsx
+
+      - name: Chatworkへ送る
+        env:
+          CHATWORK_API_TOKEN: ${{ secrets.CHATWORK_API_TOKEN }}
+          CHATWORK_CS_ROOM_ID: ${{ secrets.CHATWORK_CS_ROOM_ID }}
+          CHATWORK_SALES_ROOM_ID: ${{ secrets.CHATWORK_SALES_ROOM_ID }}
+          CHATWORK_ROOM_ID: ${{ secrets.CHATWORK_ROOM_ID }}
+          APP_ENV: production
+        run: node scripts/sendReplyPack.js

@@ -62,6 +62,8 @@
     "monthly:sku": "node scripts/monthlySkuDaily.js",
     "reviews:inbox": "node scripts/reviewInbox.js",
     "reviews:inbox:send": "node scripts/sendReviewInbox.js",
-    "shopify:token": "node scripts/shopifyToken.js"
+    "shopify:token": "node scripts/shopifyToken.js",
+    "replies:pack": "node scripts/replyPack.js",
+    "replies:pack:send": "node scripts/sendReplyPack.js"
   }
 }

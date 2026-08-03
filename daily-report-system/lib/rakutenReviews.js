@@ -208,7 +208,14 @@ export async function fetchShopReviews(pages = 2) {
   const all = [];
   for (let p = 1; p <= pages; p++) {
     if (p > 1) await sleep(POLITE_DELAY_MS);
-    const rows = parseReviews(htmlToLines(await fetchHtml(shopReviewUrl(p))));
+    let html;
+    try {
+      html = await fetchHtml(shopReviewUrl(p));
+    } catch (e) {
+      if (p > 1) break; // 末尾より先のページは無いものとして扱う
+      throw e;
+    }
+    const rows = parseReviews(htmlToLines(html));
     if (!rows.length) break;
     all.push(...rows.map((r) => ({ ...r, source: 'shop' })));
   }
@@ -220,7 +227,15 @@ export async function fetchItemReviews(itemId, pages = 2) {
   const all = [];
   for (let p = 1; p <= pages; p++) {
     if (p > 1) await sleep(POLITE_DELAY_MS);
-    const html = await fetchHtml(itemReviewUrl(itemId, p));
+    let html;
+    try {
+      html = await fetchHtml(itemReviewUrl(itemId, p));
+    } catch (e) {
+      // 2ページ目以降のエラーは「もうページが無い」扱い。
+      // （レビューが少ない商品は、存在しないページ番号に500を返すため）
+      if (p > 1) break;
+      throw e;
+    }
     const rows = parseReviews(htmlToLines(html));
     if (!rows.length) break;
     // 商品名やページ共通の定型文を落としてから積む
