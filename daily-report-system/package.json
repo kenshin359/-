@@ -60,6 +60,8 @@
     "daily:brief": "node scripts/dailyBrief.js",
     "monthly:units": "node scripts/monthlyUnits.js",
     "monthly:sku": "node scripts/monthlySkuDaily.js",
+    "reviews:inbox": "node scripts/reviewInbox.js",
+    "reviews:inbox:send": "node scripts/sendReviewInbox.js",
     "shopify:token": "node scripts/shopifyToken.js"
   }
 }

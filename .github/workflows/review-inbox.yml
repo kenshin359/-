@@ -1,0 +1,53 @@
+# ============================================================
+#  返信待ちレビューPDF → Chatwork（手動実行）
+# ------------------------------------------------------------
+#  楽天の公開レビューページから「過去N日・店舗返信なし」の
+#  ショップレビューを集め、PDFにしてChatworkのルームへ送ります。
+#  ★楽天へは読み取りだけ。キントーンには触りません。
+# ============================================================
+name: 返信待ちレビューPDF送信（手動）
+
+on:
+  workflow_dispatch:
+    inputs:
+      days:
+        description: '何日ぶんさかのぼるか'
+        required: false
+        default: '7'
+      room:
+        description: '送り先のChatworkルーム名'
+        required: false
+        default: 'CSレビューチーム'
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: daily-report-system
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: PDFライブラリを入れる
+        run: pip install --quiet reportlab
+
+      - name: 未返信レビューを集める
+        env:
+          RAKUTEN_SHOP_ID: '407466'
+          RAKUTEN_SHOP_CODE: libetee
+          APP_ENV: production
+        run: node scripts/reviewInbox.js --days=${{ inputs.days || '7' }} --pages=10
+
+      - name: PDFにする
+        run: python3 scripts/buildReviewInboxPdf.py out/review-inbox.json out/review-inbox.pdf
+
+      - name: Chatworkへ送る
+        env:
+          CHATWORK_API_TOKEN: ${{ secrets.CHATWORK_API_TOKEN }}
+          APP_ENV: production
+        run: node scripts/sendReviewInbox.js "--room=${{ inputs.room || 'CSレビューチーム' }}"
