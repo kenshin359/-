@@ -1,16 +1,18 @@
 # ============================================================
-#  CSレビュー返信の下書き  自動送信（毎朝 8:00 日本時間）
+#  CSレビュー返信パック  自動送信（毎朝 8:00 日本時間）
 # ------------------------------------------------------------
-#  前日ぶんの新しい楽天レビューを拾って、
-#  アルバイトの方がそのままコピペできる返信の下書きを作り、
-#  Chatwork の CSグループへ送ります。
+#  ショップレビューと全商品の商品レビューから
+#  「過去7日・未返信」を全件拾い、コピペ用の返信文つき
+#  エクセルにして Chatwork のCSルームへ送ります。
+#
+#  ★テンプレート方式（AIキー不要・費用ゼロ）。
+#  ★状態管理なし: 毎朝「その時点の未返信一覧」を丸ごと送るので、
+#    返信済みのものは翌朝のリストから自動で消えます。
+#    取りこぼしも二重送信もこの仕組みでは起きません。
+#  ★楽天へは読み取りだけ。自動投稿はしません。
 #
 #  ★このリポジトリは公開設定です。
-#    実行ログも第三者から見えるため、--quiet を付けて
-#    レビュー本文・投稿者名をログに出さないようにしています。
-#
-#  ★鍵（トークン類）は GitHub の Secrets に入れます。
-#    リポジトリ → Settings → Secrets and variables → Actions
+#    実行ログにレビュー本文・投稿者名は出しません（件数のみ）。
 # ============================================================
 name: CSレビュー返信の下書き（毎朝8:00）
 
@@ -18,12 +20,12 @@ on:
   schedule:
     # GitHub の時刻は UTC。日本時間 8:00 = 前日 23:00 UTC
     - cron: '0 23 * * *'
-  # 手動でも動かせるようにしておく（Actions画面の「Run workflow」）
   workflow_dispatch:
-
-# 送信済みの記録をコミットして残すために必要
-permissions:
-  contents: write
+    inputs:
+      days:
+        description: '何日ぶんさかのぼるか'
+        required: false
+        default: '7'
 
 concurrency:
   group: cs-reviews
@@ -47,15 +49,10 @@ jobs:
         env:
           CHATWORK_API_TOKEN: ${{ secrets.CHATWORK_API_TOKEN }}
           CHATWORK_CS_ROOM_ID: ${{ secrets.CHATWORK_CS_ROOM_ID }}
-          RAKUTEN_SHOP_ID: ${{ secrets.RAKUTEN_SHOP_ID }}
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
           missing=""
           [ -z "$CHATWORK_API_TOKEN" ]  && missing="$missing CHATWORK_API_TOKEN"
           [ -z "$CHATWORK_CS_ROOM_ID" ] && missing="$missing CHATWORK_CS_ROOM_ID"
-          [ -z "$RAKUTEN_SHOP_ID" ]     && missing="$missing RAKUTEN_SHOP_ID"
-          # ★返信文はお客様のレビューに合わせて書くため、AIの鍵が必須です
-          [ -z "$ANTHROPIC_API_KEY" ]   && missing="$missing ANTHROPIC_API_KEY"
           if [ -n "$missing" ]; then
             echo "::error::次の設定（Secrets）が足りません:$missing"
             echo "リポジトリ → Settings → Secrets and variables → Actions で登録してください。"
@@ -63,29 +60,24 @@ jobs:
           fi
           echo "設定OK"
 
-      - name: 返信下書きの作成と送信
+      - name: エクセルライブラリを入れる
+        run: pip install --quiet openpyxl
+
+      - name: 未返信レビューを集めて返信文を付ける
+        env:
+          RAKUTEN_SHOP_ID: ${{ secrets.RAKUTEN_SHOP_ID || '407466' }}
+          RAKUTEN_SHOP_CODE: libetee
+          APP_ENV: production
+        run: node scripts/replyPack.js --days=${{ inputs.days || '7' }}
+
+      - name: エクセルにする
+        run: python3 scripts/buildReplyPackXlsx.py out/reply-pack.json out/reply-pack.xlsx
+
+      - name: Chatworkへ送る
         env:
           CHATWORK_API_TOKEN: ${{ secrets.CHATWORK_API_TOKEN }}
           CHATWORK_CS_ROOM_ID: ${{ secrets.CHATWORK_CS_ROOM_ID }}
-          RAKUTEN_SHOP_ID: ${{ secrets.RAKUTEN_SHOP_ID }}
-          RAKUTEN_ITEM_IDS: ${{ secrets.RAKUTEN_ITEM_IDS }}
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          ANTHROPIC_MODEL: claude-sonnet-5
+          CHATWORK_SALES_ROOM_ID: ${{ secrets.CHATWORK_SALES_ROOM_ID }}
+          CHATWORK_ROOM_ID: ${{ secrets.CHATWORK_ROOM_ID }}
           APP_ENV: production
-          REPORT_TIMEZONE: Asia/Tokyo
-        # ★--quiet: お客様のレビュー本文と投稿者名をログに出しません
-        run: npm run replies -- --quiet
-
-      - name: 送信済みの記録を残す
-        # ★これをしないと、毎朝おなじレビューの下書きをくり返し送ってしまいます
-        run: |
-          if [ -n "$(git status --porcelain -- state/replied-reviews.json)" ]; then
-            git config user.name  "libetee-bot"
-            git config user.email "libetee-bot@users.noreply.github.com"
-            git add state/replied-reviews.json
-            git commit -m "CSレビュー返信の記録を更新（自動）"
-            git push
-            echo "記録を保存しました"
-          else
-            echo "新しく下書きしたレビューはありません"
-          fi
+        run: node scripts/sendReplyPack.js
