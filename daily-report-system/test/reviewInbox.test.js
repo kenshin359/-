@@ -8,7 +8,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { filterPending, parseJpDate } from '../scripts/reviewInbox.js';
-import { findRoom } from '../scripts/sendReviewInbox.js';
+import { findRoom, normalizeRoomName, candidateRooms } from '../scripts/sendReviewInbox.js';
 
 test('過去7日かつ未返信のレビューだけが残る', () => {
   const rows = [
@@ -37,4 +37,15 @@ test('ルーム名は完全一致を最優先、部分一致は1件のときだ�
   assert.equal(findRoom(rooms, '経営'), rooms[2]);
   assert.equal(findRoom(rooms, 'CS'), null, '部分一致が複数なら選ばない（誤送信防止）');
   assert.equal(findRoom(rooms, '存在しない'), null);
+});
+
+test('表記ゆれ（全角・スペース・かざり）を吸収して見つける', () => {
+  assert.equal(normalizeRoomName('【ＣＳ レビュー チーム】'), 'csレビューチーム');
+  const rooms = [
+    { room_id: 1, name: '【CS】レビューチーム☆' },
+    { room_id: 2, name: '経営会議' },
+  ];
+  assert.equal(findRoom(rooms, 'CSレビューチーム').room_id, 1);
+  const cands = candidateRooms(rooms, 'CSレビューチーム');
+  assert.deepEqual(cands.map((r) => r.room_id), [1]);
 });

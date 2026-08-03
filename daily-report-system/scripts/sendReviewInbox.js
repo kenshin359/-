@@ -10,8 +10,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { required } from '../lib/env.js';
-import { uploadChatworkFile } from '../lib/chatwork.js';
+import { required, optional } from '../lib/env.js';
+import { uploadChatworkFile, pushChatwork } from '../lib/chatwork.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const OUT = path.join(path.resolve(__dirname, '..'), 'out');
@@ -21,12 +21,36 @@ function arg(name, fallback) {
   return hit ? hit.slice(name.length + 3) : fallback;
 }
 
-/** ルーム一覧から名前で探す（完全一致→部分一致の順） */
+/** 表記ゆれを吸収する（全半角・スペース・かざり文字を無視） */
+export function normalizeRoomName(s) {
+  return String(s ?? '')
+    .normalize('NFKC')
+    .toLowerCase()
+    .replace(/[\s　]/g, '')
+    .replace(/[【】\[\]（）()『』「」☆★・|｜~〜!！?？]/g, '');
+}
+
+/** ルーム一覧から名前で探す（完全一致→正規化一致→片方が含む場合の一意一致） */
 export function findRoom(rooms, name) {
   const exact = rooms.find((r) => r.name === name);
   if (exact) return exact;
-  const partial = rooms.filter((r) => (r.name ?? '').includes(name));
-  return partial.length === 1 ? partial[0] : null;
+  const q = normalizeRoomName(name);
+  const normEq = rooms.filter((r) => normalizeRoomName(r.name) === q);
+  if (normEq.length === 1) return normEq[0];
+  const contains = rooms.filter((r) => {
+    const n = normalizeRoomName(r.name);
+    return n.includes(q) || (q.length >= 3 && n && q.includes(n));
+  });
+  return contains.length === 1 ? contains[0] : null;
+}
+
+/** 見つからないとき、近そうな候補（レビュー/CSを含む名前） */
+export function candidateRooms(rooms, name) {
+  const keys = ['レビュー', 'review', 'cs', 'カスタマー'];
+  return rooms.filter((r) => {
+    const n = normalizeRoomName(r.name);
+    return keys.some((k) => n.includes(normalizeRoomName(k)));
+  });
 }
 
 async function main() {
@@ -43,13 +67,28 @@ async function main() {
     const rooms = await res.json();
     const hit = findRoom(rooms, roomName);
     if (!hit) {
+      // 候補のルーム名は公開ログに出さず、いつものChatworkルームへ知らせる
+      const cands = candidateRooms(rooms, roomName);
+      const fallbackRoom = optional('CHATWORK_SALES_ROOM_ID') || optional('CHATWORK_ROOM_ID');
+      if (fallbackRoom) {
+        const lines = [
+          `[info][title]⚠ レビューPDFを送れませんでした[/title]`,
+          `「${roomName}」というルームが見つかりません（このトークンが入っている${rooms.length}ルームの中に無い）。`,
+          cands.length
+            ? `近そうなルーム:\n${cands.map((r) => `・${r.name}（ID: ${r.room_id}）`).join('\n')}\n上の正しいルーム名（またはID）を教えてください。`
+            : 'トークンのアカウントがそのルームに入っているかもご確認ください。',
+          '[/info]',
+        ].join('\n');
+        await pushChatwork(lines, { roomId: fallbackRoom });
+        console.log('ルームが見つからないため、既定ルームに候補一覧を送りました');
+      }
       throw new Error(
-        `「${roomName}」というルームが見つかりません（候補${rooms.length}件中）。` +
+        `「${roomName}」というルームが見つかりません（${rooms.length}ルーム中・候補${cands.length}件はChatworkに送付）。` +
           'ルーム名を確認するか、--room-id=数字 で直接指定してください。'
       );
     }
     roomId = String(hit.room_id);
-    console.log(`ルーム「${hit.name}」(${roomId}) に送ります`);
+    console.log(`ルーム（ID: ${roomId}）に送ります`);
   }
 
   const meta = JSON.parse(fs.readFileSync(path.join(OUT, 'review-inbox.json'), 'utf8')).meta;
