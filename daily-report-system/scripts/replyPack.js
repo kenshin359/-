@@ -20,6 +20,7 @@ import {
 } from '../lib/rakutenReviews.js';
 import { loadBlocks, assembleReply, auditReply } from '../lib/replyDraft.js';
 import { draftFromTemplates, assembleNegativeReply } from '../lib/replyTemplates.js';
+import { callClaudeRaw, parseJsonFromModel } from '../lib/claude.js';
 import { filterPending } from './reviewInbox.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -55,10 +56,43 @@ async function main() {
     for (const r of pending) rows.push({ ...r, kind: '商品レビュー', product: it.product, itemCode: it.code });
   }
 
-  // 返信文を全件に付ける
+  // 返信文を全件に付ける。
+  // ★ANTHROPIC_API_KEY があればAIがレビューごとに個別の一文を書き、
+  //   無いとき・失敗したときはテンプレート文例で書く（朝の便を止めない）。
+  const useAi = !!process.env.ANTHROPIC_API_KEY;
+  let aiOk = 0;
+  let aiFail = 0;
+  const promptPath = path.join(path.resolve(__dirname, '..'), 'prompts', 'review-reply-prompt.md');
+  const system = useAi && fs.existsSync(promptPath) ? fs.readFileSync(promptPath, 'utf8') : '';
+  console.log(useAi ? 'AIで個別文を作ります（失敗時はテンプレートに切替）…' : 'テンプレート方式で作ります（ANTHROPIC_API_KEY 未設定）…');
+
+  async function draftFor(review) {
+    if (useAi && system) {
+      try {
+        const raw = await callClaudeRaw({
+          system,
+          userText:
+            '### 文体の見本（この言い回しに寄せてください）\n```json\n' +
+            JSON.stringify(cfg.style_examples ?? [], null, 2) +
+            '\n```\n\n### 事実（ここに無いことは書かないでください）\n```json\n' +
+            JSON.stringify(cfg.facts, null, 2) +
+            '\n```\n\n### お客様のレビュー\n' +
+            `星: ${review.star}\n投稿日: ${review.date}\n本文:\n${review.body}\n`,
+          maxTokens: 700,
+        });
+        aiOk++;
+        return parseJsonFromModel(raw);
+      } catch (e) {
+        aiFail++;
+        console.warn(`  ⚠ AI下書き失敗→テンプレートに切替（★${review.star} ${review.date}）: ${e.message}`);
+      }
+    }
+    return draftFromTemplates(review);
+  }
+
   const out = [];
   for (const r of rows) {
-    const ai = draftFromTemplates(r);
+    const ai = await draftFor(r);
     const built = assembleReply(ai, r, cfg);
     // 低評価は明るい結びを使わない専用の組み立てに差し替える
     if (Number(r.star) <= 3) built.text = assembleNegativeReply(ai, cfg);
@@ -100,6 +134,7 @@ async function main() {
     `\n書き出し: out/reply-pack.json\n` +
       `  合計 ${meta.counts.total}件（ショップ ${meta.counts.shop} ／ 商品 ${meta.counts.item} ／ 要確認 ${meta.counts.needsHuman}）`
   );
+  if (useAi) console.log(`  AI下書き: 成功${aiOk}件 ／ テンプレートに切替${aiFail}件`);
 }
 
 if (process.argv[1] && process.argv[1].endsWith('replyPack.js')) {

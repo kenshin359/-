@@ -5,7 +5,9 @@
 #  「過去7日・未返信」を全件拾い、コピペ用の返信文つき
 #  エクセルにして Chatwork のCSルームへ送ります。
 #
-#  ★テンプレート方式（AIキー不要・費用ゼロ）。
+#  ★ANTHROPIC_API_KEY が登録されていればAIがレビューごとに
+#    個別の文面を書きます。未登録・失敗時はテンプレート文例に
+#    自動で切り替わるため、朝の便は止まりません。
 #  ★状態管理なし: 毎朝「その時点の未返信一覧」を丸ごと送るので、
 #    返信済みのものは翌朝のリストから自動で消えます。
 #    取りこぼしも二重送信もこの仕組みでは起きません。
@@ -49,6 +51,7 @@ jobs:
         env:
           CHATWORK_API_TOKEN: ${{ secrets.CHATWORK_API_TOKEN }}
           CHATWORK_CS_ROOM_ID: ${{ secrets.CHATWORK_CS_ROOM_ID }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
           missing=""
           [ -z "$CHATWORK_API_TOKEN" ]  && missing="$missing CHATWORK_API_TOKEN"
@@ -57,6 +60,9 @@ jobs:
             echo "::error::次の設定（Secrets）が足りません:$missing"
             echo "リポジトリ → Settings → Secrets and variables → Actions で登録してください。"
             exit 1
+          fi
+          if [ -z "$ANTHROPIC_API_KEY" ]; then
+            echo "::warning::ANTHROPIC_API_KEY が未登録のため、今回はテンプレート方式で作ります（登録するとAIが個別の文面を書きます）"
           fi
           echo "設定OK"
 
@@ -67,6 +73,8 @@ jobs:
         env:
           RAKUTEN_SHOP_ID: ${{ secrets.RAKUTEN_SHOP_ID || '407466' }}
           RAKUTEN_SHOP_CODE: libetee
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          ANTHROPIC_MODEL: claude-sonnet-5
           APP_ENV: production
         run: node scripts/replyPack.js --days=${{ inputs.days || '7' }}
 

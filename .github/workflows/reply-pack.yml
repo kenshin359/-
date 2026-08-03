@@ -38,6 +38,8 @@ jobs:
         env:
           RAKUTEN_SHOP_ID: '407466'
           RAKUTEN_SHOP_CODE: libetee
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          ANTHROPIC_MODEL: claude-sonnet-5
           APP_ENV: production
         run: node scripts/replyPack.js --days=${{ inputs.days || '7' }}
 
