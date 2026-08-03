@@ -13,12 +13,12 @@
 #  ★鍵（トークン類）は GitHub の Secrets に入れます。
 #    リポジトリ → Settings → Secrets and variables → Actions
 # ============================================================
-name: Shopify売上取込（毎朝8:00）
+name: Shopify売上取込（毎朝7:12）
 
 on:
   schedule:
-    # GitHub の時刻は UTC。日本時間 8:00 = 前日 23:00 UTC
-    - cron: '0 23 * * *'
+    # 日本時間 7:12 = 前日 22:12 UTC（混雑する23:00丁度を避けて前倒し）
+    - cron: '12 22 * * *'
   workflow_dispatch:
     inputs:
       from:

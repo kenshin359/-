@@ -12,12 +12,12 @@
 #
 #  ★鍵（トークン類）は GitHub の Secrets に入れます。
 # ============================================================
-name: Amazon売上取込（毎朝8:15）
+name: Amazon売上取込（毎朝7:19）
 
 on:
   schedule:
-    # GitHub の時刻は UTC。日本時間 8:15 = 前日 23:15 UTC
-    - cron: '15 23 * * *'
+    # 日本時間 7:19 = 前日 22:19 UTC（混雑回避のため前倒し）
+    - cron: '19 22 * * *'
   workflow_dispatch:
     inputs:
       from:
