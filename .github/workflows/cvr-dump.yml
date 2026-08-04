@@ -1,0 +1,40 @@
+# ============================================================
+#  転換率・アクセスの取り出し（手動実行のみ）
+# ------------------------------------------------------------
+#  売上・転換率報告アプリ（手入力・ID7）から直近の
+#  アクセス数・転換率をログに出力します。分析資料用。
+#  ★キントーンは読むだけ。書き込みは一切しません。
+# ============================================================
+name: 転換率データ取り出し（手動）
+
+on:
+  workflow_dispatch:
+    inputs:
+      days:
+        description: '何日ぶんさかのぼるか'
+        required: false
+        default: '7'
+
+jobs:
+  dump:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: daily-report-system
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 取り出してログに出す
+        env:
+          KINTONE_BASE_URL: ${{ secrets.KINTONE_BASE_URL }}
+          KINTONE_USER: ${{ secrets.KINTONE_USER }}
+          KINTONE_PASSWORD: ${{ secrets.KINTONE_PASSWORD }}
+          KINTONE_SALES_APP_ID: ${{ secrets.KINTONE_SALES_APP_ID || '7' }}
+          APP_ENV: production
+          REPORT_TIMEZONE: Asia/Tokyo
+        run: node scripts/cvrDump.js --days=${{ inputs.days || '7' }}
