@@ -10,6 +10,7 @@ import { loadConfig } from "./config.js";
 import { say } from "./util/log.js";
 import { detectDanger } from "./safety/dangerDetector.js";
 import { checkPromises } from "./safety/promiseChecker.js";
+import { runQualityChecks } from "./safety/qualityChecks.js";
 import { generateReply } from "./reply/generateReply.js";
 import { assembleReply } from "./reply/assembleReply.js";
 import { classify } from "./triage/classify.js";
@@ -67,9 +68,11 @@ async function main() {
       blocks: cfg.replyBlocks,
     });
     const promise = checkPromises(reply, cfg.promiseCheck);
+    const quality = runQualityChecks({ reviewBody: r.body, replyText: reply, category: r.category }, cfg.qualityCheck);
     const reasons = [...danger.reasons];
     if (!promise.ok) promise.violations.forEach((v) => reasons.push(`【文面注意】${v}`));
-    const needsHuman = danger.needsHuman || !promise.ok;
+    if (!quality.ok) quality.reasons.forEach((v) => reasons.push(`【文面注意】${v}`));
+    const needsHuman = danger.needsHuman || !promise.ok || !quality.ok;
 
     csEntries.push({ kind: r.kind, productName: r.productName, rating: r.rating, date: r.date, author: r.author, body: r.body, reply, needsHuman, reasons });
 

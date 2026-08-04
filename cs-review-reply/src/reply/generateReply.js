@@ -3,6 +3,8 @@
 //   安全判定はあくまで dangerDetector.js（プログラム側）が決めます。
 //   AIには「文章づくり」と「参考情報（分類・SNS向きか）」だけを任せます。
 //
+import { stripWrappingQuotes } from "../safety/qualityChecks.js";
+
 // SDKは使わず fetch で直接叩く（依存を増やさない）。
 // APIキーが無い／APP_ENV=test のときは、オフラインでも --dry-run できるよう
 // 決め打ちの安全なひな形を返します（本番運用では必ずキーを設定してください）。
@@ -16,16 +18,38 @@ const STYLE_EXAMPLES = [
   "検品体制の見直しに努めてまいります。",
 ];
 
+const CATEGORY_LABEL = {
+  suitcase: "スーツケース／キャリーケース",
+  fan: "ハンディファン／扇風機（クリップ・卓上・首振り等）",
+  beauty: "美容家電（ドライヤー・洗顔ブラシ等）",
+  unknown: "（商品は特定できません：ショップ全体または不明）",
+};
+
 function buildPrompt(review) {
+  const cat = review.category || "unknown";
+  const catLabel = CATEGORY_LABEL[cat] || CATEGORY_LABEL.unknown;
+  const productName = review.productName && review.productName !== "ショップレビュー" ? review.productName : "";
+
   return `あなたは日本の通販会社CSチームの返信文作成担当です。楽天レビューへの返信の一部を作ります。
+
+# この返信の対象商品（重要）
+- 種別：${catLabel}
+${productName ? `- 商品名：${productName}` : "- 商品名：不明"}
+★この商品に無い機能を、レビューに書かれていない限り絶対に書かないでください。
+　特に、種別が「スーツケース」以外のときは「キャスター」「ヒノモトキャスター」「TSAロック」「キャリーバー」「フロントオープン」等のスーツケース専用語を絶対に使わないでください（過去にファンの返信にキャスターと書く事故がありました）。
+★レビューに書かれていない事実（材質・機能・受賞歴など）を勝手に付け足さないでください。
 
 # 手本の言い回し（この文体・丁寧さに寄せる。AI独自の言葉遣いにしない）
 ${STYLE_EXAMPLES.map((s) => "- " + s).join("\n")}
 
 # 書き方の決まり
-- ③本文：レビューに書かれている“具体的な言葉”を拾う（例：「キャスターが静か」なら静音性に触れる）。何にでも当てはまる文にしない。用途（旅行・出張・プレゼント・買い替え）が書かれていたら触れる。2〜4文、150字以内、敬体、感嘆符を多用しない。
+- ③本文：レビューに書かれている“具体的な言葉”を拾う（例：「風が強い」なら風量に触れる）。何にでも当てはまる文にしない。用途（旅行・出張・プレゼント・買い替え）が書かれていたら触れる。2〜4文、150字以内、敬体、感嘆符を多用しない。
+- ★③はお礼の言葉（「ありがとうございます」「御礼」「感謝」等）で締めないでください。挨拶と感謝は別の固定文で既に述べています。重複します。
+- ★同じ言い回し・語尾（例：「安心いたしました」「光栄です」「嬉しく思います」）を1つの返信の中で2回以上使わないでください。
+- ★不満・要望の見分け（誤読厳禁）：「〜たら良かった」「〜してほしかった」「〜だと良かった」「もう少し〜」「〜が残念」「〜が気になる」は“不満・要望”です。これを満足・お褒めと取り違えないでください。不満点にお礼を言ってはいけません（例：「梱包が雑」に「梱包にご満足いただけたようで」は重大な誤り）。
 - ④謝罪・改善：不満・要望・納期の遅れ・使いにくさが書かれているときだけ書く。まず謝る。言い訳を先に書かない。「今後の商品改善の参考にさせていただきます」で締める。無いなら空文字。
 - ★できない約束は絶対にしない：「送料無料」「弊社負担」「全額」「返金します」「新品と交換」「無償で交換」などは書かない。
+- ★出力の本文を引用符（「」『』〝〟"）で囲まないでください。そのままコピペして使うため、記号が混ざると困ります。
 
 # 出力（JSONのみ。前後に説明文を付けない）
 {
@@ -108,11 +132,11 @@ export async function generateReply(review, cfg) {
     const data = await res.json();
     const text = (data.content || []).map((c) => c.text || "").join("");
     const parsed = extractJson(text);
-    // 型をそろえる（欠けていても落ちないように）
+    // 型をそろえる（欠けていても落ちないように）。★本文の囲み引用符は除去（問題1）。
     return {
-      body: parsed.body || "",
+      body: stripWrappingQuotes(parsed.body || ""),
       needs_apology: !!parsed.needs_apology,
-      apology: parsed.apology || "",
+      apology: stripWrappingQuotes(parsed.apology || ""),
       sentiment: parsed.sentiment || "neutral",
       is_product_complaint: !!parsed.is_product_complaint,
       issue_category: parsed.issue_category || "なし",

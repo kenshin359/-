@@ -18,6 +18,7 @@ import { fetchHtml } from "./rakuten/fetch.js";
 import { parseReviews } from "./rakuten/parseReviews.js";
 import { detectDanger } from "./safety/dangerDetector.js";
 import { checkPromises } from "./safety/promiseChecker.js";
+import { runQualityChecks } from "./safety/qualityChecks.js";
 import { generateReply } from "./reply/generateReply.js";
 import { assembleReply } from "./reply/assembleReply.js";
 import { classify } from "./triage/classify.js";
@@ -156,13 +157,22 @@ async function main() {
     // ★文面の約束チェック（送料無料等）。引っかかったら送らず人へ回す。
     const promise = checkPromises(reply, cfg.promiseCheck);
 
+    // ★品質チェック（商品ミスマッチ・不満の誤読・語尾重複）。怪しいものは人へ回す。
+    const quality = runQualityChecks(
+      { reviewBody: r.body, replyText: reply, category: r.category },
+      cfg.qualityCheck
+    );
+
     const reasons = [...danger.reasons];
     if (!promise.ok) {
       for (const v of promise.violations) reasons.push(`【文面注意】${v}`);
     }
+    if (!quality.ok) {
+      for (const v of quality.reasons) reasons.push(`【文面注意】${v}`);
+    }
     if (ai._aiError) reasons.push("AI生成に失敗しひな形を使用（内容を必ず確認）");
 
-    const needsHuman = danger.needsHuman || !promise.ok;
+    const needsHuman = danger.needsHuman || !promise.ok || !quality.ok;
 
     csEntries.push({
       kind: r.kind,

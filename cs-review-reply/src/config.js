@@ -79,6 +79,7 @@ export function loadConfig({ needSend } = {}) {
     replyBlocks: readJson("config/reply-blocks.json"),
     dangerWords: readJson("config/danger-words.json"),
     promiseCheck: readJson("config/promise-check.json"),
+    qualityCheck: readJson("config/quality-check.json"),
     chinaDefects: readJson("config/china-defects.json"),
     items: readJson("config/rakuten-items.json"),
   };
