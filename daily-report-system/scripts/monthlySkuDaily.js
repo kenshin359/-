@@ -61,7 +61,7 @@ export function aggregateSkuRows(csvRows, into = new Map()) {
 
 function resolveMonth() {
   const arg = process.argv.find((a) => a.startsWith('--month='));
-  if (arg) return arg.slice('--month='.length);
+  if (arg) return arg.slice('--month='.length);   // YYYY-MM または YYYY-MM-DD（1日だけ）
   const now = new Date(Date.now() + 9 * 3600 * 1000);
   now.setUTCDate(1);
   now.setUTCMonth(now.getUTCMonth() - 1);
@@ -82,14 +82,22 @@ async function downloadFile(fileKey) {
 async function main() {
   const month = resolveMonth();
   const app = salesAppId();
-  const [y, m] = month.split('-').map(Number);
-  const to = `${month}-${String(new Date(Date.UTC(y, m, 0)).getUTCDate()).padStart(2, '0')}`;
-  console.log(`${month} の日別×商品 と SKU別集計を出します …`);
+  // YYYY-MM-DD なら1日だけ、YYYY-MM なら月全体
+  let from;
+  let to;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(month)) {
+    from = to = month;
+  } else {
+    const [y, m] = month.split('-').map(Number);
+    from = `${month}-01`;
+    to = `${month}-${String(new Date(Date.UTC(y, m, 0)).getUTCDate()).padStart(2, '0')}`;
+  }
+  console.log(`${from} 〜 ${to} の日別×商品 と SKU別集計を出します …`);
 
   const records = [];
   for (let offset = 0; ; offset += 100) {
     const q = encodeURIComponent(
-      `report_date >= "${month}-01" and report_date <= "${to}" order by report_date asc limit 100 offset ${offset}`
+      `report_date >= "${from}" and report_date <= "${to}" order by report_date asc limit 100 offset ${offset}`
     );
     const r = await call('GET', `/k/v1/records.json?app=${app}&query=${q}`);
     records.push(...(r.records ?? []));
