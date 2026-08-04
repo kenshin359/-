@@ -13,6 +13,11 @@
 | `article.md` | CMS入稿・編集用のMarkdown原稿（frontmatter付き） |
 | `index.html` | そのまま公開できるスタイル付きHTML（CTAボタン実装済み・レスポンシブ） |
 | `README.md` | 本ファイル（構成解説・使い方） |
+| `seo-strategy.md` | **SEO・コンテンツ戦略書**（執筆体制／キーワード設計／ボーケン試験活用／PR TIMES／アフィリ収益化／ステマ規制対応） |
+| `articles/boken-test-review.md` | 第三者目線の検証記事テンプレ（ボーケン試験PR・西岡執筆/北野監修） |
+| `pr-times/release-boken.md` | PR TIMES配信用リリース案 |
+
+> **SEO戦略の全体像は [`seo-strategy.md`](./seo-strategy.md) を参照。** 自社ブログ×PR TIMESの2チャネルで、第三者機関ボーケンの試験を信頼の核にCVへつなげる設計です。
 
 ## コンバージョン導線の設計
 
