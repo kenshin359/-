@@ -9,12 +9,14 @@
 #  ★何度動いても二重になりません。
 #    その日の「楽天」ぶんだけを入れ替えます。
 # ============================================================
-name: 楽天売上取込（毎朝7:26）
+name: 楽天売上取込（毎朝7:26・毎晩21:17速報）
 
 on:
   schedule:
-    # 日本時間 7:26 = 前日 22:26 UTC（混雑回避のため前倒し）
+    # 日本時間 7:26 = 前日 22:26 UTC（混雑回避のため前倒し）: 前日分の確定取込
     - cron: '26 22 * * *'
+    # 日本時間 21:17 = 12:17 UTC: 当日ここまでの速報取込（マラソン日の戦況確認用）
+    - cron: '17 12 * * *'
   workflow_dispatch:
     inputs:
       from:
@@ -82,4 +84,14 @@ jobs:
           args=""
           if [ -n "${{ inputs.from }}" ]; then args="$args --from=${{ inputs.from }}"; fi
           if [ -n "${{ inputs.to }}" ];   then args="$args --to=${{ inputs.to }}"; fi
+          # 夜の定期実行（UTC 10〜14時台）は「当日ここまで」の速報として取り込む。
+          # 朝の定期実行は従来どおり前日分（args指定なし＝昨日）。
+          if [ -z "$args" ] && [ "${{ github.event_name }}" = "schedule" ]; then
+            hour=$(date -u +%H)
+            if [ "$hour" -ge 10 ] && [ "$hour" -le 14 ]; then
+              today=$(TZ=Asia/Tokyo date +%F)
+              args="--from=$today --to=$today"
+              echo "夜の速報モード: $today の当日分を取り込みます（翌朝の便で確定し直します）"
+            fi
+          fi
           node scripts/rakutenImport.js $args

@@ -12,12 +12,27 @@
 //  月間目標は Secrets の SALES_TARGET_MONTHLY（円）で設定します。
 //  ★キントーンは読むだけ。書き込みは一切しません。
 // ============================================================
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { optional } from '../lib/env.js';
 import { call } from '../lib/intake.js';
 import { salesAppId } from '../lib/salesDetailWrite.js';
 import { yen } from '../lib/salesValues.js';
 import { pushChatwork } from '../lib/chatwork.js';
 import { resolveRange } from './shopifyImport.js';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+/** その月の日別計画（config/daily-plan-YYYY-MM.json）。無ければ null */
+export function loadDailyPlan(dateISO) {
+  const file = path.join(path.resolve(__dirname, '..'), 'config', `daily-plan-${dateISO.slice(0, 7)}.json`);
+  try {
+    return JSON.parse(fs.readFileSync(file, 'utf8'));
+  } catch {
+    return null;
+  }
+}
 
 function addDays(iso, n) {
   const d = new Date(`${iso}T00:00:00Z`);
@@ -41,6 +56,36 @@ async function fetchDays(app, fromISO, toISO) {
 
 function dayTotal(rec) {
   return (rec?.detail?.value ?? []).reduce((s, row) => s + Number(row.value?.s_amount?.value ?? 0), 0);
+}
+
+/** 日別計画との比較（当日と月累計）。plan が無ければ null */
+export function computePlanCompare(records, dateISO, plan) {
+  if (!plan?.days) return null;
+  const dayPlan = plan.days[dateISO];
+  const dayPlanTotal = dayPlan ? Object.values(dayPlan).reduce((s, v) => s + v, 0) : null;
+  const monthStart = `${dateISO.slice(0, 7)}-01`;
+  let mtdPlan = 0;
+  for (const [d, chs] of Object.entries(plan.days)) {
+    if (d >= monthStart && d <= dateISO) mtdPlan += Object.values(chs).reduce((s, v) => s + v, 0);
+  }
+  const byDate = new Map(records.map((r) => [r.report_date?.value, r]));
+  const today = byDate.get(dateISO);
+  const dayActual = (today?.detail?.value ?? []).reduce((s, row) => s + Number(row.value?.s_amount?.value ?? 0), 0);
+  let mtdActual = 0;
+  for (const r of records) {
+    const d = r.report_date?.value;
+    if (d && d >= monthStart && d <= dateISO) {
+      mtdActual += (r.detail?.value ?? []).reduce((s, row) => s + Number(row.value?.s_amount?.value ?? 0), 0);
+    }
+  }
+  return {
+    dayPlan: dayPlanTotal,
+    dayDiff: dayPlanTotal === null ? null : dayActual - dayPlanTotal,
+    mtdPlan,
+    mtdDiff: mtdActual - mtdPlan,
+    mtdRate: mtdPlan ? (mtdActual / mtdPlan) * 100 : null,
+    channels: dayPlan ?? null,
+  };
 }
 
 /** レコード群 → レポートの材料（計算は全部ここ。テストしやすい純関数） */
@@ -94,15 +139,23 @@ export function computeBrief(records, dateISO, monthlyTarget) {
 
 const pct = (v) => (v === null ? '—' : `${v >= 0 ? '+' : ''}${v.toFixed(1)}%`);
 
-export function formatBrief(b, dateISO, monthlyTarget) {
+export function formatBrief(b, dateISO, monthlyTarget, planCmp = null) {
   const lines = [
     `[info][title]🧭 参謀レポート ${dateISO}（全チャネル）[/title]`,
     `■ 総売上  ${yen(b.total)}`,
   ];
+  if (planCmp && planCmp.dayPlan !== null) {
+    const sign = planCmp.dayDiff >= 0 ? '+' : '';
+    lines.push(`■ 日別計画 ${yen(planCmp.dayPlan)} ／ 差額 ${sign}${yen(planCmp.dayDiff)} ${planCmp.dayDiff >= 0 ? '✅' : '⚠️'}`);
+  }
   if (monthlyTarget) {
     lines.push(`■ 月間目標 ${yen(monthlyTarget)} ／ 月累計 ${yen(b.mtd)} ／ 達成率 ${b.achievement.toFixed(1)}%`);
   } else {
     lines.push(`■ 月累計 ${yen(b.mtd)}（月間目標は SALES_TARGET_MONTHLY で設定できます）`);
+  }
+  if (planCmp && planCmp.mtdRate !== null) {
+    const sign = planCmp.mtdDiff >= 0 ? '+' : '';
+    lines.push(`■ 累計計画比 ${planCmp.mtdRate.toFixed(1)}%（計画 ${yen(planCmp.mtdPlan)} ／ 差額 ${sign}${yen(planCmp.mtdDiff)}）`);
   }
   lines.push(`■ 直近15日平均との差 ${pct(b.vsAvg)}`);
   lines.push(`■ 前月同期間比 ${pct(b.vsPrevMonth)}（前月同期間 ${yen(b.prevMtd)}）`);
@@ -129,7 +182,9 @@ async function main() {
   const { from } = resolveRange();
   const dateISO = from;
   const app = salesAppId();
-  const target = Number(optional('SALES_TARGET_MONTHLY', '')) || null;
+  const planForTarget = loadDailyPlan(dateISO);
+  // 月間目標: Secrets 優先、無ければ日別計画ファイルの monthly_target
+  const target = Number(optional('SALES_TARGET_MONTHLY', '')) || planForTarget?.monthly_target || null;
 
   // 15日平均＋前月比のため、前月初日から読む
   const monthStart = `${dateISO.slice(0, 7)}-01`;
@@ -142,7 +197,8 @@ async function main() {
     return;
   }
 
-  const body = formatBrief(brief, dateISO, target);
+  const planCmp = computePlanCompare(records, dateISO, planForTarget);
+  const body = formatBrief(brief, dateISO, target, planCmp);
   console.log(body);
 
   const roomId = optional('CHATWORK_SALES_ROOM_ID') || optional('CHATWORK_ROOM_ID');
