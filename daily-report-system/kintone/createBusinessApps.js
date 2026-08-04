@@ -10,6 +10,7 @@
 //    node kintone/createBusinessApps.js adcost     … 広告費のみ
 //    node kintone/createBusinessApps.js intake     … CSV提出ボックスのみ
 //    node kintone/createBusinessApps.js salesdetail … 売上明細のみ
+//    node kintone/createBusinessApps.js kpi         … 毎朝KPI報告のみ
 //    node kintone/createBusinessApps.js --dry-run  … 作らずに内容だけ表示
 //
 //  ★既存アプリは一切変更しません。新規に作るだけです。
@@ -20,6 +21,7 @@ import * as inventory from './inventorySchema.js';
 import * as adcost from './adCostSchema.js';
 import * as intake from './intakeSchema.js';
 import * as salesdetail from './salesDetailSchema.js';
+import * as kpi from './kpiSchema.js';
 import { VIEWS as AD_VIEWS, REPORTS as AD_REPORTS } from './adCostViews.js';
 import { VIEWS as INTAKE_VIEWS } from './intakeViews.js';
 import { VIEWS as INV_VIEWS, REPORTS as INV_REPORTS } from './inventoryViews.js';
@@ -122,6 +124,7 @@ async function main() {
   if (!which || which === 'adcost') targets.push(['adcost', adcost]);
   if (!which || which === 'intake') targets.push(['intake', intake]);
   if (!which || which === 'salesdetail') targets.push(['salesdetail', salesdetail]);
+  if (which === 'kpi') targets.push(['kpi', kpi]);
 
   if (isDry) {
     console.log('[dry-run] 作成せず、内容だけ表示します。');
@@ -134,6 +137,7 @@ async function main() {
     intake: { views: INTAKE_VIEWS },
     inventory: { views: INV_VIEWS, reports: INV_REPORTS },
     salesdetail: { views: SD_VIEWS, reports: SD_REPORTS },
+    kpi: { views: kpi.VIEWS },
   };
 
   const results = {};
@@ -146,6 +150,7 @@ async function main() {
   if (results.adcost) console.log(`KINTONE_ADCOST_APP_ID=${results.adcost}`);
   if (results.intake) console.log(`KINTONE_INTAKE_APP_ID=${results.intake}`);
   if (results.salesdetail) console.log(`KINTONE_SALES_DETAIL_APP_ID=${results.salesdetail}`);
+  if (results.kpi) console.log(`KINTONE_KPI_APP_ID=${results.kpi}`);
   console.log('この行を .env に貼り付けてください。');
   if (results.adcost) {
     console.log('');

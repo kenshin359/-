@@ -1,0 +1,32 @@
+# ============================================================
+#  毎朝KPI報告アプリの作成（手動・1回だけ）
+# ------------------------------------------------------------
+#  キントーンに「毎朝KPI報告（広告費・売上）」アプリを新規作成します。
+#  ★既存アプリは一切変更しません。新規に作るだけです。
+# ============================================================
+name: 毎朝KPI報告アプリ作成（手動）
+
+on:
+  workflow_dispatch:
+
+jobs:
+  create:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: daily-report-system
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: アプリを作成
+        env:
+          KINTONE_BASE_URL: ${{ secrets.KINTONE_BASE_URL }}
+          KINTONE_USER: ${{ secrets.KINTONE_USER }}
+          KINTONE_PASSWORD: ${{ secrets.KINTONE_PASSWORD }}
+          APP_ENV: production
+        run: node kintone/createBusinessApps.js kpi
