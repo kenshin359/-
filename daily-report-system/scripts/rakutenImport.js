@@ -114,7 +114,9 @@ async function main() {
     }
   }
 
-  if (!isDry) {
+  // --no-notify: 検算（salesRecheck）からの再取込ではChatwork通知を出さない
+  //  （差分報告は検算側がまとめて1通で送るため、二重通知を防ぐ）
+  if (!isDry && !process.argv.includes('--no-notify')) {
     await notifyResult({ dates, agg, orderCount, unmapped });
   }
 

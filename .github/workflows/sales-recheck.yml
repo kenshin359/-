@@ -1,0 +1,66 @@
+# ============================================================
+#  売上の検算（毎日 12:41 と 18:41・日本時間）
+# ------------------------------------------------------------
+#  キントーンの数字と販売元API（楽天・Shopify）の最新データを
+#  突き合わせ、ずれていたらその日だけ自動で取込し直します。
+#  修正したときだけ Chatwork に差分を報告します（ずれ無しなら静か）。
+#
+#  なぜ: 楽天の受注APIは反映が数時間遅れることがあり、
+#        キャンセルも取込後に起きるため。→「後から必ず検算」で防ぐ。
+# ============================================================
+name: 売上検算（毎日12:41・18:41）
+
+on:
+  schedule:
+    # 日本時間 12:41 = 3:41 UTC ／ 18:41 = 9:41 UTC（混雑する毎時0分を回避）
+    - cron: '41 3 * * *'
+    - cron: '41 9 * * *'
+  workflow_dispatch:
+    inputs:
+      days:
+        description: '何日ぶんさかのぼって検算するか'
+        required: false
+        default: '3'
+      dry_run:
+        description: '照合だけで修正しない（true/false）'
+        required: false
+        default: 'false'
+
+concurrency:
+  group: sales-recheck
+  cancel-in-progress: false
+
+jobs:
+  recheck:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: daily-report-system
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 検算して、ずれていたら自動修正
+        env:
+          KINTONE_BASE_URL: ${{ secrets.KINTONE_BASE_URL }}
+          KINTONE_USER: ${{ secrets.KINTONE_USER }}
+          KINTONE_PASSWORD: ${{ secrets.KINTONE_PASSWORD }}
+          KINTONE_SALES_DETAIL_APP_ID: ${{ secrets.KINTONE_SALES_DETAIL_APP_ID }}
+          RAKUTEN_SERVICE_SECRET: ${{ secrets.RAKUTEN_SERVICE_SECRET }}
+          RAKUTEN_LICENSE_KEY: ${{ secrets.RAKUTEN_LICENSE_KEY }}
+          SHOPIFY_SHOP_DOMAIN: ${{ secrets.SHOPIFY_SHOP_DOMAIN }}
+          SHOPIFY_ADMIN_TOKEN: ${{ secrets.SHOPIFY_ADMIN_TOKEN }}
+          SHOPIFY_API_VERSION: ${{ secrets.SHOPIFY_API_VERSION }}
+          CHATWORK_API_TOKEN: ${{ secrets.CHATWORK_API_TOKEN }}
+          CHATWORK_SALES_ROOM_ID: ${{ secrets.CHATWORK_SALES_ROOM_ID }}
+          CHATWORK_ROOM_ID: ${{ secrets.CHATWORK_ROOM_ID }}
+          APP_ENV: production
+          REPORT_TIMEZONE: Asia/Tokyo
+        run: |
+          args="--days=${{ inputs.days || '3' }}"
+          if [ "${{ inputs.dry_run }}" = "true" ]; then args="$args --dry-run"; fi
+          node scripts/salesRecheck.js $args

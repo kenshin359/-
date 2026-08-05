@@ -88,4 +88,12 @@ jobs:
           args=""
           if [ -n "${{ inputs.from }}" ]; then args="$args --from=${{ inputs.from }}"; fi
           if [ -n "${{ inputs.to }}" ];   then args="$args --to=${{ inputs.to }}"; fi
+          # 朝の定期実行は「直近3日ぶん」を取り直す（＝後から入ったキャンセルや
+          # 注文修正を毎朝自動で吸収する。二重にはならない仕組み）。
+          if [ -z "$args" ] && [ "${{ github.event_name }}" = "schedule" ]; then
+            from=$(TZ=Asia/Tokyo date -d '3 days ago' +%F)
+            to=$(TZ=Asia/Tokyo date -d 'yesterday' +%F)
+            args="--from=$from --to=$to"
+            echo "朝の確定モード: $from 〜 $to の3日ぶんを取り直します（数字のずれ防止）"
+          fi
           node scripts/shopifyImport.js $args

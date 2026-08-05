@@ -150,7 +150,8 @@ async function main() {
     }
   }
 
-  if (!isDry) {
+  // --no-notify: 検算（salesRecheck）からの再取込ではChatwork通知を出さない
+  if (!isDry && !process.argv.includes('--no-notify')) {
     await notifyResult({ dates, agg, orders, unmapped });
   }
 
