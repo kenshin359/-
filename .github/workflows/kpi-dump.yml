@@ -1,0 +1,40 @@
+# ============================================================
+#  毎朝KPI報告の添付ファイル取り出し（手動実行のみ）
+# ------------------------------------------------------------
+#  毎朝KPI報告アプリ（ID30）に添付された広告費・売上レポートを
+#  ダウンロードしてログに出力します。分析用・読むだけ。
+#  ★出力は16進符号化（数字→A-J置換）。生データは出ません。
+# ============================================================
+name: KPI添付データ取り出し（手動）
+
+on:
+  workflow_dispatch:
+    inputs:
+      days:
+        description: '何日ぶんさかのぼるか'
+        required: false
+        default: '3'
+
+jobs:
+  dump:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: daily-report-system
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 添付を取り出してログに出す
+        env:
+          KINTONE_BASE_URL: ${{ secrets.KINTONE_BASE_URL }}
+          KINTONE_USER: ${{ secrets.KINTONE_USER }}
+          KINTONE_PASSWORD: ${{ secrets.KINTONE_PASSWORD }}
+          KINTONE_KPI_APP_ID: ${{ secrets.KINTONE_KPI_APP_ID || '30' }}
+          APP_ENV: production
+          REPORT_TIMEZONE: Asia/Tokyo
+        run: node scripts/kpiDump.js --days=${{ inputs.days || '3' }}
