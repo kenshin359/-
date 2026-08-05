@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>［セカンド］利益配分計算</title>
+<style>
+  /* 配色トークン（daily-report-system のダッシュボードと統一）
+     明／暗の両モードに対応。端末の設定に自動追従します。 */
+  :root {
+    color-scheme: light;
+    --plane:     #f6f6f3;
+    --surface:   #fcfcfb;
+    --surface-2: #f1f1ed;
+    --ink:       #0b0b0b;
+    --ink-2:     #52514e;
+    --ink-3:     #898781;
+    --hairline:  rgba(11, 11, 11, 0.10);
+    --unei:      #2a78d6;  /* 運営 */
+    --shokai:    #1baf7a;  /* 紹介者 */
+    --accent:    #eb6834;
+    --focus:     #2a78d6;
+    --radius: 14px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:where(:not([data-theme="light"])) {
+      color-scheme: dark;
+      --plane:     #0d0d0d;
+      --surface:   #1a1a19;
+      --surface-2: #232322;
+      --ink:       #ffffff;
+      --ink-2:     #c3c2b7;
+      --ink-3:     #898781;
+      --hairline:  rgba(255, 255, 255, 0.12);
+      --unei:      #3987e5;
+      --shokai:    #199e70;
+      --accent:    #d95926;
+      --focus:     #3987e5;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --plane:     #0d0d0d;
+    --surface:   #1a1a19;
+    --surface-2: #232322;
+    --ink:       #ffffff;
+    --ink-2:     #c3c2b7;
+    --ink-3:     #898781;
+    --hairline:  rgba(255, 255, 255, 0.12);
+    --unei:      #3987e5;
+    --shokai:    #199e70;
+    --accent:    #d95926;
+    --focus:     #3987e5;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--plane);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Hiragino Kaku Gothic ProN",
+                 "Noto Sans JP", "Yu Gothic", Meiryo, sans-serif;
+    line-height: 1.6;
+    padding: 16px;
+    max-width: 560px;
+    margin: 0 auto;
+  }
+  h1 {
+    font-size: 1.25rem;
+    margin: 4px 0 2px;
+    letter-spacing: .01em;
+  }
+  .sub { color: var(--ink-3); font-size: .82rem; margin: 0 0 18px; }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+
+  label { display: block; font-size: .82rem; color: var(--ink-2); margin: 0 0 6px; font-weight: 600; }
+
+  .field { margin-bottom: 16px; }
+  .field:last-child { margin-bottom: 0; }
+
+  input[type="number"] {
+    width: 100%;
+    font-size: 1.4rem;
+    font-weight: 700;
+    padding: 12px 14px;
+    border: 1.5px solid var(--hairline);
+    border-radius: 10px;
+    background: var(--surface-2);
+    color: var(--ink);
+    text-align: right;
+    -moz-appearance: textfield;
+  }
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  input:focus { outline: 2px solid var(--focus); outline-offset: 1px; border-color: var(--focus); }
+  .unit { color: var(--ink-3); font-size: .8rem; margin-left: 6px; }
+
+  .presets { display: flex; flex-wrap: wrap; gap: 8px; }
+  .preset {
+    flex: 1 1 auto;
+    min-width: calc(50% - 4px);
+    padding: 11px 8px;
+    border: 1.5px solid var(--hairline);
+    border-radius: 10px;
+    background: var(--surface-2);
+    color: var(--ink);
+    font-size: .9rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+    transition: border-color .12s, background .12s;
+  }
+  .preset small { display: block; color: var(--ink-3); font-weight: 400; font-size: .72rem; margin-top: 2px; }
+  .preset[aria-pressed="true"] { border-color: var(--focus); background: color-mix(in srgb, var(--focus) 12%, var(--surface-2)); }
+  .preset:hover { border-color: var(--focus); }
+
+  .ratio-row { display: flex; align-items: center; gap: 10px; }
+  .ratio-row input[type="number"] { font-size: 1.1rem; padding: 8px 10px; width: 84px; }
+  .ratio-eq { color: var(--ink-3); font-size: .9rem; }
+
+  .result { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 4px; }
+  .r-tile {
+    border-radius: 12px;
+    padding: 16px 14px;
+    color: #fff;
+  }
+  .r-tile.unei   { background: var(--unei); }
+  .r-tile.shokai { background: var(--shokai); }
+  .r-tile .r-label { font-size: .8rem; opacity: .92; font-weight: 600; }
+  .r-tile .r-pct   { font-size: .78rem; opacity: .85; float: right; }
+  .r-tile .r-amt   { font-size: 1.55rem; font-weight: 800; margin-top: 6px; letter-spacing: .01em; }
+  .r-tile .r-yen   { font-size: .95rem; font-weight: 600; opacity: .85; }
+  .r-tile .r-man   { font-size: .78rem; opacity: .8; margin-top: 2px; }
+
+  .total-line {
+    display: flex; justify-content: space-between; align-items: baseline;
+    margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--hairline);
+    font-size: .85rem; color: var(--ink-2);
+  }
+  .total-line b { color: var(--ink); font-size: 1rem; }
+
+  .note {
+    font-size: .78rem; color: var(--ink-3); margin-top: 10px;
+    background: var(--surface-2); border-radius: 10px; padding: 10px 12px;
+  }
+  .note b { color: var(--ink-2); }
+
+  .theme-toggle {
+    position: fixed; top: 12px; right: 12px;
+    background: var(--surface); border: 1px solid var(--hairline);
+    color: var(--ink-2); border-radius: 999px; padding: 6px 12px;
+    font-size: .78rem; cursor: pointer;
+  }
+  footer { color: var(--ink-3); font-size: .72rem; text-align: center; margin: 8px 0 4px; }
+</style>
+</head>
+<body>
+  <button class="theme-toggle" id="themeToggle" type="button">◐ 表示切替</button>
+
+  <h1>［セカンド］利益配分計算</h1>
+  <p class="sub">利益を入力すると、運営と紹介者の取り分を自動で計算します。<br>
+    紹介者側にマージンを渡し、あとは向こうで自由に調整してもらう想定です。</p>
+
+  <div class="card">
+    <div class="field">
+      <label for="profit">この案件の利益</label>
+      <div style="display:flex;align-items:baseline">
+        <input type="number" id="profit" inputmode="numeric" placeholder="0" min="0" step="1" value="50">
+        <span class="unit">万円</span>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>モデル（配分プリセット）</label>
+      <div class="presets" id="presets">
+        <button class="preset" type="button" data-unei="60" data-profit="50">サブマリーナ<small>標準 60 / 40</small></button>
+        <button class="preset" type="button" data-unei="60" data-profit="70">デイトジャスト（人気）<small>標準 60 / 40</small></button>
+        <button class="preset" type="button" data-unei="50" data-profit="30">デイトジャスト（不人気）<small>50 / 50</small></button>
+        <button class="preset" type="button" data-unei="60" data-profit="">その他・カスタム<small>比率を自由に</small></button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>配分比率（運営 : 紹介者）</label>
+      <div class="ratio-row">
+        <input type="number" id="uneiPct" inputmode="numeric" min="0" max="100" step="1" value="60">
+        <span class="ratio-eq">% 運営&nbsp;&nbsp;:&nbsp;&nbsp;</span>
+        <span class="ratio-eq"><b id="shokaiPct">40</b>% 紹介者</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="result">
+      <div class="r-tile unei">
+        <span class="r-pct" id="uPct">60%</span>
+        <span class="r-label">運営</span>
+        <div class="r-amt"><span id="uMan">30</span><span class="r-yen">万円</span></div>
+        <div class="r-man" id="uYen">300,000 円</div>
+      </div>
+      <div class="r-tile shokai">
+        <span class="r-pct" id="sPct">40%</span>
+        <span class="r-label">紹介者</span>
+        <div class="r-amt"><span id="sMan">20</span><span class="r-yen">万円</span></div>
+        <div class="r-man" id="sYen">200,000 円</div>
+      </div>
+    </div>
+    <div class="total-line">
+      <span>利益合計</span>
+      <b><span id="tMan">50</span> 万円（<span id="tYen">500,000</span> 円）</b>
+    </div>
+    <div class="note">
+      <b>不人気モデルについて：</b>出にくいモデルは紹介者の取り分を厚くして
+      <b>50 / 50</b> にすることがあります（例：デイトジャスト不人気 利益30万 → 各15万）。
+      「デイトジャスト（不人気）」プリセットで自動的に 50/50 になります。
+    </div>
+  </div>
+
+  <footer>セカンド 利益配分ツール ／ オフラインで動作します</footer>
+
+<script>
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const profit  = $("profit");
+  const uneiPct = $("uneiPct");
+  const presets = $("presets");
+
+  const fmtYen = (n) => n.toLocaleString("ja-JP");
+  const fmtMan = (n) => {
+    // 端数が出る場合のみ小数第1位まで、整数なら整数表示
+    const r = Math.round(n * 10) / 10;
+    return Number.isInteger(r) ? String(r) : r.toFixed(1);
+  };
+
+  function clampPct(v) {
+    let n = parseFloat(v);
+    if (isNaN(n)) n = 0;
+    return Math.min(100, Math.max(0, n));
+  }
+
+  function calc() {
+    const p = Math.max(0, parseFloat(profit.value) || 0); // 万円
+    const u = clampPct(uneiPct.value);
+    const s = 100 - u;
+
+    $("shokaiPct").textContent = fmtMan(s);
+    $("uPct").textContent = fmtMan(u) + "%";
+    $("sPct").textContent = fmtMan(s) + "%";
+
+    const uMan = p * u / 100;
+    const sMan = p * s / 100;
+
+    $("uMan").textContent = fmtMan(uMan);
+    $("sMan").textContent = fmtMan(sMan);
+    $("uYen").textContent = fmtYen(Math.round(uMan * 10000)) + " 円";
+    $("sYen").textContent = fmtYen(Math.round(sMan * 10000)) + " 円";
+
+    $("tMan").textContent = fmtMan(p);
+    $("tYen").textContent = fmtYen(Math.round(p * 10000));
+  }
+
+  function syncPresetState() {
+    const u = clampPct(uneiPct.value);
+    const p = profit.value;
+    [...presets.children].forEach((btn) => {
+      const bu = btn.dataset.unei;
+      const bp = btn.dataset.profit;
+      const match = String(bu) === String(u) && (bp === "" ? false : String(bp) === String(p));
+      btn.setAttribute("aria-pressed", match ? "true" : "false");
+    });
+  }
+
+  presets.addEventListener("click", (e) => {
+    const btn = e.target.closest(".preset");
+    if (!btn) return;
+    uneiPct.value = btn.dataset.unei;
+    if (btn.dataset.profit !== "") profit.value = btn.dataset.profit;
+    calc();
+    syncPresetState();
+    profit.focus();
+  });
+
+  profit.addEventListener("input", () => { calc(); syncPresetState(); });
+  uneiPct.addEventListener("input", () => { calc(); syncPresetState(); });
+
+  // テーマ手動切替（自動 → 明 → 暗 の循環）
+  const toggle = $("themeToggle");
+  let mode = 0; // 0=auto, 1=light, 2=dark
+  toggle.addEventListener("click", () => {
+    mode = (mode + 1) % 3;
+    const root = document.documentElement;
+    if (mode === 0) { root.removeAttribute("data-theme"); toggle.textContent = "◐ 自動"; }
+    else if (mode === 1) { root.setAttribute("data-theme", "light"); toggle.textContent = "☀ 明るい"; }
+    else { root.setAttribute("data-theme", "dark"); toggle.textContent = "☾ 暗い"; }
+  });
+
+  calc();
+  syncPresetState();
+})();
+</script>
+</body>
+</html>
