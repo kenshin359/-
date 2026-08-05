@@ -118,10 +118,22 @@ def front():
     seal_y = name_y + mm(1.5)
     img.paste(seal, (int(seal_x), int(seal_y)), seal)
 
-    # address (bottom)
-    d.line([(ml, bot - mm(5.6)), (mr, bot - mm(5.6))], fill=IVORY_D, width=max(1, int(SS)))
-    draw_tracked(d, (ml, bot - mm(3.4)), "大阪府大阪市中央南船場 4-3　心斎橋東急ビル 5F",
-                 F(MIN_R, 6.2), INK, tracking=mm(0.3))
+    # contact block (bottom) — TEST / placeholder details
+    d.line([(ml, bot - mm(8.2)), (mr, bot - mm(8.2))], fill=IVORY_D, width=max(1, int(SS)))
+    draw_tracked(d, (ml, bot - mm(6.4)), "〒542-0081　大阪府大阪市中央区南船場 4-3　心斎橋東急ビル 5F",
+                 F(MIN_R, 5.9), INK, tracking=mm(0.2))
+    # tel / mail / web with fine gold labels
+    gy = bot - mm(2.2)
+    x = ml
+    def seg(label, value, x):
+        draw_tracked(d, (x, gy), label, F(LAT_D, 5.0), GOLD, tracking=mm(0.3))
+        lw = text_w(d, label, F(LAT_D, 5.0), mm(0.3))
+        vx = x + lw + mm(1.6)
+        draw_tracked(d, (vx, gy - mm(0.2)), value, F(MIN_R, 5.6), INK, tracking=mm(0.1))
+        return vx + text_w(d, value, F(MIN_R, 5.6), mm(0.1)) + mm(4.0)
+    x = seg("TEL", "06-1234-5678", x)
+    x = seg("MAIL", "info@libety.co.jp", x)
+    seg("WEB", "www.libety.co.jp", x)
     return img
 
 # =====================================================================
