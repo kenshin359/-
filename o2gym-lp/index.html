@@ -256,6 +256,40 @@
   details.faq[open] summary::after{content:"−"}
   details.faq .a{padding:0 16px 16px 46px;font-size:14px;color:var(--muted);position:relative}
 
+  /* ============ Mega social proof ============ */
+  .proof{background:linear-gradient(180deg,#2A2530,#3A2440);color:#fff}
+  .proof h2{color:#fff}
+  .proof .lead{color:#e9dbe4}
+  .proof h3{font-size:18px;margin:26px 0 12px;color:#FFE08A;display:flex;align-items:center;gap:6px}
+  .proof .note{font-size:11px;color:#c9bcc6;margin:8px 0 0}
+  .proof .disclaimer{font-size:11px;color:#c9bcc6;text-align:center;margin-top:10px;line-height:1.65}
+  .sns-hero{text-align:center;background:linear-gradient(135deg,var(--cta-2),var(--cta));border-radius:18px;
+    padding:18px 16px;box-shadow:var(--shadow-cta);margin-bottom:12px}
+  .sns-hero .lbl{display:block;font-size:13px;font-weight:800;letter-spacing:.08em;opacity:.96}
+  .sns-hero .big{display:block;font-size:44px;font-weight:900;font-style:italic;line-height:1.05;margin-top:2px}
+  .sns-hero .big small{font-size:19px;font-style:normal;margin-left:2px}
+  .sns-grid{display:grid;grid-template-columns:1fr;gap:10px}
+  .sns-card{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:14px;padding:14px 16px}
+  .sns-card .head{display:flex;align-items:center;gap:8px;font-weight:800;font-size:15px;margin-bottom:10px}
+  .sns-card .ic{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;background:#fff}
+  .sns-card.tiktok .ic{background:#000}
+  .sns-card ul{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:8px}
+  .sns-card li{background:rgba(255,255,255,.08);border-radius:999px;padding:6px 12px;font-size:12.5px;color:#efe6ec;display:flex;align-items:center}
+  .sns-card li b{color:#FFE08A;font-size:16px;font-weight:900;font-style:italic;margin-left:5px}
+  .contest-badges{display:flex;flex-wrap:wrap;gap:8px}
+  .cbadge{background:rgba(255,224,138,.14);border:1px solid #FFE08A;color:#FFE08A;font-weight:700;
+    font-size:12.5px;padding:7px 12px;border-radius:999px}
+  .mw-title{justify-content:center}
+  .monitor-wall{position:relative;display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-height:440px;overflow:hidden}
+  .monitor-wall::after{content:"";position:absolute;left:0;right:0;bottom:0;height:150px;
+    background:linear-gradient(rgba(52,32,60,0),#34203c)}
+  .mcard{position:relative;border-radius:12px;overflow:hidden;aspect-ratio:3/4}
+  .mcard .mba{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:26px;
+    background:repeating-linear-gradient(45deg,#5a4462,#5a4462 10px,#523c5b 10px,#523c5b 20px)}
+  .mcard .mtag{position:absolute;left:6px;bottom:6px;background:var(--cta);color:#fff;font-weight:900;
+    font-size:12px;font-style:italic;padding:3px 8px;border-radius:6px;box-shadow:0 4px 10px rgba(0,0,0,.35)}
+  .more-line{text-align:center;margin-top:-34px;position:relative;z-index:2;font-weight:800;color:#FFE08A;font-size:15px}
+
   /* ============ Footer / access ============ */
   .access{background:var(--surface);border-top:1px solid var(--line)}
   .store{border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:12px}
@@ -658,6 +692,72 @@
       <summary>予約はどうすればいい？</summary>
       <div class="a">WEB予約・LINE・お電話のいずれでもOK。WEBなら24時間、30秒ほどで完了します。ご希望の店舗（なんば／梅田）をお選びください。</div>
     </details>
+  </div>
+</section>
+
+<!-- ============ 11.5 MEGA SOCIAL PROOF ============ -->
+<section class="proof">
+  <div class="wrap">
+    <span class="eyebrow" style="background:rgba(255,255,255,.14);color:#fff">結果も、話題も。</span>
+    <h2>実績が、ケタ違い。</h2>
+    <p class="lead">モニター様の変化も、SNSでの反響も。O2GYMは“結果”と“話題”の両方で選ばれています。</p>
+
+    <div class="sns-hero">
+      <span class="lbl">SNS総再生数</span>
+      <span class="big"><span class="req">【要入力】</span><small>回</small></span>
+    </div>
+
+    <div class="sns-grid">
+      <div class="sns-card tiktok">
+        <div class="head"><span class="ic">🎵</span>TikTok</div>
+        <ul>
+          <li>総再生数<b><span class="req">【要入力】</span></b></li>
+          <li>フォロワー<b><span class="req">【要入力】</span></b></li>
+          <li>お気に入り<b><span class="req">【要入力】</span></b></li>
+        </ul>
+      </div>
+      <div class="sns-card insta">
+        <div class="head"><span class="ic">📸</span>Instagram（筋トレ）</div>
+        <ul>
+          <li>総リーチ<b><span class="req">【要入力】</span></b></li>
+          <li>フォロワー<b><span class="req">【要入力】</span></b></li>
+        </ul>
+      </div>
+      <div class="sns-card yt">
+        <div class="head"><span class="ic">▶️</span>YouTube</div>
+        <ul>
+          <li>再生数<b><span class="req">【要入力】</span></b></li>
+          <li>登録者<b><span class="req">【要入力】</span></b></li>
+        </ul>
+      </div>
+    </div>
+    <p class="note">※SNS数値は<span class="req">【要入力：時点】</span>現在の合計値です（当ジム公式アカウント調べ）。</p>
+
+    <h3>🏆 トレーナーのコンテスト出場実績</h3>
+    <div class="contest-badges">
+      <span class="cbadge"><span class="req">【要入力：大会名①】</span> 出場</span>
+      <span class="cbadge"><span class="req">【要入力：大会名②】</span> 出場</span>
+      <span class="cbadge"><span class="req">【要入力：大会名③】</span> 出場</span>
+    </div>
+    <p class="note">※担当トレーナーの大会出場実績です。</p>
+
+    <h3 class="mw-title">📸 モニター様の実績（一部）</h3>
+    <div class="monitor-wall">
+      <div class="mcard"><div class="mba">👤</div><span class="mtag">−<span class="req">【要入力】</span>kg</span></div>
+      <div class="mcard"><div class="mba">👤</div><span class="mtag">−<span class="req">【要入力】</span>kg</span></div>
+      <div class="mcard"><div class="mba">👤</div><span class="mtag">−<span class="req">【要入力】</span>kg</span></div>
+      <div class="mcard"><div class="mba">👤</div><span class="mtag">−<span class="req">【要入力】</span>kg</span></div>
+      <div class="mcard"><div class="mba">👤</div><span class="mtag">−<span class="req">【要入力】</span>kg</span></div>
+      <div class="mcard"><div class="mba">👤</div><span class="mtag">−<span class="req">【要入力】</span>kg</span></div>
+      <div class="mcard"><div class="mba">👤</div><span class="mtag">−<span class="req">【要入力】</span>kg</span></div>
+      <div class="mcard"><div class="mba">👤</div><span class="mtag">−<span class="req">【要入力】</span>kg</span></div>
+      <div class="mcard"><div class="mba">👤</div><span class="mtag">−<span class="req">【要入力】</span>kg</span></div>
+      <div class="mcard"><div class="mba">👤</div><span class="mtag">−<span class="req">【要入力】</span>kg</span></div>
+      <div class="mcard"><div class="mba">👤</div><span class="mtag">−<span class="req">【要入力】</span>kg</span></div>
+      <div class="mcard"><div class="mba">👤</div><span class="mtag">−<span class="req">【要入力】</span>kg</span></div>
+    </div>
+    <p class="more-line">＋他 <span class="req">【要入力】</span>名の実績</p>
+    <p class="disclaimer">※モニター様の一例です。掲載は許諾を得ています。効果には個人差があり、成果を保証するものではありません。</p>
   </div>
 </section>
 
