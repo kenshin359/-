@@ -34,6 +34,36 @@ export function loadDailyPlan(dateISO) {
   }
 }
 
+/** その年の楽天イベントカレンダー（config/rakuten-events-YYYY.json）。無ければ null */
+export function loadEvents(dateISO) {
+  const file = path.join(path.resolve(__dirname, '..'), 'config', `rakuten-events-${dateISO.slice(0, 4)}.json`);
+  try {
+    return JSON.parse(fs.readFileSync(file, 'utf8'));
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * その日に該当するイベントの表示文字列を返す（無ければ []）。
+ *  ・from だけ … その日ちょうど
+ *  ・from〜to  … 両端を含む期間中ずっと
+ */
+export function eventsForDate(cal, dateISO) {
+  const list = cal?.events;
+  if (!Array.isArray(list)) return [];
+  const out = [];
+  for (const ev of list) {
+    const from = ev?.from;
+    if (!from) continue;
+    const to = ev.to || from;
+    if (dateISO >= from && dateISO <= to) {
+      out.push(ev.time ? `${ev.label}（${ev.time}）` : ev.label);
+    }
+  }
+  return out;
+}
+
 function addDays(iso, n) {
   const d = new Date(`${iso}T00:00:00Z`);
   d.setUTCDate(d.getUTCDate() + n);
@@ -139,7 +169,7 @@ export function computeBrief(records, dateISO, monthlyTarget) {
 
 const pct = (v) => (v === null ? '—' : `${v >= 0 ? '+' : ''}${v.toFixed(1)}%`);
 
-export function formatBrief(b, dateISO, monthlyTarget, planCmp = null) {
+export function formatBrief(b, dateISO, monthlyTarget, planCmp = null, events = []) {
   const lines = [
     `[info][title]🧭 参謀レポート ${dateISO}（全チャネル）[/title]`,
     `■ 総売上  ${yen(b.total)}`,
@@ -172,7 +202,14 @@ export function formatBrief(b, dateISO, monthlyTarget, planCmp = null) {
   }
   if (prods.length > 12) lines.push(`（ほか ${prods.length - 12}商品）`);
   lines.push('');
-  lines.push(`■ イベント・メモ  ${b.note || 'なし'}`);
+  const evLines = Array.isArray(events) ? events : [];
+  if (evLines.length) {
+    lines.push('■ 本日の楽天イベント');
+    for (const e of evLines) lines.push(`・${e}`);
+    lines.push(`■ メモ（キントーン）  ${b.note || 'なし'}`);
+  } else {
+    lines.push(`■ イベント・メモ  ${b.note || 'なし'}`);
+  }
   lines.push('※ 詳細はキントーン「売上明細（自動取込）」へ。日次CSVも添付されています。');
   lines.push('[/info]');
   return lines.join('\n');
@@ -198,7 +235,8 @@ async function main() {
   }
 
   const planCmp = computePlanCompare(records, dateISO, planForTarget);
-  const body = formatBrief(brief, dateISO, target, planCmp);
+  const events = eventsForDate(loadEvents(dateISO), dateISO);
+  const body = formatBrief(brief, dateISO, target, planCmp, events);
   console.log(body);
 
   const roomId = optional('CHATWORK_SALES_ROOM_ID') || optional('CHATWORK_ROOM_ID');
