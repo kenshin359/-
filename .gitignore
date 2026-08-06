@@ -10,3 +10,6 @@ npm-debug.log*
 # 出力・作業ファイル
 out/
 *.tmp
+
+# 生成物（base64埋め込みの保存用ページ。export/*.jpg から再生成可能）
+o2gym-lp/_gallery.html
