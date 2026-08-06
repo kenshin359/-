@@ -22,6 +22,7 @@ import * as adcost from './adCostSchema.js';
 import * as intake from './intakeSchema.js';
 import * as salesdetail from './salesDetailSchema.js';
 import * as kpi from './kpiSchema.js';
+import * as anken from './ankenSchema.js';
 import { VIEWS as AD_VIEWS, REPORTS as AD_REPORTS } from './adCostViews.js';
 import { VIEWS as INTAKE_VIEWS } from './intakeViews.js';
 import { VIEWS as INV_VIEWS, REPORTS as INV_REPORTS } from './inventoryViews.js';
@@ -125,6 +126,7 @@ async function main() {
   if (!which || which === 'intake') targets.push(['intake', intake]);
   if (!which || which === 'salesdetail') targets.push(['salesdetail', salesdetail]);
   if (which === 'kpi') targets.push(['kpi', kpi]);
+  if (which === 'anken') targets.push(['anken', anken]);
 
   if (isDry) {
     console.log('[dry-run] 作成せず、内容だけ表示します。');
@@ -138,6 +140,7 @@ async function main() {
     inventory: { views: INV_VIEWS, reports: INV_REPORTS },
     salesdetail: { views: SD_VIEWS, reports: SD_REPORTS },
     kpi: { views: kpi.VIEWS },
+    anken: { views: anken.VIEWS },
   };
 
   const results = {};
@@ -151,6 +154,7 @@ async function main() {
   if (results.intake) console.log(`KINTONE_INTAKE_APP_ID=${results.intake}`);
   if (results.salesdetail) console.log(`KINTONE_SALES_DETAIL_APP_ID=${results.salesdetail}`);
   if (results.kpi) console.log(`KINTONE_KPI_APP_ID=${results.kpi}`);
+  if (results.anken) console.log(`KINTONE_ANKEN_APP_ID=${results.anken}`);
   console.log('この行を .env に貼り付けてください。');
   if (results.adcost) {
     console.log('');

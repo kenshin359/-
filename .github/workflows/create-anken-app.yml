@@ -1,0 +1,33 @@
+# ============================================================
+#  案件報告（クリエイター配信管理）アプリの作成（手動・1回だけ）
+# ------------------------------------------------------------
+#  Meta広告クリエイター配信管理シート（Excel）と同じ構成の
+#  アプリをキントーンに新規作成します。選択式はドロップダウン。
+#  ★既存アプリは一切変更しません。新規に作るだけです。
+# ============================================================
+name: 案件報告アプリ作成（手動）
+
+on:
+  workflow_dispatch:
+
+jobs:
+  create:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: daily-report-system
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: アプリを作成
+        env:
+          KINTONE_BASE_URL: ${{ secrets.KINTONE_BASE_URL }}
+          KINTONE_USER: ${{ secrets.KINTONE_USER }}
+          KINTONE_PASSWORD: ${{ secrets.KINTONE_PASSWORD }}
+          APP_ENV: production
+        run: node kintone/createBusinessApps.js anken
