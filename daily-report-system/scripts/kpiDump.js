@@ -15,7 +15,7 @@ import { optional } from '../lib/env.js';
 import { authHeadersFor } from '../lib/kintone.js';
 import { fetchWithRetry } from '../lib/httpRetry.js';
 
-const FILE_FIELDS = ['file_ads', 'file_sales', 'file_other'];
+const FILE_FIELDS = ['file_ads', 'file_sales', 'file_stock', 'file_other'];
 const MAX_FILE_BYTES = 4 * 1024 * 1024; // 1ファイル4MBまで
 const LINE_WIDTH = 8000;
 

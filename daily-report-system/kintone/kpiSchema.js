@@ -38,8 +38,10 @@ export const FIELDS = {
   file_other: {
     type: 'FILE',
     code: 'file_other',
-    label: '📎 その他（アクセス・転換率など）',
+    label: '📎 その他（アクセス・転換率・メモなど何でも）',
   },
+  // ※作成後に kintone/updateKpiApp.js で追加した欄:
+  //   file_stock: 📎 在庫レポート（カラー別在庫のスクショ・CSV）
 
   // ── 売上（円） ──
   s_rk: { type: 'NUMBER', code: 's_rk', label: '売上：楽天', unit: '円', unitPosition: 'AFTER', digit: true },
