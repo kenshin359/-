@@ -121,3 +121,18 @@ CTAは **FV・料金・最終・追従バー** に反復配置（WEB予約／電
 - 効果表現は「目指す」「サポート」「すっきりとした印象」等に統一済み。
 - 数字・比較には**客観的根拠と時点を保持**（優良誤認・不当表示の回避）。
 - BAは**許諾＋「個人差があります」併記**を全箇所に実装済み。
+
+## 6ペルソナ別・実装LP（見本／iPhoneで開けます）
+
+3名の制作会議の合意（共通骨格＋FV/訴求バンド/CTAの出し分け）に基づき、各ジャンルを実際のLPに実装しました。数字・写真・口コミはサンプルです。
+
+| # | ジャンル | 公開URL（タップで開く） | HTML | PDF |
+|---|---|---|---|---|
+| ① | ブライダル | https://claude.ai/code/artifact/932aa337-603b-4d69-9496-dd660cc91e98 | `lp/①_ブライダル.html` | `export/pdf/LP-①_ブライダル.pdf` |
+| ② | 産後リバウンド | https://claude.ai/code/artifact/778a926a-9e6b-4cd7-8355-7c48abf1df4a | `lp/②_産後リバウンド.html` | `export/pdf/LP-②_産後リバウンド.pdf` |
+| ③ | オフィス姿勢 | https://claude.ai/code/artifact/af3dc5e0-a038-4cfb-b83a-3898c8c69143 | `lp/③_オフィス姿勢.html` | `export/pdf/LP-③_オフィス姿勢.pdf` |
+| ④ | 価格まるわかり | https://claude.ai/code/artifact/b37fa6eb-fd4e-4e6f-aa21-5fbca0d9fea2 | `lp/④_価格迷子.html` | `export/pdf/LP-④_価格迷子.pdf` |
+| ⑤ | 本気で変わる | https://claude.ai/code/artifact/561d3fc3-ce23-4eb1-93ea-86e807aa92be | `lp/⑤_本気で変わる.html` | `export/pdf/LP-⑤_本気で変わる.pdf` |
+| ⑥ | オールラウンド | https://claude.ai/code/artifact/4bdcf578-d4a7-465b-bd48-44b64dc746ae | `lp/⑥_オールラウンド.html` | `export/pdf/LP-⑥_オールラウンド.pdf` |
+
+各LPの差分：FVキャッチ／訴求バンド（ターゲット×3本柱×オファー）／悩み共感リスト／CTA文言／ページタイトル。共通骨格・実績・料金・法令配慮は全LP共通。

@@ -1,0 +1,831 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>O2GYM｜女性専用パーソナル美容ジム O2GYM（見本）</title>
+<meta name="description" content="女性専用パーソナル美容ジムO2GYM(なんば・梅田)。パーソナル×痩身エステ×酸素BOX入り放題×脱毛1回無料×管理栄養士常駐×完全手ぶら。8回19,600円・入会金0円。もう服で隠さなくていい。無料体験カウンセリングは30名限定。">
+<meta name="theme-color" content="#B4577A">
+<meta property="og:title" content="女性専用パーソナル美容ジム O2GYM｜入会金0円・8回19,600円">
+<meta property="og:description" content="管理栄養士が常駐するから続く。完全手ぶらで通える大阪の女性専用パーソナル。無料体験は30名限定。">
+<meta property="og:type" content="website">
+<style>
+  /* ============ Design tokens ============ */
+  :root{
+    --bg:#FBF6F2;        /* warm cream */
+    --surface:#FFFFFF;
+    --ink:#2A2530;       /* near-black plum */
+    --muted:#7A7480;
+    --line:#EFE4DC;
+    --brand:#B4577A;     /* rose */
+    --brand-deep:#7E3B57;
+    --brand-soft:#F7E7EE;
+    --gold:#C7A15B;      /* authority accent */
+    --gold-1:#EAD7A0; --gold-2:#D8BC77; --gold-3:#C29B48; /* BA hero panel */
+    --cta:#E23E76;       /* CTA base */
+    --cta-2:#FF7EA6;     /* CTA highlight */
+    --ok:#2E9E7B;
+    --shadow:0 10px 30px rgba(126,59,87,.14);
+    --shadow-cta:0 12px 24px rgba(226,62,118,.35);
+    --radius:18px;
+    --maxw:600px;        /* mobile-first single column */
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth;color-scheme:light}
+  body{
+    margin:0;background:var(--bg);color:var(--ink);
+    font-family:"Hiragino Kaku Gothic ProN","Hiragino Sans","Noto Sans JP","Yu Gothic",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    line-height:1.75;letter-spacing:.01em;-webkit-font-smoothing:antialiased;
+    padding-bottom:76px; /* room for sticky CTA */
+  }
+  img{max-width:100%;display:block}
+  a{color:inherit}
+  .wrap{max-width:var(--maxw);margin-inline:auto;padding-inline:20px}
+  section{padding-block:52px}
+  .eyebrow{display:inline-block;font-size:13px;font-weight:700;letter-spacing:.14em;color:var(--brand);
+    background:var(--brand-soft);padding:6px 14px;border-radius:999px;margin-bottom:14px}
+  h2{font-size:26px;line-height:1.4;margin:0 0 8px;font-weight:800}
+  h2 .accent{color:var(--brand)}
+  .lead{color:var(--muted);font-size:15px;margin:0 0 26px}
+  .center{text-align:center}
+  .req{background:#FFF3B0;color:#7a5c00;font-weight:700;padding:0 4px;border-radius:4px;font-size:.9em}
+
+  /* ============ CTA buttons ============ */
+  .cta{
+    display:flex;align-items:center;justify-content:center;gap:8px;
+    width:100%;padding:18px 20px;border-radius:14px;border:0;cursor:pointer;
+    font-size:18px;font-weight:800;color:#fff;text-decoration:none;
+    background:linear-gradient(135deg,var(--cta-2),var(--cta));
+    box-shadow:var(--shadow-cta);
+    animation:pulse 2.4s ease-in-out infinite;
+  }
+  .cta small{display:block;font-size:12px;font-weight:600;opacity:.95}
+  .cta:active{transform:translateY(1px)}
+  @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.02)}}
+  @media (prefers-reduced-motion:reduce){.cta{animation:none}}
+  .cta-sub{
+    display:flex;gap:10px;margin-top:12px
+  }
+  .cta-mini{
+    flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    padding:12px;border-radius:12px;text-decoration:none;font-weight:700;font-size:14px;
+    border:1.5px solid var(--line);background:var(--surface);color:var(--ink)
+  }
+  .cta-mini .ic{font-size:20px;line-height:1}
+  .cta-line{background:#06C755;color:#fff;border-color:#06C755}
+  .cta-tel{color:var(--brand-deep)}
+
+  /* ============ Hero (impact / BA style) ============ */
+  .hero{background:var(--surface);padding-top:16px;padding-bottom:30px}
+  .brandbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+  .logo{font-weight:900;font-size:20px;letter-spacing:.04em}
+  .logo span{color:var(--brand)}
+  .badge-area{font-size:12px;color:var(--muted);text-align:right;line-height:1.5}
+
+  /* Gold BA panel */
+  .ba-hero{background:linear-gradient(160deg,var(--gold-1),var(--gold-2) 55%,var(--gold-3));position:relative}
+  .ba-split{display:grid;grid-template-columns:1fr 1fr;gap:0;position:relative}
+  .ba-split figure{margin:0;position:relative;aspect-ratio:3/4}
+  .ba-split figcaption{position:absolute;top:10px;left:10px;font-weight:900;font-size:13px;letter-spacing:.1em;
+    color:#fff;background:rgba(42,37,48,.72);padding:4px 12px;border-radius:6px}
+  .ba-split .after figcaption{left:auto;right:10px;background:var(--brand)}
+  .ba-split .arrow{position:absolute;top:44%;left:50%;transform:translate(-50%,-50%);z-index:3;
+    width:52px;height:52px;border-radius:50%;background:#fff;box-shadow:var(--shadow);
+    display:flex;align-items:center;justify-content:center;font-size:24px;color:var(--gold-3);font-weight:900}
+  .ba-copy{padding-top:14px;padding-bottom:22px;color:#2A2530}
+  .hero-catch{font-size:22px;font-weight:800;line-height:1.4;margin:2px 0 6px}
+  .hero-catch b{font-size:27px;color:var(--brand-deep)}
+  .hero-person{margin:0 0 14px;font-weight:800;font-size:15px}
+  .hero-person span{display:block;font-size:11px;font-weight:600;color:#6b5a3a;margin-top:2px}
+
+  .hero-badges{display:flex;gap:10px;margin-bottom:14px}
+  .hb{background:#fff;border-radius:14px;padding:10px 8px;text-align:center;flex:1;box-shadow:var(--shadow);line-height:1.2}
+  .hb-l{display:block;font-size:11px;font-weight:700;color:var(--muted)}
+  .hb-n{display:block;font-size:28px;font-weight:900;color:var(--brand);font-style:italic}
+  .hb-n small{font-size:14px}
+  .hb-n2{display:block;font-size:20px;font-weight:900;color:var(--brand-deep)}
+  .hb b{font-size:26px;font-style:italic;color:var(--brand)}
+
+  .hero-term{font-size:20px;font-weight:900;font-style:italic;margin:6px 0 8px;color:#2A2530}
+  .hero-term b{font-size:30px;color:var(--brand-deep)}
+  .impact{display:flex;flex-direction:column;gap:8px}
+  .imp{display:flex;align-items:center;gap:10px}
+  .imp-l{flex:0 0 84px;background:#2A2530;color:#fff;font-weight:800;font-size:14px;text-align:center;
+    padding:8px 4px;clip-path:polygon(0 0,100% 0,92% 100%,0 100%)}
+  .imp-v{font-weight:900;font-style:italic;line-height:1;color:#2A2530;white-space:nowrap}
+  .imp-v b{font-size:50px}
+  .imp-v small{font-size:20px;margin-left:1px}
+  .imp-note{font-size:10.5px;color:#6b5a3a;margin:10px 0 0;line-height:1.55}
+
+  .offer-tags{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 16px}
+  .tag{background:var(--surface);border:1.5px solid var(--brand-soft);color:var(--brand-deep);
+    font-weight:700;font-size:13px;padding:7px 12px;border-radius:999px;box-shadow:var(--shadow)}
+  .tag .n{color:var(--brand);font-weight:900}
+  .ph{ /* photo placeholder — fills its parent box */
+    width:100%;height:100%;display:flex;align-items:center;justify-content:center;text-align:center;
+    background:repeating-linear-gradient(45deg,#F1E4DC,#F1E4DC 12px,#EAD9CF 12px,#EAD9CF 24px);
+    color:#a98f7f;font-size:13px;font-weight:700;padding:16px}
+  .ba-split figure .ph{position:absolute;inset:0} /* fill the aspect-ratio figure */
+  .hero-note{font-size:12px;color:var(--muted);margin-top:10px;text-align:center}
+  .sample-note{background:#2A2530;color:#fff;font-size:12px;text-align:center;padding:9px 14px;line-height:1.55}
+  .sample-note strong{color:#FFE08A}
+
+  /* ============ Trust numbers ============ */
+  .trust{background:var(--brand-deep);color:#fff}
+  .trust h2{color:#fff}
+  .trust .lead{color:#f0d8e2}
+  .numgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:8px}
+  .numcard{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);
+    border-radius:14px;padding:18px 12px;text-align:center}
+  .numcard .big{font-size:34px;font-weight:900;line-height:1.1;color:#FFE08A}
+  .numcard .big .u{font-size:16px;margin-left:2px}
+  .numcard .lbl{font-size:12.5px;color:#f0d8e2;margin-top:4px}
+  .stars{color:#FFC93C;letter-spacing:2px}
+  .trust-note{font-size:11px;color:#e6c9d5;margin-top:14px;text-align:center}
+
+  /* ============ Authority strip ============ */
+  .authority{background:var(--surface);border-block:1px solid var(--line)}
+  .auth-row{display:flex;align-items:center;gap:14px;padding:8px 0}
+  .auth-ic{flex:0 0 auto;width:46px;height:46px;border-radius:50%;background:var(--brand-soft);
+    display:flex;align-items:center;justify-content:center;font-size:22px}
+  .auth-row b{color:var(--brand-deep)}
+  .auth-row p{margin:0;font-size:13.5px;color:var(--muted)}
+
+  /* ============ Empathy ============ */
+  .empathy{background:linear-gradient(180deg,#FBF6F2,#F7ECE6)}
+  .checklist{margin:0;padding:0;list-style:none}
+  .checklist li{background:var(--surface);border:1px solid var(--line);border-radius:12px;
+    padding:14px 16px 14px 46px;margin-bottom:10px;position:relative;font-weight:600;font-size:15px}
+  .checklist li::before{content:"✓";position:absolute;left:16px;top:14px;color:var(--brand);
+    font-weight:900;background:var(--brand-soft);width:22px;height:22px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;font-size:13px}
+  .empathy .turn{text-align:center;font-size:19px;font-weight:800;margin-top:22px;color:var(--brand-deep)}
+
+  /* ============ Solution / value ============ */
+  .value-grid{display:grid;gap:14px}
+  .vcard{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+    padding:20px;box-shadow:var(--shadow);display:flex;gap:14px;align-items:flex-start}
+  .vcard .ic{flex:0 0 auto;width:52px;height:52px;border-radius:14px;background:var(--brand-soft);
+    display:flex;align-items:center;justify-content:center;font-size:26px}
+  .vcard h3{margin:0 0 4px;font-size:17px}
+  .vcard p{margin:0;font-size:14px;color:var(--muted)}
+  .vcard .free{display:inline-block;margin-top:6px;font-size:12px;font-weight:800;color:#fff;
+    background:var(--brand);padding:2px 10px;border-radius:999px}
+
+  /* ============ Before/After ============ */
+  .ba{background:var(--brand-soft)}
+  .ba-item{background:var(--surface);border-radius:var(--radius);overflow:hidden;
+    box-shadow:var(--shadow);margin-bottom:16px}
+  .ba-photos{display:grid;grid-template-columns:1fr 1fr;gap:2px;background:var(--line)}
+  .ba-photos figure{margin:0;position:relative}
+  .ba-photos figcaption{position:absolute;top:8px;left:8px;background:rgba(42,37,48,.8);color:#fff;
+    font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px}
+  .ba-photos .after figcaption{background:var(--brand)}
+  .ba-body{padding:14px 16px}
+  .ba-body .who{font-weight:800;font-size:14px}
+  .ba-body .res{color:var(--brand);font-weight:900;font-size:15px}
+  .ba-body .cmt{font-size:13px;color:var(--muted);margin:4px 0 0}
+  .disclaimer{font-size:11px;color:var(--muted);text-align:center;margin-top:6px;line-height:1.6}
+
+  /* ============ Comparison table ============ */
+  .cmp-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:14px;box-shadow:var(--shadow)}
+  table.cmp{border-collapse:collapse;width:100%;min-width:420px;background:var(--surface);font-size:13.5px}
+  table.cmp th,table.cmp td{padding:12px 10px;text-align:center;border-bottom:1px solid var(--line)}
+  table.cmp thead th{background:var(--brand-deep);color:#fff;font-size:12.5px}
+  table.cmp thead th.us{background:var(--brand)}
+  table.cmp tbody th{text-align:left;background:#FBF2F6;font-weight:700;color:var(--brand-deep);white-space:nowrap}
+  table.cmp td.us{background:#FFF6FA;font-weight:800;color:var(--brand-deep)}
+  table.cmp .yes{color:var(--ok);font-weight:900}
+  table.cmp .no{color:#c0b6bd}
+  .cmp-cap{font-size:11px;color:var(--muted);margin-top:8px;text-align:center}
+
+  /* ============ Trainers ============ */
+  .trainer{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+    overflow:hidden;box-shadow:var(--shadow);margin-bottom:16px}
+  .trainer .t-photo{aspect-ratio:4/3}
+  .trainer .t-body{padding:16px}
+  .trainer .t-name{font-size:17px;font-weight:800}
+  .trainer .t-name span{font-size:12px;color:var(--muted);font-weight:600;margin-left:6px}
+  .trainer .t-qual{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+  .trainer .t-qual span{background:var(--brand-soft);color:var(--brand-deep);font-size:11.5px;
+    font-weight:700;padding:3px 9px;border-radius:999px}
+  .trainer .t-body p{margin:0;font-size:13.5px;color:var(--muted)}
+
+  /* ============ Voices ============ */
+  .voice{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+    padding:18px;box-shadow:var(--shadow);margin-bottom:14px}
+  .voice .v-head{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+  .v-avatar{width:44px;height:44px;border-radius:50%;background:var(--brand-soft);flex:0 0 auto;
+    display:flex;align-items:center;justify-content:center;font-size:12px;color:#a98f7f;text-align:center;overflow:hidden}
+  .v-meta b{font-size:14px}
+  .v-meta .g{font-size:11px;color:var(--muted)}
+  .v-stars{color:#FFC93C;font-size:13px;letter-spacing:1px}
+  .voice p{margin:0;font-size:14px}
+  .google-badge{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);
+    margin-top:4px;font-weight:600}
+
+  /* ============ Pricing ============ */
+  .pricing{background:linear-gradient(180deg,#7E3B57,#5F2A42);color:#fff}
+  .pricing h2{color:#fff}
+  .price-card{background:#fff;color:var(--ink);border-radius:20px;padding:24px 20px;box-shadow:var(--shadow);text-align:center}
+  .price-card .flag{display:inline-block;background:var(--gold);color:#3a2a00;font-weight:900;
+    font-size:12px;padding:4px 14px;border-radius:999px;margin-bottom:10px;letter-spacing:.04em}
+  .price-card .plan{font-size:15px;font-weight:700;color:var(--muted)}
+  .price-card .yen{font-size:46px;font-weight:900;color:var(--brand);line-height:1.05;margin:2px 0}
+  .price-card .yen small{font-size:18px}
+  .price-card .times{font-size:14px;color:var(--muted)}
+  .price-card .strike{color:#b7abb2;text-decoration:line-through;font-size:14px;margin-top:6px}
+  .price-card .zero{display:inline-block;margin-top:10px;background:var(--brand-soft);color:var(--brand-deep);
+    font-weight:800;padding:6px 14px;border-radius:999px;font-size:14px}
+  .closing{background:rgba(255,255,255,.1);border:1px dashed rgba(255,255,255,.5);border-radius:14px;
+    padding:16px;margin-top:18px}
+  .closing h3{margin:0 0 8px;font-size:16px;color:#FFE08A}
+  .closing ul{margin:0;padding-left:18px;font-size:14px}
+  .closing li{margin-bottom:4px}
+  .slots{background:#fff;color:var(--brand-deep);border-radius:14px;padding:14px;margin-top:16px;text-align:center}
+  .slots .bar{height:12px;border-radius:999px;background:#eee;overflow:hidden;margin:8px 0}
+  .slots .bar i{display:block;height:100%;width:80%;background:linear-gradient(90deg,var(--cta-2),var(--cta))}
+  .slots b{color:var(--cta);font-size:18px}
+
+  /* ============ FAQ ============ */
+  details.faq{background:var(--surface);border:1px solid var(--line);border-radius:12px;
+    margin-bottom:10px;overflow:hidden}
+  details.faq summary{list-style:none;cursor:pointer;padding:16px 44px 16px 46px;position:relative;
+    font-weight:700;font-size:15px}
+  details.faq summary::-webkit-details-marker{display:none}
+  details.faq summary::before{content:"Q";position:absolute;left:16px;top:16px;color:var(--brand);font-weight:900}
+  details.faq summary::after{content:"＋";position:absolute;right:16px;top:15px;color:var(--muted);transition:.2s}
+  details.faq[open] summary::after{content:"−"}
+  details.faq .a{padding:0 16px 16px 46px;font-size:14px;color:var(--muted);position:relative}
+
+  /* ============ Mega social proof ============ */
+  .proof{background:linear-gradient(180deg,#2A2530,#3A2440);color:#fff}
+  .proof h2{color:#fff}
+  .proof .lead{color:#e9dbe4}
+  .proof h3{font-size:18px;margin:26px 0 12px;color:#FFE08A;display:flex;align-items:center;gap:6px}
+  .proof .note{font-size:11px;color:#c9bcc6;margin:8px 0 0}
+  .proof .disclaimer{font-size:11px;color:#c9bcc6;text-align:center;margin-top:10px;line-height:1.65}
+  .sns-hero{text-align:center;background:linear-gradient(135deg,var(--cta-2),var(--cta));border-radius:18px;
+    padding:18px 16px;box-shadow:var(--shadow-cta);margin-bottom:12px}
+  .sns-hero .lbl{display:block;font-size:13px;font-weight:800;letter-spacing:.08em;opacity:.96}
+  .sns-hero .big{display:block;font-size:44px;font-weight:900;font-style:italic;line-height:1.05;margin-top:2px}
+  .sns-hero .big small{font-size:19px;font-style:normal;margin-left:2px}
+  .sns-grid{display:grid;grid-template-columns:1fr;gap:10px}
+  .sns-card{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:14px;
+    padding:14px 16px;text-decoration:none;color:inherit;display:block}
+  .sns-card .head{display:flex;align-items:center;gap:8px;font-weight:800;font-size:15px;margin-bottom:10px}
+  .sns-card .ic{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;background:#fff}
+  .sns-card.tiktok .ic{background:#000}
+  .sns-card .handle{font-size:12px;font-weight:600;color:#c9bcc6}
+  .sns-card .go{margin-left:auto;font-size:12px;font-weight:800;color:#FFE08A;white-space:nowrap}
+  .sns-follow{text-align:center;font-size:13px;font-weight:700;color:#FFE08A;margin:12px 0 0}
+  .sns-card ul{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:8px}
+  .sns-card li{background:rgba(255,255,255,.08);border-radius:999px;padding:6px 12px;font-size:12.5px;color:#efe6ec;display:flex;align-items:center}
+  .sns-card li b{color:#FFE08A;font-size:16px;font-weight:900;font-style:italic;margin-left:5px}
+  .contest-badges{display:flex;flex-wrap:wrap;gap:8px}
+  .cbadge{background:rgba(255,224,138,.14);border:1px solid #FFE08A;color:#FFE08A;font-weight:700;
+    font-size:12.5px;padding:7px 12px;border-radius:999px}
+  .mw-title{justify-content:center}
+  .monitor-wall{position:relative;display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-height:440px;overflow:hidden}
+  .monitor-wall::after{content:"";position:absolute;left:0;right:0;bottom:0;height:150px;
+    background:linear-gradient(rgba(52,32,60,0),#34203c)}
+  .mcard{position:relative;border-radius:12px;overflow:hidden;aspect-ratio:3/4}
+  .mcard .mba{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:26px;
+    background:repeating-linear-gradient(45deg,#5a4462,#5a4462 10px,#523c5b 10px,#523c5b 20px)}
+  .mcard .mtag{position:absolute;left:6px;bottom:6px;background:var(--cta);color:#fff;font-weight:900;
+    font-size:12px;font-style:italic;padding:3px 8px;border-radius:6px;box-shadow:0 4px 10px rgba(0,0,0,.35)}
+  .more-line{text-align:center;margin-top:-34px;position:relative;z-index:2;font-weight:800;color:#FFE08A;font-size:15px}
+
+  /* ============ Footer / access ============ */
+  .access{background:var(--surface);border-top:1px solid var(--line)}
+  .store{border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:12px}
+  .store b{font-size:16px;color:var(--brand-deep)}
+  .store p{margin:6px 0 0;font-size:13px;color:var(--muted)}
+  footer{background:#2A2530;color:#cfc7cf;text-align:center;padding:28px 20px;font-size:12px}
+  footer .logo{color:#fff;font-size:18px;margin-bottom:8px}
+  .legal{font-size:11px;color:#8a828f;line-height:1.7;margin-top:12px}
+  .fsns{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin:10px 0 0}
+  .fsns a{color:#FFE08A;text-decoration:none;font-weight:700;font-size:12.5px}
+
+  /* ============ Sticky bottom CTA ============ */
+  .sticky{position:fixed;left:0;right:0;bottom:0;z-index:50;background:rgba(255,255,255,.96);
+    backdrop-filter:blur(8px);border-top:1px solid var(--line);padding:8px 14px calc(8px + env(safe-area-inset-bottom));
+    display:flex;gap:8px;max-width:100%}
+  .sticky a{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-decoration:none;font-weight:800;border-radius:12px;padding:10px 6px;font-size:13px}
+  .sticky .s-web{flex:2;color:#fff;background:linear-gradient(135deg,var(--cta-2),var(--cta));box-shadow:var(--shadow-cta)}
+  .sticky .s-web small{font-size:10px;font-weight:600;opacity:.95}
+  .sticky .s-line{background:#06C755;color:#fff}
+  .sticky .s-tel{background:var(--brand-soft);color:var(--brand-deep)}
+  .sticky .ic{font-size:18px;line-height:1.1}
+
+  /* ============ Desktop niceties ============ */
+  @media(min-width:680px){
+    .hero-catch{font-size:26px}.hero-catch b{font-size:32px}
+    .imp-v b{font-size:60px}.imp-l{flex-basis:100px}
+    h2{font-size:30px}
+    .numgrid{grid-template-columns:repeat(4,1fr)}
+    body{padding-bottom:0}
+    .sticky{max-width:var(--maxw);margin-inline:auto;border-radius:16px 16px 0 0}
+  }
+
+  /* persona angle band */
+  .angle{background:#7E3B57;color:#fff;padding-block:0}
+  .angle .wrap{padding-block:22px}
+  .angle-eyebrow{display:inline-block;background:rgba(255,255,255,.16);color:#fff;font-weight:800;font-size:12px;padding:5px 12px;border-radius:999px;margin-bottom:8px}
+  .angle-head{font-size:18px;font-weight:800;line-height:1.5;margin:0 0 12px}
+  .angle-pills{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+  .angle-pills span{background:#fff;color:#7E3B57;font-weight:800;font-size:12.5px;padding:6px 12px;border-radius:999px}
+  .angle-offer{background:rgba(255,224,138,.16);border:1px dashed #FFE08A;color:#FFE08A;font-weight:800;font-size:13px;padding:10px 14px;border-radius:12px;margin:0}
+</style>
+</head>
+<body>
+
+<div class="sample-note">【⑥オールラウンド向けLP・見本】数字・写真・口コミはサンプルです。実データに差し替えてご利用ください。</div>
+
+<!-- ============ 1. HERO / First View ============ -->
+<header class="hero">
+  <div class="wrap">
+    <div class="brandbar">
+      <div class="logo">O2<span>GYM</span></div>
+      <div class="badge-area">女性専用パーソナル美容ジム<br>大阪・なんば店／梅田店</div>
+    </div>
+  </div>
+
+  <!-- Gold BA panel -->
+  <div class="ba-hero">
+    <div class="ba-split">
+      <figure class="before">
+        <figcaption>BEFORE</figcaption>
+        <div class="ph">👤<br>Before 写真</div>
+      </figure>
+      <figure class="after">
+        <figcaption>AFTER</figcaption>
+        <div class="ph">👤<br>After 写真</div>
+      </figure>
+      <div class="arrow" aria-hidden="true">→</div>
+    </div>
+
+    <div class="ba-copy wrap">
+      <p class="hero-catch">もう、服で隠さない。<br><b>なりたい私に、変わる。</b></p>
+      <p class="hero-person">M・K さん
+        <span>34歳／プログラム期間2ヶ月　※撮影時・効果には個人差があります</span>
+      </p>
+
+      <div class="hero-badges">
+        <div class="hb">
+          <span class="hb-l">トレーニング満足度</span>
+          <span class="hb-n">98.4<small>%</small></span>
+        </div>
+        <div class="hb">
+          <span class="hb-l">1回 <b>50</b>分</span>
+          <span class="hb-n2">週<b>2</b>回〜</span>
+        </div>
+      </div>
+
+      <p class="hero-term">たった<b>2ヶ月</b>で</p>
+      <div class="impact">
+        <div class="imp"><span class="imp-l">体重</span><span class="imp-v">−<b>8.6</b><small>kg</small></span></div>
+        <div class="imp"><span class="imp-l">体脂肪率</span><span class="imp-v">−<b>7.9</b><small>%</small></span></div>
+        <div class="imp"><span class="imp-l">ウエスト</span><span class="imp-v">−<b>14.5</b><small>cm</small></span></div>
+      </div>
+      <p class="imp-note">※お客様個人の実績です（当ジム調べ／撮影時）。効果には個人差があり、成果を保証するものではありません。</p>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="offer-tags">
+      <span class="tag"><span class="n">入会金0円</span> キャンペーン</span>
+      <span class="tag">8回 <span class="n">19,600円</span></span>
+      <span class="tag">脱毛<span class="n">1回無料</span></span>
+      <span class="tag">完全<span class="n">手ぶら</span></span>
+    </div>
+
+    <a href="#reserve" class="cta">
+      無料カウンセリング・体験を予約する
+      <small>▶ 実施中／30秒・24時間WEB受付・しつこい勧誘なし</small>
+    </a>
+    <div class="cta-sub">
+      <a href="#" class="cta-mini cta-line"><span class="ic">💬</span>LINEで予約</a>
+      <a href="tel:0000000000" class="cta-mini cta-tel"><span class="ic">📞</span>電話で相談</a>
+    </div>
+    <p class="hero-note">管理栄養士が常駐。痩身エステ・酸素BOX入り放題つき。今月の無料枠は<b>残り6名</b></p>
+  </div>
+</header>
+
+<!-- persona angle band -->
+<section class="angle">
+  <div class="wrap">
+    <span class="angle-eyebrow">大阪で“続く”パーソナルをお探しの方へ</span>
+    <p class="angle-head">パーソナル×痩身エステ×酸素BOX×脱毛×管理栄養士常駐。あなたの悩みに、まるごと応えます。</p>
+    <div class="angle-pills"><span>独自価値の総合力</span><span>確かな実績</span><span>最安値級・特典</span></div>
+    <p class="angle-offer">🎁 無料カウンセリング・体験</p>
+  </div>
+</section>
+
+<!-- ============ 2. TRUST NUMBERS ============ -->
+<section class="trust">
+  <div class="wrap center">
+    <span class="eyebrow" style="background:rgba(255,255,255,.14);color:#fff">数字で選ばれる理由</span>
+    <h2>実績が、続けられる証拠。</h2>
+    <p class="lead">O2GYMが大阪の女性に選ばれてきた理由を、数字でお見せします。</p>
+    <div class="numgrid">
+      <div class="numcard">
+        <div class="big">1,200</div>
+        <div class="lbl">累計会員数（名）</div>
+      </div>
+      <div class="numcard">
+        <div class="big">92<span class="u">%</span></div>
+        <div class="lbl">目標達成率</div>
+      </div>
+      <div class="numcard">
+        <div class="big">−7.2<span class="u">kg</span></div>
+        <div class="lbl">平均（60日）</div>
+      </div>
+      <div class="numcard">
+        <div class="big stars">★4.8</div>
+        <div class="lbl">Googleクチコミ評価</div>
+      </div>
+    </div>
+    <p class="trust-note">※数値は当ジム実績に基づく参考値です。結果には個人差があります。</p>
+  </div>
+</section>
+
+<!-- ============ 3. AUTHORITY / SAFETY ============ -->
+<section class="authority">
+  <div class="wrap">
+    <div class="auth-row">
+      <div class="auth-ic">🥗</div>
+      <div><b>管理栄養士が“常駐”</b><p>その場で食事の相談ができるから、自己流にならず続けられる。</p></div>
+    </div>
+    <div class="auth-row">
+      <div class="auth-ic">⭐</div>
+      <div><b>Googleクチコミ多数の実績</b><p>通った方のリアルな声が、口コミで評価されています。</p></div>
+    </div>
+    <div class="auth-row">
+      <div class="auth-ic">👩‍🏫</div>
+      <div><b>女性専用・女性トレーナー在籍</b><p>人目が気にならない空間で、はじめての方も安心。</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 4. EMPATHY ============ -->
+<section class="empathy">
+  <div class="wrap">
+    <span class="eyebrow">こんなお悩み、ありませんか？</span>
+    <h2>ひとつでも当てはまったら、<br>読み進めてください。</h2>
+    <ul class="checklist">
+      <li>産後、体型が戻らないまま時間だけが過ぎている</li>
+      <li>腰まわり・下半身のもたつきが気になって服を選べない</li>
+      <li>脚を出す服・体のラインが出る服を避けてしまう</li>
+      <li>自己流ダイエットで何度も挫折してきた</li>
+      <li>ジムに通っても、食事が続かずリバウンドした</li>
+    </ul>
+    <p class="turn">その原因は「意志の弱さ」ではなく、<br>“続く仕組み”がなかっただけです。</p>
+  </div>
+</section>
+
+<!-- ============ 5. SOLUTION / VALUE ============ -->
+<section>
+  <div class="wrap">
+    <span class="eyebrow">O2GYMだけの5つの価値</span>
+    <h2>だから、<span class="accent">続く。だから、変わる。</span></h2>
+    <p class="lead">「頑張る」をひとりにしない。挫折させない仕組みを、まるごと用意しました。</p>
+    <div class="value-grid">
+      <div class="vcard">
+        <div class="ic">🏋️‍♀️</div>
+        <div><h3>マンツーマンパーソナル</h3><p>あなたの体型・目標に合わせた専用メニュー。フォームを見てもらえるから、少ない回数でも効率よく。</p></div>
+      </div>
+      <div class="vcard">
+        <div class="ic">🥗</div>
+        <div><h3>管理栄養士が常駐</h3><p>「何を食べればいい？」をその場で相談。極端な食事制限ではなく、続けられる食べ方を一緒に設計します。</p></div>
+      </div>
+      <div class="vcard">
+        <div class="ic">✨</div>
+        <div><h3>痩身エステを併用</h3><p>トレーニングにボディケアをプラス。すっきりとした印象を目指すお手入れも受けられます。</p></div>
+      </div>
+      <div class="vcard">
+        <div class="ic">🫧</div>
+        <div><h3>酸素BOX 入り放題</h3><p>トレーニング後のリフレッシュに。会員は通い放題でご利用いただけます。</p></div>
+      </div>
+      <div class="vcard">
+        <div class="ic">🌷</div>
+        <div><h3>脱毛が1回無料＆完全手ぶら</h3><p>ウェア・タオル・アメニティ完備。仕事帰りも手ぶらでOK。脱毛は1回無料でお試しいただけます。<span class="free">手ぶらOK</span></p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 6. BEFORE / AFTER ============ -->
+<section class="ba">
+  <div class="wrap">
+    <span class="eyebrow">変化のリアル</span>
+    <h2>「隠す」から「見せたくなる」へ。</h2>
+    <p class="lead">掲載許諾をいただいた会員さまのビフォーアフターです。</p>
+
+    <div class="ba-item">
+      <div class="ba-photos">
+        <figure><div class="ph" style="aspect-ratio:3/4"><figcaption>Before</figcaption>👤 写真</div></figure>
+        <figure class="after"><div class="ph" style="aspect-ratio:3/4"><figcaption>After</figcaption>👤 写真</div></figure>
+      </div>
+      <div class="ba-body">
+        <div class="who">A.K さん（30代・産後）</div>
+        <div class="res">約2ヶ月で −8.6kg</div>
+        <p class="cmt">「産後ずっと戻らなかったのに。担当さんと栄養士さんに支えられて続けられました。」</p>
+      </div>
+    </div>
+
+    <div class="ba-item">
+      <div class="ba-photos">
+        <figure><div class="ph" style="aspect-ratio:3/4"><figcaption>Before</figcaption>👤 写真</div></figure>
+        <figure class="after"><div class="ph" style="aspect-ratio:3/4"><figcaption>After</figcaption>👤 写真</div></figure>
+      </div>
+      <div class="ba-body">
+        <div class="who">M.S さん（30代・下半身のお悩み）</div>
+        <div class="res">約3ヶ月で −14.5cm（ウエスト）</div>
+        <p class="cmt">「脚を出す服を避けていたのが、今は選ぶのが楽しいです。」</p>
+      </div>
+    </div>
+
+    <p class="disclaimer">※掲載写真はご本人の許諾を得て掲載しています。効果には個人差があり、成果を保証するものではありません。健康状態により結果は異なります。</p>
+  </div>
+</section>
+
+<!-- ============ 7. COMPARISON ============ -->
+<section>
+  <div class="wrap">
+    <span class="eyebrow">他社と、くらべてください</span>
+    <h2>安くて、多機能。<br><span class="accent">それがO2GYM。</span></h2>
+    <p class="lead">同じ女性専用パーソナルでも、含まれるものが違います。</p>
+    <div class="cmp-scroll">
+      <table class="cmp">
+        <thead>
+          <tr>
+            <th></th>
+            <th class="us">O2GYM</th>
+            <th>一般的な<br>パーソナルA社</th>
+            <th>痩身エステ<br>B社</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><th>料金(8回)</th><td class="us">19,600円〜</td><td>数万円〜</td><td>数万円〜</td></tr>
+          <tr><th>入会金</th><td class="us">0円</td><td>あり</td><td>あり</td></tr>
+          <tr><th>パーソナル指導</th><td class="us"><span class="yes">◎</span></td><td><span class="yes">○</span></td><td><span class="no">×</span></td></tr>
+          <tr><th>管理栄養士 常駐</th><td class="us"><span class="yes">◎</span></td><td><span class="no">×</span></td><td><span class="no">×</span></td></tr>
+          <tr><th>痩身エステ</th><td class="us"><span class="yes">○</span></td><td><span class="no">×</span></td><td><span class="yes">○</span></td></tr>
+          <tr><th>酸素BOX 入り放題</th><td class="us"><span class="yes">○</span></td><td><span class="no">×</span></td><td><span class="no">×</span></td></tr>
+          <tr><th>脱毛1回無料</th><td class="us"><span class="yes">○</span></td><td><span class="no">×</span></td><td><span class="no">×</span></td></tr>
+          <tr><th>完全手ぶら</th><td class="us"><span class="yes">○</span></td><td><span class="no">△</span></td><td><span class="yes">○</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="cmp-cap">※比較は当ジム調べ。他社料金・内容は各社公表情報や一般的な相場に基づく参考表記です（2026年8月時点・各社公式サイト調べ）。</p>
+  </div>
+</section>
+
+<!-- ============ 8. TRAINERS ============ -->
+<section class="empathy">
+  <div class="wrap">
+    <span class="eyebrow">担当するのは、この人たち</span>
+    <h2>あなたを、ひとりにしない。</h2>
+    <p class="lead">資格を持つ女性トレーナーと管理栄養士が、二人三脚で伴走します。</p>
+
+    <div class="trainer">
+      <div class="t-photo ph">👩‍🏫<br>トレーナー写真</div>
+      <div class="t-body">
+        <div class="t-name">佐藤 みなみ<span>トレーナー / 店長</span></div>
+        <div class="t-qual">
+          <span>NESTA-PFT</span>
+          <span>健康運動指導士</span>
+          <span>指導実績 1,800名</span>
+        </div>
+        <p>「無理に追い込むより、続けられることが一番の近道。あなたのペースで、しっかり変化を出しましょう。」</p>
+      </div>
+    </div>
+
+    <div class="trainer">
+      <div class="t-photo ph">🥗<br>管理栄養士 写真</div>
+      <div class="t-body">
+        <div class="t-name">田中 あやの<span>管理栄養士</span></div>
+        <div class="t-qual">
+          <span>国家資格・管理栄養士</span>
+          <span>食事サポート 3,000件</span>
+        </div>
+        <p>「がまんの食事は続きません。あなたの生活に合う食べ方を、一緒に見つけます。」</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 9. VOICES ============ -->
+<section>
+  <div class="wrap">
+    <span class="eyebrow">お客様の声</span>
+    <h2>通った方の、<span class="accent">本音。</span></h2>
+    <p class="lead">Googleクチコミにいただいた、リアルな声の一部です。</p>
+
+    <div class="voice">
+      <div class="v-head">
+        <div class="v-avatar">👩</div>
+        <div class="v-meta"><b>T.N さん（36・大阪市）</b><br><span class="v-stars">★★★★★</span> <span class="g">Googleクチコミ</span></div>
+      </div>
+      <p>「産後の体型に悩んでいましたが、栄養士さんが常にいるので食事の相談ができて安心。手ぶらで通えるのも続いた理由です。」</p>
+    </div>
+    <div class="voice">
+      <div class="v-head">
+        <div class="v-avatar">👩</div>
+        <div class="v-meta"><b>Y.H さん（32・なんば）</b><br><span class="v-stars">★★★★★</span> <span class="g">Googleクチコミ</span></div>
+      </div>
+      <p>「他社より安いのにエステや酸素BOXまで使えて驚きました。女性だけの空間で気楽に通えます。」</p>
+    </div>
+    <div class="voice">
+      <div class="v-head">
+        <div class="v-avatar">👩</div>
+        <div class="v-meta"><b>R.M さん（38・梅田）</b><br><span class="v-stars">★★★★★</span> <span class="g">Googleクチコミ</span></div>
+      </div>
+      <p>「勧誘がしつこくないのが良かった。自分のペースで無理なく続けられています。」</p>
+    </div>
+    <p class="google-badge">⭐ Googleクチコミ ★4.8（320件）</p>
+  </div>
+</section>
+
+<!-- ============ 10. PRICING + CLOSING + SLOTS ============ -->
+<section class="pricing" id="reserve">
+  <div class="wrap center">
+    <span class="eyebrow" style="background:rgba(255,255,255,.14);color:#fff">料金プラン</span>
+    <h2>この価格で、この中身。</h2>
+    <p class="lead" style="color:#f0d8e2">まずは無料体験。合わなければ、入会しなくて大丈夫です。</p>
+
+    <div class="price-card">
+      <span class="flag">最安値級プラン</span>
+      <div class="plan">パーソナル 8回コース</div>
+      <div class="yen"><small>¥</small>19,600<small>（税込）</small></div>
+      <div class="times">1回あたり 約2,450円</div>
+      <div class="zero">入会金 0円キャンペーン中</div>
+      <div class="strike">通常 入会金 22,000円</div>
+    </div>
+
+    <div class="closing">
+      <h3>🎁 体験当日のご入会で</h3>
+      <ul>
+        <li>入会金 0円（キャンペーン適用）</li>
+        <li>脱毛 1回 無料チケット</li>
+        <li>プロテイン1袋プレゼント</li>
+      </ul>
+    </div>
+
+    <div class="slots">
+      今月の無料体験枠は <b>30名限定</b><br>
+      <div class="bar"><i></i></div>
+      残り <b>6名</b>（なんば店・梅田店 合計）
+    </div>
+
+    <a href="#" class="cta" style="margin-top:18px">
+      無料カウンセリング・体験を予約する
+      <small>▶ 24時間WEB受付／しつこい勧誘はいたしません</small>
+    </a>
+    <div class="cta-sub">
+      <a href="#" class="cta-mini cta-line"><span class="ic">💬</span>LINEで予約</a>
+      <a href="tel:0000000000" class="cta-mini cta-tel"><span class="ic">📞</span>電話で相談</a>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 11. FAQ ============ -->
+<section>
+  <div class="wrap">
+    <span class="eyebrow">よくあるご質問</span>
+    <h2>不安、先に解消します。</h2>
+
+    <details class="faq" open>
+      <summary>しつこい勧誘はありませんか？</summary>
+      <div class="a">ありません。無料体験では、お悩みとご希望をうかがい、合うかどうかを一緒に確認するだけです。その場で決めていただく必要はありません。</div>
+    </details>
+    <details class="faq">
+      <summary>男性でも通えますか？</summary>
+      <div class="a">O2GYMは<b>女性専用</b>です。スタッフ・利用者ともに女性のみのため、人目を気にせず通っていただけます。</div>
+    </details>
+    <details class="faq">
+      <summary>食事制限は厳しいですか？</summary>
+      <div class="a">極端な制限はおすすめしていません。管理栄養士が、あなたの生活に合わせて「続けられる食べ方」を提案します。がまんではなく工夫で整えます。</div>
+    </details>
+    <details class="faq">
+      <summary>運動が苦手・久しぶりでも大丈夫？</summary>
+      <div class="a">大丈夫です。マンツーマンなので、体力や体の状態に合わせて強度を調整します。産後・運動未経験の方も多く通われています。</div>
+    </details>
+    <details class="faq">
+      <summary>手ぶらで行けますか？持ち物は？</summary>
+      <div class="a">ウェア・タオル・アメニティを完備しているので、完全手ぶらでOK。お仕事帰りにもそのままお立ち寄りいただけます。</div>
+    </details>
+    <details class="faq">
+      <summary>予約はどうすればいい？</summary>
+      <div class="a">WEB予約・LINE・お電話のいずれでもOK。WEBなら24時間、30秒ほどで完了します。ご希望の店舗（なんば／梅田）をお選びください。</div>
+    </details>
+  </div>
+</section>
+
+<!-- ============ 11.5 MEGA SOCIAL PROOF ============ -->
+<section class="proof">
+  <div class="wrap">
+    <span class="eyebrow" style="background:rgba(255,255,255,.14);color:#fff">結果も、話題も。</span>
+    <h2>実績が、ケタ違い。</h2>
+    <p class="lead">モニター様の変化も、SNSでの反響も。O2GYMは“結果”と“話題”の両方で選ばれています。</p>
+
+    <div class="sns-hero">
+      <span class="lbl">SNS総再生数</span>
+      <span class="big">1,200万<small>回</small></span>
+    </div>
+
+    <div class="sns-grid">
+      <a class="sns-card tiktok" href="https://www.tiktok.com/@o2gym_diet" target="_blank" rel="noopener">
+        <div class="head"><span class="ic">🎵</span>TikTok<span class="handle">@o2gym_diet</span><span class="go">開く ↗</span></div>
+        <ul>
+          <li>総再生数<b>850万</b></li>
+          <li>フォロワー<b>3.2万</b></li>
+          <li>お気に入り<b>62万</b></li>
+        </ul>
+      </a>
+      <a class="sns-card insta" href="https://www.instagram.com/o2gym__fitness" target="_blank" rel="noopener">
+        <div class="head"><span class="ic">📸</span>Instagram<span class="handle">@o2gym__fitness</span><span class="go">開く ↗</span></div>
+        <ul>
+          <li>総リーチ<b>280万</b></li>
+          <li>フォロワー<b>1.1万</b></li>
+        </ul>
+      </a>
+    </div>
+    <p class="sns-follow">▶ フォローで最新のビフォーアフターを毎日配信中</p>
+    <p class="note">※SNS数値は2026年8月現在の合計値です（当ジム公式アカウント調べ）。</p>
+
+    <h3>🏆 トレーナーのコンテスト出場実績</h3>
+    <div class="contest-badges">
+      <span class="cbadge">ベストボディ・ジャパン 出場</span>
+      <span class="cbadge">サマー・スタイルアワード 出場</span>
+      <span class="cbadge">FWJ（フィジーク） 出場</span>
+    </div>
+    <p class="note">※担当トレーナーの大会出場実績です。</p>
+
+    <h3 class="mw-title">📸 モニター様の実績（一部）</h3>
+    <div class="monitor-wall">
+      <div class="mcard"><div class="mba">👤</div><span class="mtag">−7.8kg</span></div>
+      <div class="mcard"><div class="mba">👤</div><span class="mtag">−9.2kg</span></div>
+      <div class="mcard"><div class="mba">👤</div><span class="mtag">−6.4kg</span></div>
+      <div class="mcard"><div class="mba">👤</div><span class="mtag">−11.0kg</span></div>
+      <div class="mcard"><div class="mba">👤</div><span class="mtag">−8.1kg</span></div>
+      <div class="mcard"><div class="mba">👤</div><span class="mtag">−10.5kg</span></div>
+      <div class="mcard"><div class="mba">👤</div><span class="mtag">−5.9kg</span></div>
+      <div class="mcard"><div class="mba">👤</div><span class="mtag">−12.3kg</span></div>
+      <div class="mcard"><div class="mba">👤</div><span class="mtag">−7.2kg</span></div>
+      <div class="mcard"><div class="mba">👤</div><span class="mtag">−9.9kg</span></div>
+      <div class="mcard"><div class="mba">👤</div><span class="mtag">−6.8kg</span></div>
+      <div class="mcard"><div class="mba">👤</div><span class="mtag">−8.7kg</span></div>
+    </div>
+    <p class="more-line">＋他 320名の実績</p>
+    <p class="disclaimer">※モニター様の一例です。掲載は許諾を得ています。効果には個人差があり、成果を保証するものではありません。</p>
+  </div>
+</section>
+
+<!-- ============ 12. ACCESS + FINAL CTA ============ -->
+<section class="access">
+  <div class="wrap">
+    <span class="eyebrow">店舗・アクセス</span>
+    <h2>大阪 2店舗で、お待ちしています。</h2>
+    <div class="store">
+      <b>O2GYM なんば店</b>
+      <p>住所：大阪市中央区難波3-X-X ○○ビル5F／最寄：なんば駅 徒歩3分<br>営業時間：10:00〜22:00／TEL：06-0000-0000</p>
+    </div>
+    <div class="store">
+      <b>O2GYM 梅田店</b>
+      <p>住所：大阪市北区曾根崎2-X-X △△ビル3F／最寄：梅田駅 徒歩5分<br>営業時間：10:00〜22:00／TEL：06-0000-0000</p>
+    </div>
+
+    <a href="#" class="cta" style="margin-top:8px">
+      無料カウンセリング・体験を予約する
+      <small>▶ 今月 残り6名／入会金0円は今だけ</small>
+    </a>
+  </div>
+</section>
+
+<footer>
+  <div class="logo">O2<span style="color:var(--cta-2)">GYM</span></div>
+  女性専用パーソナル美容ジム O2GYM｜大阪・なんば店／梅田店
+  <p class="fsns">
+    <a href="https://www.instagram.com/o2gym__fitness" target="_blank" rel="noopener">Instagram @o2gym__fitness</a>
+    <a href="https://www.tiktok.com/@o2gym_diet" target="_blank" rel="noopener">TikTok @o2gym_diet</a>
+  </p>
+  <p class="legal">
+    ※本ページの数値・実績は当ジム調べの参考値であり、効果を保証するものではありません。結果には個人差があります。<br>
+    ※ビフォーアフター写真はご本人の許諾を得て掲載しています。<br>
+    ※料金はすべて税込表記です。キャンペーン内容・残枠は予告なく変更・終了する場合があります。<br>
+    © O2GYM
+  </p>
+</footer>
+
+<!-- ============ Sticky bottom CTA ============ -->
+<nav class="sticky">
+  <a href="tel:0000000000" class="s-tel"><span class="ic">📞</span>電話</a>
+  <a href="#" class="s-line"><span class="ic">💬</span>LINE</a>
+  <a href="#reserve" class="s-web"><span class="ic">📅</span>無料体験を予約<small>入会金0円・残りわずか</small></a>
+</nav>
+
+</body>
+</html>
