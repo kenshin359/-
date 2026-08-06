@@ -77,6 +77,7 @@ export function loadConfig({ needSend } = {}) {
       url: process.env.CHINA_SHEET_URL || "",
     },
     replyBlocks: readJson("config/reply-blocks.json"),
+    council: readJson("config/council.json"),
     dangerWords: readJson("config/danger-words.json"),
     promiseCheck: readJson("config/promise-check.json"),
     qualityCheck: readJson("config/quality-check.json"),

@@ -4,6 +4,7 @@
 //   AIには「文章づくり」と「参考情報（分類・SNS向きか）」だけを任せます。
 //
 import { stripWrappingQuotes } from "../safety/qualityChecks.js";
+import { councilReview } from "./councilReview.js";
 
 // SDKは使わず fetch で直接叩く（依存を増やさない）。
 // APIキーが無い／APP_ENV=test のときは、オフラインでも --dry-run できるよう
@@ -132,11 +133,21 @@ export async function generateReply(review, cfg) {
     const data = await res.json();
     const text = (data.content || []).map((c) => c.text || "").join("");
     const parsed = extractJson(text);
-    // 型をそろえる（欠けていても落ちないように）。★本文の囲み引用符は除去（問題1）。
-    return {
+    // 1パス目の下書き（③④）。★本文の囲み引用符は除去（問題1）。
+    const firstDraft = {
       body: stripWrappingQuotes(parsed.body || ""),
       needs_apology: !!parsed.needs_apology,
       apology: stripWrappingQuotes(parsed.apology || ""),
+    };
+    // ★2パス目：合議レビュー（CS3人＋管理職＋役員）で添削。無効/失敗時は1パス目のまま。
+    const reviewed = await councilReview(review, firstDraft, cfg);
+
+    // 型をそろえて返す（分類系は1パス目を採用、③④は合議後を採用）
+    return {
+      body: reviewed.body,
+      needs_apology: reviewed.needs_apology,
+      apology: reviewed.apology,
+      council_notes: reviewed.council_notes || "",
       sentiment: parsed.sentiment || "neutral",
       is_product_complaint: !!parsed.is_product_complaint,
       issue_category: parsed.issue_category || "なし",
