@@ -269,10 +269,14 @@
   .sns-hero .big{display:block;font-size:44px;font-weight:900;font-style:italic;line-height:1.05;margin-top:2px}
   .sns-hero .big small{font-size:19px;font-style:normal;margin-left:2px}
   .sns-grid{display:grid;grid-template-columns:1fr;gap:10px}
-  .sns-card{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:14px;padding:14px 16px}
+  .sns-card{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:14px;
+    padding:14px 16px;text-decoration:none;color:inherit;display:block}
   .sns-card .head{display:flex;align-items:center;gap:8px;font-weight:800;font-size:15px;margin-bottom:10px}
   .sns-card .ic{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;background:#fff}
   .sns-card.tiktok .ic{background:#000}
+  .sns-card .handle{font-size:12px;font-weight:600;color:#c9bcc6}
+  .sns-card .go{margin-left:auto;font-size:12px;font-weight:800;color:#FFE08A;white-space:nowrap}
+  .sns-follow{text-align:center;font-size:13px;font-weight:700;color:#FFE08A;margin:12px 0 0}
   .sns-card ul{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:8px}
   .sns-card li{background:rgba(255,255,255,.08);border-radius:999px;padding:6px 12px;font-size:12.5px;color:#efe6ec;display:flex;align-items:center}
   .sns-card li b{color:#FFE08A;font-size:16px;font-weight:900;font-style:italic;margin-left:5px}
@@ -298,6 +302,8 @@
   footer{background:#2A2530;color:#cfc7cf;text-align:center;padding:28px 20px;font-size:12px}
   footer .logo{color:#fff;font-size:18px;margin-bottom:8px}
   .legal{font-size:11px;color:#8a828f;line-height:1.7;margin-top:12px}
+  .fsns{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin:10px 0 0}
+  .fsns a{color:#FFE08A;text-decoration:none;font-weight:700;font-size:12.5px}
 
   /* ============ Sticky bottom CTA ============ */
   .sticky{position:fixed;left:0;right:0;bottom:0;z-index:50;background:rgba(255,255,255,.96);
@@ -708,29 +714,23 @@
     </div>
 
     <div class="sns-grid">
-      <div class="sns-card tiktok">
-        <div class="head"><span class="ic">🎵</span>TikTok</div>
+      <a class="sns-card tiktok" href="https://www.tiktok.com/@o2gym_diet" target="_blank" rel="noopener">
+        <div class="head"><span class="ic">🎵</span>TikTok<span class="handle">@o2gym_diet</span><span class="go">開く ↗</span></div>
         <ul>
           <li>総再生数<b><span class="req">【要入力】</span></b></li>
           <li>フォロワー<b><span class="req">【要入力】</span></b></li>
           <li>お気に入り<b><span class="req">【要入力】</span></b></li>
         </ul>
-      </div>
-      <div class="sns-card insta">
-        <div class="head"><span class="ic">📸</span>Instagram（筋トレ）</div>
+      </a>
+      <a class="sns-card insta" href="https://www.instagram.com/o2gym__fitness" target="_blank" rel="noopener">
+        <div class="head"><span class="ic">📸</span>Instagram<span class="handle">@o2gym__fitness</span><span class="go">開く ↗</span></div>
         <ul>
           <li>総リーチ<b><span class="req">【要入力】</span></b></li>
           <li>フォロワー<b><span class="req">【要入力】</span></b></li>
         </ul>
-      </div>
-      <div class="sns-card yt">
-        <div class="head"><span class="ic">▶️</span>YouTube</div>
-        <ul>
-          <li>再生数<b><span class="req">【要入力】</span></b></li>
-          <li>登録者<b><span class="req">【要入力】</span></b></li>
-        </ul>
-      </div>
+      </a>
     </div>
+    <p class="sns-follow">▶ フォローで最新のビフォーアフターを毎日配信中</p>
     <p class="note">※SNS数値は<span class="req">【要入力：時点】</span>現在の合計値です（当ジム公式アカウント調べ）。</p>
 
     <h3>🏆 トレーナーのコンテスト出場実績</h3>
@@ -785,6 +785,10 @@
 <footer>
   <div class="logo">O2<span style="color:var(--cta-2)">GYM</span></div>
   女性専用パーソナル美容ジム O2GYM｜大阪・なんば店／梅田店
+  <p class="fsns">
+    <a href="https://www.instagram.com/o2gym__fitness" target="_blank" rel="noopener">Instagram @o2gym__fitness</a>
+    <a href="https://www.tiktok.com/@o2gym_diet" target="_blank" rel="noopener">TikTok @o2gym_diet</a>
+  </p>
   <p class="legal">
     ※本ページの数値・実績は当ジム調べの参考値であり、効果を保証するものではありません。結果には個人差があります。<br>
     ※ビフォーアフター写真はご本人の許諾を得て掲載しています。<br>
