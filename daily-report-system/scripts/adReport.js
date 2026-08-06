@@ -15,12 +15,50 @@
 //  ★計算はすべて JS で行います。AIは使いません（費用ゼロ・数字は正確）。
 //  ★kintone は読むだけです。
 // ============================================================
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { optional, required } from '../lib/env.js';
 import { fetchWithRetry } from '../lib/httpRetry.js';
 import { summarize, formatAdSummary } from '../lib/adSummary.js';
 import { productGroup } from '../lib/adClassify.js';
 import { todayISO } from '../lib/date.js';
 import { pushChatwork } from '../lib/chatwork.js';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+/** その年のRPP運用ルール（config/rpp-rules-YYYY.json）。無ければ null */
+export function loadRppRules(dateISO) {
+  const file = path.join(path.resolve(__dirname, '..'), 'config', `rpp-rules-${dateISO.slice(0, 4)}.json`);
+  try {
+    return JSON.parse(fs.readFileSync(file, 'utf8'));
+  } catch {
+    return null;
+  }
+}
+
+/** RPP運用ルール → 報告用の「RPP運用メモ」。ルールが無ければ null（従来どおり） */
+export function formatRppMemo(rules) {
+  if (!rules) return null;
+  const lines = ['📌 RPP運用メモ（8月定例MTG）'];
+  const floor = rules.policy?.roas_floor_pct;
+  if (floor) lines.push(`・ROAS目標: ${floor.toLocaleString('ja-JP')}%以上を維持`);
+  const reinforce = Array.isArray(rules.reinforce) ? rules.reinforce.filter((r) => !r.done) : [];
+  if (reinforce.length) {
+    const items = reinforce.map((r) => `${r.code}${r.理由 ? `（${r.理由}）` : ''}`).join(' / ');
+    lines.push(`・強化: ${items}`);
+  }
+  const excl = Array.isArray(rules.exclusion_candidates) ? rules.exclusion_candidates.filter((r) => !r.done) : [];
+  if (excl.length) {
+    const items = excl
+      .map((r) => `${r.code}（7月ROAS ${Number(r.roas_2026_07_pct).toLocaleString('ja-JP')}%）`)
+      .join(' / ');
+    lines.push(`・除外検討: ${items}`);
+    const cond = excl.find((r) => r.条件)?.条件;
+    if (cond) lines.push(`　※ ${cond}`);
+  }
+  return lines.length > 1 ? lines.join('\n') : null;
+}
 
 function base() {
   return required('KINTONE_BASE_URL').replace(/\/$/, '');
@@ -155,6 +193,9 @@ async function main() {
       })
     );
   }
+
+  const rppMemo = formatRppMemo(loadRppRules(today));
+  if (rppMemo) parts.push(rppMemo);
 
   const text = parts.join('\n\n────────────────────\n\n');
   console.log(text);
