@@ -21,6 +21,7 @@
     --brand-deep:#7E3B57;
     --brand-soft:#F7E7EE;
     --gold:#C7A15B;      /* authority accent */
+    --gold-1:#EAD7A0; --gold-2:#D8BC77; --gold-3:#C29B48; /* BA hero panel */
     --cta:#E23E76;       /* CTA base */
     --cta-2:#FF7EA6;     /* CTA highlight */
     --ok:#2E9E7B;
@@ -74,37 +75,57 @@
   .cta-line{background:#06C755;color:#fff;border-color:#06C755}
   .cta-tel{color:var(--brand-deep)}
 
-  /* ============ Hero ============ */
-  .hero{
-    background:
-      radial-gradient(120% 80% at 80% -10%,rgba(199,161,91,.18),transparent 60%),
-      linear-gradient(180deg,#FDEFF3,#FBF6F2);
-    padding-top:26px;padding-bottom:34px;
-  }
-  .brandbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+  /* ============ Hero (impact / BA style) ============ */
+  .hero{background:var(--surface);padding-top:16px;padding-bottom:30px}
+  .brandbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
   .logo{font-weight:900;font-size:20px;letter-spacing:.04em}
   .logo span{color:var(--brand)}
   .badge-area{font-size:12px;color:var(--muted);text-align:right;line-height:1.5}
-  .hero h1{
-    font-size:31px;line-height:1.42;font-weight:900;margin:6px 0 14px;letter-spacing:.005em;
-  }
-  .hero h1 .hl{
-    background:linear-gradient(transparent 62%,#FFE08A 62%);padding:0 2px
-  }
-  .hero h1 .rose{color:var(--brand)}
-  .offer-tags{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+
+  /* Gold BA panel */
+  .ba-hero{background:linear-gradient(160deg,var(--gold-1),var(--gold-2) 55%,var(--gold-3));position:relative}
+  .ba-split{display:grid;grid-template-columns:1fr 1fr;gap:0;position:relative}
+  .ba-split figure{margin:0;position:relative;aspect-ratio:3/4}
+  .ba-split figcaption{position:absolute;top:10px;left:10px;font-weight:900;font-size:13px;letter-spacing:.1em;
+    color:#fff;background:rgba(42,37,48,.72);padding:4px 12px;border-radius:6px}
+  .ba-split .after figcaption{left:auto;right:10px;background:var(--brand)}
+  .ba-split .arrow{position:absolute;top:44%;left:50%;transform:translate(-50%,-50%);z-index:3;
+    width:52px;height:52px;border-radius:50%;background:#fff;box-shadow:var(--shadow);
+    display:flex;align-items:center;justify-content:center;font-size:24px;color:var(--gold-3);font-weight:900}
+  .ba-copy{padding-top:14px;padding-bottom:22px;color:#2A2530}
+  .hero-catch{font-size:22px;font-weight:800;line-height:1.4;margin:2px 0 6px}
+  .hero-catch b{font-size:27px;color:var(--brand-deep)}
+  .hero-person{margin:0 0 14px;font-weight:800;font-size:15px}
+  .hero-person span{display:block;font-size:11px;font-weight:600;color:#6b5a3a;margin-top:2px}
+
+  .hero-badges{display:flex;gap:10px;margin-bottom:14px}
+  .hb{background:#fff;border-radius:14px;padding:10px 8px;text-align:center;flex:1;box-shadow:var(--shadow);line-height:1.2}
+  .hb-l{display:block;font-size:11px;font-weight:700;color:var(--muted)}
+  .hb-n{display:block;font-size:28px;font-weight:900;color:var(--brand);font-style:italic}
+  .hb-n small{font-size:14px}
+  .hb-n2{display:block;font-size:20px;font-weight:900;color:var(--brand-deep)}
+  .hb b{font-size:26px;font-style:italic;color:var(--brand)}
+
+  .hero-term{font-size:20px;font-weight:900;font-style:italic;margin:6px 0 8px;color:#2A2530}
+  .hero-term b{font-size:30px;color:var(--brand-deep)}
+  .impact{display:flex;flex-direction:column;gap:8px}
+  .imp{display:flex;align-items:center;gap:10px}
+  .imp-l{flex:0 0 84px;background:#2A2530;color:#fff;font-weight:800;font-size:14px;text-align:center;
+    padding:8px 4px;clip-path:polygon(0 0,100% 0,92% 100%,0 100%)}
+  .imp-v{font-weight:900;font-style:italic;line-height:1;color:#2A2530;white-space:nowrap}
+  .imp-v b{font-size:50px}
+  .imp-v small{font-size:20px;margin-left:1px}
+  .imp-note{font-size:10.5px;color:#6b5a3a;margin:10px 0 0;line-height:1.55}
+
+  .offer-tags{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 16px}
   .tag{background:var(--surface);border:1.5px solid var(--brand-soft);color:var(--brand-deep);
     font-weight:700;font-size:13px;padding:7px 12px;border-radius:999px;box-shadow:var(--shadow)}
   .tag .n{color:var(--brand);font-weight:900}
-  .hero-photo{
-    position:relative;aspect-ratio:16/11;border-radius:var(--radius);overflow:hidden;
-    margin:16px 0 20px;box-shadow:var(--shadow)
-  }
-  .ph{ /* photo placeholder */
+  .ph{ /* photo placeholder — fills its parent box */
     width:100%;height:100%;display:flex;align-items:center;justify-content:center;text-align:center;
     background:repeating-linear-gradient(45deg,#F1E4DC,#F1E4DC 12px,#EAD9CF 12px,#EAD9CF 24px);
-    color:#a98f7f;font-size:13px;font-weight:700;padding:16px
-  }
+    color:#a98f7f;font-size:13px;font-weight:700;padding:16px}
+  .ba-split figure .ph{position:absolute;inset:0} /* fill the aspect-ratio figure */
   .hero-note{font-size:12px;color:var(--muted);margin-top:10px;text-align:center}
 
   /* ============ Trust numbers ============ */
@@ -258,7 +279,8 @@
 
   /* ============ Desktop niceties ============ */
   @media(min-width:680px){
-    .hero h1{font-size:38px}
+    .hero-catch{font-size:26px}.hero-catch b{font-size:32px}
+    .imp-v b{font-size:60px}.imp-l{flex-basis:100px}
     h2{font-size:30px}
     .numgrid{grid-template-columns:repeat(4,1fr)}
     body{padding-bottom:0}
@@ -275,14 +297,50 @@
       <div class="logo">O2<span>GYM</span></div>
       <div class="badge-area">女性専用パーソナル美容ジム<br>大阪・なんば店／梅田店</div>
     </div>
+  </div>
 
-    <span class="eyebrow">産後太り・下半身が気になる30代の方へ</span>
-    <h1>
-      もう、<span class="rose">服で隠さなくていい。</span><br>
-      <span class="hl">最短<span class="req">【要入力】</span>日で−<span class="req">【要入力】</span>kg</span>を目指す、<br>
-      女性専用パーソナル美容ジム。
-    </h1>
+  <!-- Gold BA panel -->
+  <div class="ba-hero">
+    <div class="ba-split">
+      <figure class="before">
+        <figcaption>BEFORE</figcaption>
+        <div class="ph">【会員BA写真・Before】<br>許諾済</div>
+      </figure>
+      <figure class="after">
+        <figcaption>AFTER</figcaption>
+        <div class="ph">【会員BA写真・After】<br>許諾済</div>
+      </figure>
+      <div class="arrow" aria-hidden="true">→</div>
+    </div>
 
+    <div class="ba-copy wrap">
+      <p class="hero-catch">産後の私が、育児の合間でも<br><b>ここまで変われた。</b></p>
+      <p class="hero-person"><span class="req">【要入力：お客様名】</span>さん
+        <span><span class="req">【要入力】</span>歳／プログラム期間<span class="req">【要入力】</span>ヶ月　※撮影時・効果には個人差があります</span>
+      </p>
+
+      <div class="hero-badges">
+        <div class="hb">
+          <span class="hb-l">トレーニング満足度</span>
+          <span class="hb-n"><span class="req">【要入力】</span><small>%</small></span>
+        </div>
+        <div class="hb">
+          <span class="hb-l">1回 <b><span class="req">【要入力】</span></b>分</span>
+          <span class="hb-n2">週<b><span class="req">【要入力】</span></b>回〜</span>
+        </div>
+      </div>
+
+      <p class="hero-term">たった<b><span class="req">【要入力】</span>ヶ月</b>で</p>
+      <div class="impact">
+        <div class="imp"><span class="imp-l">体重</span><span class="imp-v">−<b><span class="req">【要入力】</span></b><small>kg</small></span></div>
+        <div class="imp"><span class="imp-l">体脂肪率</span><span class="imp-v">−<b><span class="req">【要入力】</span></b><small>%</small></span></div>
+        <div class="imp"><span class="imp-l">ウエスト</span><span class="imp-v">−<b><span class="req">【要入力】</span></b><small>cm</small></span></div>
+      </div>
+      <p class="imp-note">※お客様個人の実績です（当ジム調べ／撮影時）。効果には個人差があり、成果を保証するものではありません。</p>
+    </div>
+  </div>
+
+  <div class="wrap">
     <div class="offer-tags">
       <span class="tag"><span class="n">入会金0円</span> キャンペーン</span>
       <span class="tag">8回 <span class="n">19,600円</span></span>
@@ -290,19 +348,15 @@
       <span class="tag">完全<span class="n">手ぶら</span></span>
     </div>
 
-    <div class="hero-photo">
-      <div class="ph">【FVメイン写真】<br>笑顔で通う30代女性／明るく清潔なジム内観<br>(掲載許諾済のBA・実会員写真を差し込み)</div>
-    </div>
-
     <a href="#reserve" class="cta">
-      無料体験・カウンセリングを予約する
-      <small>▶ 30秒・24時間WEB受付／しつこい勧誘なし</small>
+      無料カウンセリング・体験を予約する
+      <small>▶ 実施中／30秒・24時間WEB受付・しつこい勧誘なし</small>
     </a>
     <div class="cta-sub">
       <a href="#" class="cta-mini cta-line"><span class="ic">💬</span>LINEで予約</a>
       <a href="tel:0000000000" class="cta-mini cta-tel"><span class="ic">📞</span>電話で相談</a>
     </div>
-    <p class="hero-note">管理栄養士が常駐。痩身エステ・酸素BOX入り放題つき。今月の無料体験は<b>残り<span class="req">【要入力】</span>名</b></p>
+    <p class="hero-note">管理栄養士が常駐。痩身エステ・酸素BOX入り放題つき。今月の無料枠は<b>残り<span class="req">【要入力】</span>名</b></p>
   </div>
 </header>
 
