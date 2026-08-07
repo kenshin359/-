@@ -37,8 +37,21 @@ export function checkProductMismatch(replyText, category, cfg) {
 
 // ── 問題4：不満・要望なのに“満足・お褒め”で返している ──────────────
 // レビューに要望/不満のサインがあり、返信が満足系を含み、かつお詫び/改善が無い → 誤読の疑い。
+//
+// ★否定形の除外（実測の誤検知）：「気になりません」「不満はありません」等は“肯定”なので不満ではない。
+//   マーカーの直後に否定語があれば、その出現はカウントしない。
+const NEGATIONS = ["ません", "ない", "なく", "ず", "ありません", "ございません", "なかった", "いません", "ねぇ"];
+function markerIsRealComplaint(text, marker) {
+  let i = text.indexOf(marker);
+  while (i !== -1) {
+    const after = text.slice(i + marker.length, i + marker.length + 8);
+    if (!NEGATIONS.some((n) => after.includes(n))) return true; // 否定が続かない＝本当の不満
+    i = text.indexOf(marker, i + 1);
+  }
+  return false;
+}
 export function checkComplaintMishandled(reviewBody, replyText, cfg) {
-  const hasComplaint = (cfg.complaintMarkers || []).some((w) => reviewBody.includes(w));
+  const hasComplaint = (cfg.complaintMarkers || []).some((w) => markerIsRealComplaint(reviewBody, w));
   if (!hasComplaint) return { ok: true, reasons: [] };
   const hasPraise = (cfg.praiseMarkers || []).some((w) => replyText.includes(w));
   const hasApology = (cfg.apologyMarkers || []).some((w) => replyText.includes(w));

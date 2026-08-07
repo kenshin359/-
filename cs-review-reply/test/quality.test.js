@@ -60,6 +60,24 @@ test("問題4: 不満マーカーが無ければ判定しない", () => {
   assert.equal(r.ok, true);
 });
 
+test("問題4: 否定形『気になりません』は不満ではない（誤検知しない）", () => {
+  // 実運用テストで出た誤検知：★5の純ポジティブが🔴になっていた
+  const review = "キャスターがとても静かで、深夜の帰宅でも気になりません。出張で毎週使っていますが大満足です。";
+  const reply = "静音性にご満足いただけ光栄です。";
+  const r = checkComplaintMishandled(review, reply, cfg);
+  assert.equal(r.ok, true);
+});
+
+test("問題4: 『不満はありません』も否定形なので誤検知しない", () => {
+  const r = checkComplaintMishandled("使い勝手に不満はありません。大満足です。", "ご満足いただけ光栄です。", cfg);
+  assert.equal(r.ok, true);
+});
+
+test("問題4: 否定でない『音が気になります』は不満として拾う", () => {
+  const r = checkComplaintMishandled("風量は良いが音が気になります。", "ご満足いただけ光栄です。", cfg);
+  assert.equal(r.ok, false);
+});
+
 test("問題2: 同じ言い回しが2回で語尾重複を検出", () => {
   const reply = "静音性に安心いたしました。使い勝手にも安心いたしました。";
   const r = checkRepeatedPhrases(reply, cfg);
