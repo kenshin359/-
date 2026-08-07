@@ -1,0 +1,15 @@
+{
+  "name": "libetee-cs-review-reply",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "CS専用 楽天レビュー返信 自動連携ソフト（下書き作成 → Chatwork連携）",
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "replies": "node src/index.js",
+    "items": "node src/items.js",
+    "discover": "node src/discover.js",
+    "test-send": "node src/testSend.js",
+    "test": "node --test"
+  }
+}

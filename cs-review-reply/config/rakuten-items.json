@@ -1,0 +1,26 @@
+{
+  "_comment": "★落とし穴5-2：監視する商品の対応表。reviewItemId は商品ページの英字コードとは別物で、連番でもありません。`npm run discover`（レビューサイトを走査して自動発見）や `npm run items -- <レビューURL>` で追記できます。手で編集も可。",
+
+  "_category_comment": "category は結びの出し分け（3-3）に使用。suitcase＝スーツケース/キャリーケース類のときだけ『キャリーケース』の結びを使います。fan/beauty/unknown は無難な『弊社商品』になります。",
+
+  "_shape_comment": "items の各要素の形： { reviewItemId, shopCode, name, category(suitcase|fan|beauty|unknown), pageUrl }",
+
+  "_source_comment": "2026-08 時点で楽天ショップ libetee(shopId=407466) のレビューサイトを走査して発見した商品一覧。",
+
+  "items": [
+    { "reviewItemId": "10000012", "shopCode": "libetee", "name": "スーツケース S/M/L（メイン）", "category": "suitcase", "pageUrl": "https://review.rakuten.co.jp/item/1/407466_10000012/1.1/" },
+    { "reviewItemId": "10000032", "shopCode": "libetee", "name": "アルミスーツケース（高級）", "category": "suitcase", "pageUrl": "https://review.rakuten.co.jp/item/1/407466_10000032/1.1/" },
+    { "reviewItemId": "10000033", "shopCode": "libetee", "name": "スーツケース 機内持ち込み", "category": "suitcase", "pageUrl": "https://review.rakuten.co.jp/item/1/407466_10000033/1.1/" },
+    { "reviewItemId": "10000043", "shopCode": "libetee", "name": "スーツケース 大容量105L", "category": "suitcase", "pageUrl": "https://review.rakuten.co.jp/item/1/407466_10000043/1.1/" },
+    { "reviewItemId": "10000048", "shopCode": "libetee", "name": "アルミスーツケース（機内持込）", "category": "suitcase", "pageUrl": "https://review.rakuten.co.jp/item/1/407466_10000048/1.1/" },
+    { "reviewItemId": "10000038", "shopCode": "libetee", "name": "ハンディファン 3Way卓上", "category": "fan", "pageUrl": "https://review.rakuten.co.jp/item/1/407466_10000038/1.1/" },
+    { "reviewItemId": "10000039", "shopCode": "libetee", "name": "ハンディファン スケルトン", "category": "fan", "pageUrl": "https://review.rakuten.co.jp/item/1/407466_10000039/1.1/" },
+    { "reviewItemId": "10000050", "shopCode": "libetee", "name": "ミニハンディファン", "category": "fan", "pageUrl": "https://review.rakuten.co.jp/item/1/407466_10000050/1.1/" },
+    { "reviewItemId": "10000051", "shopCode": "libetee", "name": "ハンディファン 5way", "category": "fan", "pageUrl": "https://review.rakuten.co.jp/item/1/407466_10000051/1.1/" },
+    { "reviewItemId": "10000045", "shopCode": "libetee", "name": "ドライヤー", "category": "beauty", "pageUrl": "https://review.rakuten.co.jp/item/1/407466_10000045/1.1/" },
+    { "reviewItemId": "10000044", "shopCode": "libetee", "name": "電動洗顔ブラシ", "category": "beauty", "pageUrl": "https://review.rakuten.co.jp/item/1/407466_10000044/1.1/" },
+    { "reviewItemId": "10000036", "shopCode": "libetee", "name": "トラベルポーチ（圧縮）", "category": "unknown", "pageUrl": "https://review.rakuten.co.jp/item/1/407466_10000036/1.1/" },
+    { "reviewItemId": "10000042", "shopCode": "libetee", "name": "充電式カイロ", "category": "unknown", "pageUrl": "https://review.rakuten.co.jp/item/1/407466_10000042/1.1/" },
+    { "reviewItemId": "10000046", "shopCode": "libetee", "name": "モバイルバッテリー", "category": "unknown", "pageUrl": "https://review.rakuten.co.jp/item/1/407466_10000046/1.1/" }
+  ]
+}
