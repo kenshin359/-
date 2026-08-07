@@ -1,0 +1,47 @@
+# ============================================================
+#  朝礼レポート（Chatworkで「朝礼」と打つと売上・進捗を返す）
+# ------------------------------------------------------------
+#  朝6:56〜10:00（日本時間）に数分おきで部屋を確認し、
+#  「朝礼」の発言に売上・計画比進捗を自動返信します。
+#  返信済みなら何もしません（二重返信なし）。
+# ============================================================
+name: 朝礼レポート（朝の自動応答）
+
+on:
+  schedule:
+    # 日本時間 6:56〜10:56 のあいだ10分おき（UTC 21:56〜01:56）
+    - cron: '6,16,26,36,46,56 22,23,0,1 * * *'
+    - cron: '56 21 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: chorei
+  cancel-in-progress: false
+
+jobs:
+  chorei:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: daily-report-system
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 朝礼の呼びかけを確認して返信
+        env:
+          KINTONE_BASE_URL: ${{ secrets.KINTONE_BASE_URL }}
+          KINTONE_USER: ${{ secrets.KINTONE_USER }}
+          KINTONE_PASSWORD: ${{ secrets.KINTONE_PASSWORD }}
+          KINTONE_SALES_DETAIL_APP_ID: ${{ secrets.KINTONE_SALES_DETAIL_APP_ID }}
+          SALES_TARGET_MONTHLY: ${{ secrets.SALES_TARGET_MONTHLY }}
+          CHATWORK_API_TOKEN: ${{ secrets.CHATWORK_API_TOKEN }}
+          CHATWORK_SALES_ROOM_ID: ${{ secrets.CHATWORK_SALES_ROOM_ID }}
+          CHATWORK_ROOM_ID: ${{ secrets.CHATWORK_ROOM_ID }}
+          APP_ENV: production
+          REPORT_TIMEZONE: Asia/Tokyo
+        run: node scripts/chorei.js
