@@ -9,9 +9,10 @@
 //    ② getOrder   … 注文番号ごとの中身（商品・数量・金額）をもらう
 //
 //  ★金額の考え方（Amazon・Shopifyと揃えています）
-//    ・売上   = 商品単価 × 数量（税込）。送料・ラッピング代は含めません
+//    ・売上   = 商品単価 × 数量（税込）− クーポン値引き（注文単位の値引きを
+//               商品金額の比率で按分）。送料・ラッピング代は含めません
 //    ・キャンセル（進行状況800/900）は数えません
-//    ・クーポン値引きは差し引きません（店舗データの「売上」と同じ考え方）
+//    ・つまり RMS「店舗売上」（クーポン適用後・税込）と一致する基準です
 //
 //  ★レート制限が厳しめ（1秒1回）なので、呼び出しの間に1秒待ちます。
 // ============================================================
@@ -113,6 +114,7 @@ export function ordersToRows(orders, opts = {}) {
       continue;
     }
     const date = String(o.orderDatetime ?? '').slice(0, 10);
+    const orderRows = [];
     for (const pkg of o.PackageModelList ?? []) {
       for (const item of pkg.ItemModelList ?? []) {
         const qty = Number(item.units) || 0;
@@ -121,7 +123,7 @@ export function ordersToRows(orders, opts = {}) {
         const skuFromVariant = (item.SkuModelList ?? [])
           .map((s) => s.merchantDefinedSkuId)
           .find((v) => v);
-        rows.push({
+        orderRows.push({
           date,
           channel,
           sku: String(skuFromVariant ?? item.itemNumber ?? item.manageNumber ?? '').trim(),
@@ -133,6 +135,39 @@ export function ordersToRows(orders, opts = {}) {
         });
       }
     }
+    applyCouponDiscount(orderRows, Number(o.couponAllTotalPrice) || 0);
+    rows.push(...orderRows);
   }
   return { rows, skipped };
+}
+
+/**
+ * 注文単位のクーポン値引きを、商品金額の比率で各行に按分して差し引く。
+ * 端数は金額の大きい行から1円ずつ調整し、合計がぴったり値引き額になるようにする。
+ * → 日別合計が RMS「店舗売上」（クーポン適用後）と一致する。
+ */
+export function applyCouponDiscount(orderRows, coupon) {
+  if (!coupon || !orderRows.length) return;
+  const total = orderRows.reduce((s, r) => s + r.amount, 0);
+  if (total <= 0) return;
+  const capped = Math.min(coupon, total);
+  let allocated = 0;
+  const shares = orderRows.map((r) => {
+    const share = Math.floor((capped * r.amount) / total);
+    allocated += share;
+    return share;
+  });
+  // 端数（capped - allocated 円）を金額の大きい順に1円ずつ配る
+  let rest = capped - allocated;
+  const order = orderRows
+    .map((r, i) => [r.amount, i])
+    .sort((a, b) => b[0] - a[0])
+    .map(([, i]) => i);
+  for (let k = 0; rest > 0; k = (k + 1) % order.length) {
+    shares[order[k]] += 1;
+    rest -= 1;
+  }
+  orderRows.forEach((r, i) => {
+    r.amount -= shares[i];
+  });
 }

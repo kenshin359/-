@@ -91,3 +91,49 @@ test('日次CSVはExcelで開ける形（BOM付き・カンマや引用符も安
   assert.ok(s.includes('"多機能, ""M"""'), 'カンマと引用符が壊れないこと');
   assert.ok(s.includes('71600'));
 });
+
+// ── クーポン値引きの按分（RMS店舗売上と一致させる基準） ──
+import { applyCouponDiscount } from '../lib/rakutenPay.js';
+
+test('クーポン値引きを商品金額の比率で按分し、合計がぴったり合う', () => {
+  const rows = [
+    { amount: 30000, qty: 1 },
+    { amount: 10000, qty: 1 },
+  ];
+  applyCouponDiscount(rows, 1000);
+  assert.equal(rows[0].amount + rows[1].amount, 39000);
+  assert.equal(rows[0].amount, 29250); // 3/4を負担
+  assert.equal(rows[1].amount, 9750);
+});
+
+test('端数が出ても1円単位で合計が値引き額と一致する', () => {
+  const rows = [{ amount: 100 }, { amount: 100 }, { amount: 100 }];
+  applyCouponDiscount(rows, 100); // 33.33…円ずつ割れない
+  assert.equal(rows.reduce((s, r) => s + r.amount, 0), 200);
+});
+
+test('クーポンが商品合計を超えても0円未満にはならない', () => {
+  const rows = [{ amount: 500 }];
+  applyCouponDiscount(rows, 9999);
+  assert.equal(rows[0].amount, 0);
+});
+
+test('クーポン0円・行なしでは何もしない', () => {
+  const rows = [{ amount: 100 }];
+  applyCouponDiscount(rows, 0);
+  assert.equal(rows[0].amount, 100);
+  applyCouponDiscount([], 100); // 例外にならないこと
+});
+
+test('注文にcouponAllTotalPriceがあれば行の合計から引かれる', () => {
+  const o = {
+    orderNumber: 'X-1', orderProgress: 300, orderDatetime: '2026-08-05 10:00:00',
+    couponAllTotalPrice: 2000,
+    PackageModelList: [{ ItemModelList: [
+      { itemName: 'A', itemNumber: 'a1', price: 10000, units: 1 },
+      { itemName: 'B', itemNumber: 'b1', price: 10000, units: 1 },
+    ] }],
+  };
+  const { rows } = ordersToRows([o]);
+  assert.equal(rows.reduce((s, r) => s + r.amount, 0), 18000);
+});
