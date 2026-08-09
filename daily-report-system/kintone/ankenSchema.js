@@ -75,6 +75,6 @@ export const VIEWS = {
     type: 'LIST',
     name: 'すべて',
     fields: ['creator_name', 'account_name', 'tieup', 'precheck', 'meta_ok', 'post_date', 'report_done', 'air_date', 'aired'],
-    sort: 'レコード番号 desc',
+    sort: 'post_date desc',
   },
 };
