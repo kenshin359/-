@@ -1,0 +1,16 @@
+{
+  "name": "libetee-kintone-logistics",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Libetee kintone 物流スケジュールアプリの自動構築・パッキングリスト取込ツール",
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "apps": "node src/listApps.js",
+    "create-app": "node src/createApp.js",
+    "import": "node src/import.js"
+  },
+  "dependencies": {
+    "xlsx": "^0.18.5"
+  }
+}

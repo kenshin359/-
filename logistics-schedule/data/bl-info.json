@@ -1,0 +1,17 @@
+{
+  "_comment": "コンテナ番号をキーに、BL / アライバルノーティスから読み取った情報を補完します。パッキングリストには無い項目（BL番号・本船・入港予定日など）をここに追記すると、import 実行時にレコードへ反映されます。",
+  "TWIU4232923": {
+    "hbl_no": "GZTLF2607053",
+    "mbl_no": "721611071691",
+    "bl_surrendered": "済",
+    "vessel": "TS HAKATA 2613N",
+    "pol": "SHEKOU, CHINA",
+    "pod": "OSAKA, JAPAN",
+    "container_type": "40HQ",
+    "arrival_date": "2026-08-05",
+    "total_cartons": 1060,
+    "ref_no": "TGL26-1458",
+    "cargo_control_no": "13DF721611071691",
+    "remarks": "H B/L: GZTLF2607053 / A/N PRINT DATE 2026-08-04 / OCEANチャージ 76,400円(FREIGHT PREPAID) / 本船 TS HAKATA 2613N ETA 2026-08-05 大阪"
+  }
+}
