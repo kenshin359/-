@@ -39,6 +39,7 @@
 | `npm run apps` | アプリ一覧とIDを表示（作成後のID確認用） |
 | `npm run create-app` | 「物流スケジュール」アプリを自動作成（フィールド＋一覧ビュー＋デプロイ） |
 | `npm run import` | `packing-lists/` の Excel を解析してレコード投入（コンテナ番号で upsert） |
+| `npm run import-planned` | 発注（出荷計画）を「計画」ステータスの予定レコードとして登録（`data/planned-*.json`） |
 
 ## セットアップ
 
@@ -93,6 +94,26 @@ npm run import              # ③ 問題なければ本投入
   }
 }
 ```
+
+## 発注（出荷計画）の先行登録
+
+まだ出荷していない発注を、**「計画」ステータス**の予定レコードとして先に登録できます。
+出荷が近づいたら実コンテナ番号・パッキングリスト・BL 情報で更新していきます。
+
+- データは `data/planned-*.json`（同梱の `data/planned-lm20260808.json` は
+  発注 **LM20260808**〔経典PC多機能スーツケース〕**全13本・合計10,750個**を収録）。
+- `container_no` は仮キー `LM20260808-01`〜`13`。実コンテナ番号が決まったら
+  Kintone 上で書き換える（または JSON を更新して再取込）。仮キーで upsert するため
+  何度実行しても重複しません。
+
+```bash
+DRY_RUN=1 npm run import-planned   # 投入せず out/planned-preview.json で確認
+npm run import-planned             # 「計画」レコードとして13本を登録
+```
+
+> ステータスに「計画」を使うため、既にアプリを作成済みの場合は
+> `status` ドロップダウンに **計画** の選択肢を追加してください
+> （まだ未作成なら `npm run create-app` で自動的に含まれます）。
 
 ## 同梱のサンプル
 

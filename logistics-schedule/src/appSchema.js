@@ -12,13 +12,14 @@ export const FIELDS = {
     label: 'ステータス',
     defaultValue: '出荷済',
     options: {
-      出荷済: { label: '出荷済', index: '0' },
-      船積済: { label: '船積済', index: '1' },
-      入港済: { label: '入港済', index: '2' },
-      通関済: { label: '通関済', index: '3' },
-      ドレー手配済: { label: 'ドレー手配済', index: '4' },
-      入庫済: { label: '入庫済', index: '5' },
-      発送可能: { label: '発送可能', index: '6' },
+      計画: { label: '計画', index: '0' }, // 発注済・出荷前（コンテナ未割当）
+      出荷済: { label: '出荷済', index: '1' },
+      船積済: { label: '船積済', index: '2' },
+      入港済: { label: '入港済', index: '3' },
+      通関済: { label: '通関済', index: '4' },
+      ドレー手配済: { label: 'ドレー手配済', index: '5' },
+      入庫済: { label: '入庫済', index: '6' },
+      発送可能: { label: '発送可能', index: '7' },
     },
   },
 

@@ -1,0 +1,541 @@
+{
+  "_comment": "LM20260808 発注分（経典PC多機能スーツケース）13本の計画レコード。container_no は仮キー(LM20260808-01..13)。実コンテナ番号が決まったら Kintone 上で更新するか、本JSONを書き換えて再import。合計10,750個。",
+  "order_no": "LM20260808",
+  "total_qty": 10750,
+  "count": 13,
+  "records": [
+    {
+      "order_no": "LM20260808",
+      "seq": 1,
+      "status": "計画",
+      "container_no": "LM20260808-01",
+      "shipping_date": "2026-11-10",
+      "po_number": "LM20260808",
+      "size": "L",
+      "total_qty": 650,
+      "remarks": "LM20260808 発注分 / 2026年11月 / Lサイズ / 出荷順No.1 / コンテナ番号は割当後に更新",
+      "items": [
+        {
+          "item_name": "経典PCスーツケース(L)",
+          "item_color": "マットシルバー",
+          "item_spec": "L",
+          "item_qty": 200,
+          "item_cn": "L磨砂银色 200个"
+        },
+        {
+          "item_name": "経典PCスーツケース(L)",
+          "item_color": "エナメルカーキ",
+          "item_spec": "L",
+          "item_qty": 150,
+          "item_cn": "L镜面卡其色 150个"
+        },
+        {
+          "item_name": "経典PCスーツケース(L)",
+          "item_color": "マットグレー",
+          "item_spec": "L",
+          "item_qty": 200,
+          "item_cn": "L磨砂灰色 200个"
+        },
+        {
+          "item_name": "経典PCスーツケース(L)",
+          "item_color": "マットホワイト",
+          "item_spec": "L",
+          "item_qty": 100,
+          "item_cn": "L磨砂白色 100个"
+        }
+      ]
+    },
+    {
+      "order_no": "LM20260808",
+      "seq": 2,
+      "status": "計画",
+      "container_no": "LM20260808-02",
+      "shipping_date": "2026-11-15",
+      "po_number": "LM20260808",
+      "size": "M",
+      "total_qty": 750,
+      "remarks": "LM20260808 発注分 / 2026年11月 / Mサイズ / 出荷順No.2 / コンテナ番号は割当後に更新",
+      "items": [
+        {
+          "item_name": "経典PCスーツケース(M)",
+          "item_color": "マットブラック",
+          "item_spec": "M",
+          "item_qty": 200,
+          "item_cn": "M磨砂黑色 200个"
+        },
+        {
+          "item_name": "経典PCスーツケース(M)",
+          "item_color": "マットシルバー",
+          "item_spec": "M",
+          "item_qty": 200,
+          "item_cn": "M磨砂银色 200个"
+        },
+        {
+          "item_name": "経典PCスーツケース(M)",
+          "item_color": "エナメルシルバー",
+          "item_spec": "M",
+          "item_qty": 150,
+          "item_cn": "M镜面银色 150个"
+        },
+        {
+          "item_name": "経典PCスーツケース(M)",
+          "item_color": "マットホワイト",
+          "item_spec": "M",
+          "item_qty": 100,
+          "item_cn": "M磨砂白色 100个"
+        },
+        {
+          "item_name": "経典PCスーツケース(M)",
+          "item_color": "エナメルカーキ",
+          "item_spec": "M",
+          "item_qty": 100,
+          "item_cn": "M镜面卡其色 100个"
+        }
+      ]
+    },
+    {
+      "order_no": "LM20260808",
+      "seq": 3,
+      "status": "計画",
+      "container_no": "LM20260808-03",
+      "shipping_date": "2026-11-25",
+      "po_number": "LM20260808",
+      "size": "S",
+      "total_qty": 1100,
+      "remarks": "LM20260808 発注分 / 2026年11月 / Sサイズ / 出荷順No.3 / コンテナ番号は割当後に更新",
+      "items": [
+        {
+          "item_name": "経典PCスーツケース(S)",
+          "item_color": "マットブラック",
+          "item_spec": "S",
+          "item_qty": 200,
+          "item_cn": "S磨砂黑色 200个"
+        },
+        {
+          "item_name": "経典PCスーツケース(S)",
+          "item_color": "エナメルシルバー",
+          "item_spec": "S",
+          "item_qty": 300,
+          "item_cn": "S镜面银色 300个"
+        },
+        {
+          "item_name": "経典PCスーツケース(S)",
+          "item_color": "マットホワイト",
+          "item_spec": "S",
+          "item_qty": 200,
+          "item_cn": "S磨砂白色 200个"
+        },
+        {
+          "item_name": "経典PCスーツケース(S)",
+          "item_color": "エナメルカーキ",
+          "item_spec": "S",
+          "item_qty": 100,
+          "item_cn": "S镜面卡其色 100个"
+        },
+        {
+          "item_name": "経典PCスーツケース(S)",
+          "item_color": "エナメルホワイト",
+          "item_spec": "S",
+          "item_qty": 300,
+          "item_cn": "S镜面白色 300个"
+        }
+      ]
+    },
+    {
+      "order_no": "LM20260808",
+      "seq": 4,
+      "status": "計画",
+      "container_no": "LM20260808-04",
+      "shipping_date": "2026-11-30",
+      "po_number": "LM20260808",
+      "size": "S",
+      "total_qty": 1100,
+      "remarks": "LM20260808 発注分 / 2026年11月 / Sサイズ / 出荷順No.4 / コンテナ番号は割当後に更新",
+      "items": [
+        {
+          "item_name": "経典PCスーツケース(S)",
+          "item_color": "マットブラック",
+          "item_spec": "S",
+          "item_qty": 400,
+          "item_cn": "S磨砂黑色 400个"
+        },
+        {
+          "item_name": "経典PCスーツケース(S)",
+          "item_color": "エナメルシルバー",
+          "item_spec": "S",
+          "item_qty": 300,
+          "item_cn": "S镜面银色 300个"
+        },
+        {
+          "item_name": "経典PCスーツケース(S)",
+          "item_color": "マットホワイト",
+          "item_spec": "S",
+          "item_qty": 200,
+          "item_cn": "S磨砂白色 200个"
+        },
+        {
+          "item_name": "経典PCスーツケース(S)",
+          "item_color": "エナメルカーキ",
+          "item_spec": "S",
+          "item_qty": 200,
+          "item_cn": "S镜面卡其色 200个"
+        }
+      ]
+    },
+    {
+      "order_no": "LM20260808",
+      "seq": 5,
+      "status": "計画",
+      "container_no": "LM20260808-05",
+      "shipping_date": "2026-12-05",
+      "po_number": "LM20260808",
+      "size": "M",
+      "total_qty": 750,
+      "remarks": "LM20260808 発注分 / 2026年12月 / Mサイズ / 出荷順No.5 / コンテナ番号は割当後に更新",
+      "items": [
+        {
+          "item_name": "経典PCスーツケース(M)",
+          "item_color": "マットブラック",
+          "item_spec": "M",
+          "item_qty": 100,
+          "item_cn": "M磨砂黑色 100个"
+        },
+        {
+          "item_name": "経典PCスーツケース(M)",
+          "item_color": "マットシルバー",
+          "item_spec": "M",
+          "item_qty": 100,
+          "item_cn": "M磨砂银色 100个"
+        },
+        {
+          "item_name": "経典PCスーツケース(M)",
+          "item_color": "エナメルシルバー",
+          "item_spec": "M",
+          "item_qty": 150,
+          "item_cn": "M镜面银色 150个"
+        },
+        {
+          "item_name": "経典PCスーツケース(M)",
+          "item_color": "マットホワイト",
+          "item_spec": "M",
+          "item_qty": 200,
+          "item_cn": "M磨砂白色 200个"
+        },
+        {
+          "item_name": "経典PCスーツケース(M)",
+          "item_color": "エナメルカーキ",
+          "item_spec": "M",
+          "item_qty": 200,
+          "item_cn": "M镜面卡其色 200个"
+        }
+      ]
+    },
+    {
+      "order_no": "LM20260808",
+      "seq": 6,
+      "status": "計画",
+      "container_no": "LM20260808-06",
+      "shipping_date": "2026-12-10",
+      "po_number": "LM20260808",
+      "size": "L",
+      "total_qty": 650,
+      "remarks": "LM20260808 発注分 / 2026年12月 / Lサイズ / 出荷順No.6 / コンテナ番号は割当後に更新",
+      "items": [
+        {
+          "item_name": "経典PCスーツケース(L)",
+          "item_color": "マットシルバー",
+          "item_spec": "L",
+          "item_qty": 200,
+          "item_cn": "L磨砂银色 200个"
+        },
+        {
+          "item_name": "経典PCスーツケース(L)",
+          "item_color": "エナメルシルバー",
+          "item_spec": "L",
+          "item_qty": 100,
+          "item_cn": "L镜面银色 100个"
+        },
+        {
+          "item_name": "経典PCスーツケース(L)",
+          "item_color": "マットグレー",
+          "item_spec": "L",
+          "item_qty": 200,
+          "item_cn": "L磨砂灰色 200个"
+        },
+        {
+          "item_name": "経典PCスーツケース(L)",
+          "item_color": "マットホワイト",
+          "item_spec": "L",
+          "item_qty": 150,
+          "item_cn": "L磨砂白色 150个"
+        }
+      ]
+    },
+    {
+      "order_no": "LM20260808",
+      "seq": 7,
+      "status": "計画",
+      "container_no": "LM20260808-07",
+      "shipping_date": "2026-12-15",
+      "po_number": "LM20260808",
+      "size": "S",
+      "total_qty": 1100,
+      "remarks": "LM20260808 発注分 / 2026年12月 / Sサイズ / 出荷順No.7 / コンテナ番号は割当後に更新",
+      "items": [
+        {
+          "item_name": "経典PCスーツケース(S)",
+          "item_color": "マットブラック",
+          "item_spec": "S",
+          "item_qty": 100,
+          "item_cn": "S磨砂黑色 100个"
+        },
+        {
+          "item_name": "経典PCスーツケース(S)",
+          "item_color": "エナメルシルバー",
+          "item_spec": "S",
+          "item_qty": 400,
+          "item_cn": "S镜面银色 400个"
+        },
+        {
+          "item_name": "経典PCスーツケース(S)",
+          "item_color": "マットホワイト",
+          "item_spec": "S",
+          "item_qty": 400,
+          "item_cn": "S磨砂白色 400个"
+        },
+        {
+          "item_name": "経典PCスーツケース(S)",
+          "item_color": "エナメルカーキ",
+          "item_spec": "S",
+          "item_qty": 200,
+          "item_cn": "S镜面卡其色 200个"
+        }
+      ]
+    },
+    {
+      "order_no": "LM20260808",
+      "seq": 8,
+      "status": "計画",
+      "container_no": "LM20260808-08",
+      "shipping_date": "2026-12-25",
+      "po_number": "LM20260808",
+      "size": "M",
+      "total_qty": 750,
+      "remarks": "LM20260808 発注分 / 2026年12月 / Mサイズ / 出荷順No.8 / コンテナ番号は割当後に更新",
+      "items": [
+        {
+          "item_name": "経典PCスーツケース(M)",
+          "item_color": "マットブラック",
+          "item_spec": "M",
+          "item_qty": 200,
+          "item_cn": "M磨砂黑色 200个"
+        },
+        {
+          "item_name": "経典PCスーツケース(M)",
+          "item_color": "マットシルバー",
+          "item_spec": "M",
+          "item_qty": 250,
+          "item_cn": "M磨砂银色 250个"
+        },
+        {
+          "item_name": "経典PCスーツケース(M)",
+          "item_color": "エナメルシルバー",
+          "item_spec": "M",
+          "item_qty": 200,
+          "item_cn": "M镜面银色 200个"
+        },
+        {
+          "item_name": "経典PCスーツケース(M)",
+          "item_color": "マットホワイト",
+          "item_spec": "M",
+          "item_qty": 100,
+          "item_cn": "M磨砂白色 100个"
+        }
+      ]
+    },
+    {
+      "order_no": "LM20260808",
+      "seq": 9,
+      "status": "計画",
+      "container_no": "LM20260808-09",
+      "shipping_date": "2027-01-05",
+      "po_number": "LM20260808",
+      "size": "S",
+      "total_qty": 1100,
+      "remarks": "LM20260808 発注分 / 2027年1月 / Sサイズ / 出荷順No.9 / コンテナ番号は割当後に更新 / 出荷予定✓",
+      "items": [
+        {
+          "item_name": "経典PCスーツケース(S)",
+          "item_color": "マットブラック",
+          "item_spec": "S",
+          "item_qty": 200,
+          "item_cn": "S磨砂黑色 200个"
+        },
+        {
+          "item_name": "経典PCスーツケース(S)",
+          "item_color": "エナメルシルバー",
+          "item_spec": "S",
+          "item_qty": 400,
+          "item_cn": "S镜面银色 400个"
+        },
+        {
+          "item_name": "経典PCスーツケース(S)",
+          "item_color": "マットシルバー",
+          "item_spec": "S",
+          "item_qty": 300,
+          "item_cn": "S磨砂银色 300个"
+        },
+        {
+          "item_name": "経典PCスーツケース(S)",
+          "item_color": "マットホワイト",
+          "item_spec": "S",
+          "item_qty": 200,
+          "item_cn": "S磨砂白色 200个"
+        }
+      ]
+    },
+    {
+      "order_no": "LM20260808",
+      "seq": 10,
+      "status": "計画",
+      "container_no": "LM20260808-10",
+      "shipping_date": "2027-01-10",
+      "po_number": "LM20260808",
+      "size": "M",
+      "total_qty": 750,
+      "remarks": "LM20260808 発注分 / 2027年1月 / Mサイズ / 出荷順No.10 / コンテナ番号は割当後に更新 / 出荷予定✓",
+      "items": [
+        {
+          "item_name": "経典PCスーツケース(M)",
+          "item_color": "マットブラック",
+          "item_spec": "M",
+          "item_qty": 150,
+          "item_cn": "M磨砂黑色 150个"
+        },
+        {
+          "item_name": "経典PCスーツケース(M)",
+          "item_color": "マットシルバー",
+          "item_spec": "M",
+          "item_qty": 150,
+          "item_cn": "M磨砂银色 150个"
+        },
+        {
+          "item_name": "経典PCスーツケース(M)",
+          "item_color": "エナメルシルバー",
+          "item_spec": "M",
+          "item_qty": 200,
+          "item_cn": "M镜面银色 200个"
+        },
+        {
+          "item_name": "経典PCスーツケース(M)",
+          "item_color": "マットホワイト",
+          "item_spec": "M",
+          "item_qty": 100,
+          "item_cn": "M磨砂白色 100个"
+        },
+        {
+          "item_name": "経典PCスーツケース(M)",
+          "item_color": "エナメルカーキ",
+          "item_spec": "M",
+          "item_qty": 150,
+          "item_cn": "M镜面卡其色 150个"
+        }
+      ]
+    },
+    {
+      "order_no": "LM20260808",
+      "seq": 11,
+      "status": "計画",
+      "container_no": "LM20260808-11",
+      "shipping_date": "2027-01-15",
+      "po_number": "LM20260808",
+      "size": "M",
+      "total_qty": 750,
+      "remarks": "LM20260808 発注分 / 2027年1月 / Mサイズ / 出荷順No.11 / コンテナ番号は割当後に更新 / 出荷予定✓",
+      "items": [
+        {
+          "item_name": "経典PCスーツケース(M)",
+          "item_color": "マットブラック",
+          "item_spec": "M",
+          "item_qty": 200,
+          "item_cn": "M磨砂黑色 200个"
+        },
+        {
+          "item_name": "経典PCスーツケース(M)",
+          "item_color": "マットホワイト",
+          "item_spec": "M",
+          "item_qty": 300,
+          "item_cn": "M磨砂白色 300个"
+        },
+        {
+          "item_name": "経典PCスーツケース(M)",
+          "item_color": "エナメルカーキ",
+          "item_spec": "M",
+          "item_qty": 250,
+          "item_cn": "M镜面卡其色 250个"
+        }
+      ]
+    },
+    {
+      "order_no": "LM20260808",
+      "seq": 12,
+      "status": "計画",
+      "container_no": "LM20260808-12",
+      "shipping_date": "2027-01-20",
+      "po_number": "LM20260808",
+      "size": "L",
+      "total_qty": 650,
+      "remarks": "LM20260808 発注分 / 2027年1月 / Lサイズ / 出荷順No.12 / コンテナ番号は割当後に更新 / 出荷予定✓",
+      "items": [
+        {
+          "item_name": "経典PCスーツケース(L)",
+          "item_color": "マットシルバー",
+          "item_spec": "L",
+          "item_qty": 300,
+          "item_cn": "L磨砂银色 300个"
+        },
+        {
+          "item_name": "経典PCスーツケース(L)",
+          "item_color": "エナメルシルバー",
+          "item_spec": "L",
+          "item_qty": 200,
+          "item_cn": "L镜面银色 200个"
+        },
+        {
+          "item_name": "経典PCスーツケース(L)",
+          "item_color": "エナメルカーキ",
+          "item_spec": "L",
+          "item_qty": 150,
+          "item_cn": "L镜面卡其色 150个"
+        }
+      ]
+    },
+    {
+      "order_no": "LM20260808",
+      "seq": 13,
+      "status": "計画",
+      "container_no": "LM20260808-13",
+      "shipping_date": "2027-01-30",
+      "po_number": "LM20260808",
+      "size": "L",
+      "total_qty": 650,
+      "remarks": "LM20260808 発注分 / 2027年1月 / Lサイズ / 出荷順No.13 / コンテナ番号は割当後に更新 / 出荷予定✓",
+      "items": [
+        {
+          "item_name": "経典PCスーツケース(L)",
+          "item_color": "マットシルバー",
+          "item_spec": "L",
+          "item_qty": 500,
+          "item_cn": "L磨砂银色 500个"
+        },
+        {
+          "item_name": "経典PCスーツケース(L)",
+          "item_color": "エナメルシルバー",
+          "item_spec": "L",
+          "item_qty": 150,
+          "item_cn": "L镜面银色 150个"
+        }
+      ]
+    }
+  ]
+}
