@@ -20,13 +20,13 @@ const v = (x) => ({ value: x == null || x === '' ? '' : String(x) });
 
 // 計画レコード → Kintone の fields
 function toFields(r) {
-  return {
+  const f = {
     status: v(r.status || '計画'),
-    shipping_date: v(r.shipping_date), // 出荷計画日
+    shipping_date: v(r.shipping_date), // 出荷計画日（未定なら空）
     container_no: v(r.container_no), // 仮キー（割当後に更新）
     po_number: v(r.po_number || r.order_no),
     total_qty: v(r.total_qty),
-    dray_status: v('未手配'),
+    dray_status: v(r.dray_status || '未手配'),
     remarks: v(r.remarks),
     items: {
       value: (r.items || []).map((it) => ({
@@ -39,6 +39,14 @@ function toFields(r) {
       })),
     },
   };
+  // 任意項目（あるものだけ送る）
+  if (r.arrival_date) f.arrival_date = v(r.arrival_date);
+  if (r.customs_date) f.customs_date = v(r.customs_date);
+  if (r.pol) f.pol = v(r.pol);
+  if (r.pod) f.pod = v(r.pod);
+  if (r.seal_no) f.seal_no = v(r.seal_no);
+  if (r.container_type) f.container_type = v(r.container_type); // ドロップダウンの正規値のみ
+  return f;
 }
 
 async function existingByContainer() {

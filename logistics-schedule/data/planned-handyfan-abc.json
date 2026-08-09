@@ -1,0 +1,39 @@
+{
+  "_comment": "ABCテレビ出演に伴うハンディファンの緊急発注（8/9時点・未出荷）。エアー便1,000個は8/14(金)関空到着予定、船便2,000個は8/18到着予定。container_no は仮キー。到着後に通関を依頼する運用。",
+  "order_no": "ABC-HANDYFAN",
+  "total_qty": 3000,
+  "count": 2,
+  "records": [
+    {
+      "order_no": "ABC-HANDYFAN",
+      "seq": 1,
+      "status": "計画",
+      "container_no": "ABC-HANDYFAN-AIR",
+      "shipping_date": "",
+      "po_number": "ABC-HANDYFAN",
+      "size": "-",
+      "total_qty": 1000,
+      "pod": "関西国際空港 (KIX)",
+      "arrival_date": "2026-08-14",
+      "remarks": "ABCテレビ出演に伴う緊急発注 / エアー便 1,000個 / 8/14(金) 関空到着予定 / 到着後に通関依頼予定 / 未出荷",
+      "items": [
+        { "item_name": "ハンディファン", "item_color": "", "item_spec": "AIR", "item_qty": 1000 }
+      ]
+    },
+    {
+      "order_no": "ABC-HANDYFAN",
+      "seq": 2,
+      "status": "計画",
+      "container_no": "ABC-HANDYFAN-SEA",
+      "shipping_date": "",
+      "po_number": "ABC-HANDYFAN",
+      "size": "-",
+      "total_qty": 2000,
+      "arrival_date": "2026-08-18",
+      "remarks": "ABCテレビ出演に伴う緊急発注 / 船便 2,000個 / 8/18到着予定 / 現在未出荷",
+      "items": [
+        { "item_name": "ハンディファン", "item_color": "", "item_spec": "SEA", "item_qty": 2000 }
+      ]
+    }
+  ]
+}

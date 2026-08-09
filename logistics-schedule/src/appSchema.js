@@ -29,7 +29,7 @@ export const FIELDS = {
     type: 'DATE',
     code: 'shipping_date',
     label: '出荷日',
-    required: true,
+    required: false, // 「計画」段階（未出荷）は空を許容。出荷後に確定
     defaultNowValue: false,
   },
   container_no: {

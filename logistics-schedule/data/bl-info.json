@@ -12,6 +12,17 @@
     "total_cartons": 1060,
     "ref_no": "TGL26-1458",
     "cargo_control_no": "13DF721611071691",
-    "remarks": "H B/L: GZTLF2607053 / A/N PRINT DATE 2026-08-04 / OCEANチャージ 76,400円(FREIGHT PREPAID) / 本船 TS HAKATA 2613N ETA 2026-08-05 大阪"
+    "remarks": "H B/L: GZTLF2607053 / A/N PRINT DATE 2026-08-04 / OCEANチャージ 76,400円(FREIGHT PREPAID) / 本船 TS HAKATA 2613N ETA 2026-08-05 大阪 / 通関可能(8/9時点)"
+  },
+  "IAAU1022523": {
+    "arrival_date": "2026-08-10",
+    "remarks": "8/9時点：輸送中・8/10到着予定 / BL未受領 / 通関書類は明日確認予定（先方より書類共有不可の連絡あり）"
+  },
+  "IAAU2971329": {
+    "arrival_date": "2026-08-10",
+    "remarks": "8/9時点：輸送中・8/10到着予定 / BL未受領 / 通関書類は明日確認予定（先方より書類共有不可の連絡あり）"
+  },
+  "WHSU5628824": {
+    "remarks": "8/9時点：出荷済（8/7）・アライバル未定 / BL未受領"
   }
 }

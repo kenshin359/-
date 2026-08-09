@@ -109,7 +109,14 @@ npm run import              # ③ 問題なければ本投入
 ```bash
 DRY_RUN=1 npm run import-planned   # 投入せず out/planned-preview.json で確認
 npm run import-planned             # 「計画」レコードとして13本を登録
+
+# 別の発注ファイルを指定（例：ABCテレビ緊急発注のハンディファン エアー/船便）
+PLANNED_FILE=data/planned-handyfan-abc.json npm run import-planned
 ```
+
+同梱の計画ファイル：
+- `data/planned-lm20260808.json` … 経典PC 全13本・合計10,750個
+- `data/planned-handyfan-abc.json` … ABCテレビ緊急発注 ハンディファン（エアー1,000個・8/14関空／船便2,000個・8/18）
 
 > ステータスに「計画」を使うため、既にアプリを作成済みの場合は
 > `status` ドロップダウンに **計画** の選択肢を追加してください
