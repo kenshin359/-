@@ -1,0 +1,4 @@
+Pillow>=10
+numpy>=1.24
+# layout_render.py additionally uses Playwright + Chromium, which is pre-installed
+# in this environment at PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers (do NOT run "playwright install").

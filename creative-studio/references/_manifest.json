@@ -1,0 +1,22 @@
+{
+  "_note": "参照商品(Ground Truth)の登録簿。id を制作/LOCKから参照する。",
+  "products": [
+    {
+      "id": "prod-EXAMPLE",
+      "name": "（例）商品名をここに",
+      "category": "A_product_truth",
+      "file": "products/prod-EXAMPLE.png",
+      "ground_truth": {
+        "silhouette": "",
+        "aspect_ratio": "",
+        "color": "",
+        "material": "",
+        "logo": "表記と位置",
+        "keep_features": [],
+        "parts": []
+      },
+      "registered_at": null,
+      "source": "user_provided"
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+# 自己テストの生成物（再生成可能: python3 qa/scripts/selftest.py）
+output/_selftest/
+# ユーザー資産・生成物（リポジトリに載せない）
+references/products/*.png
+references/products/*.jpg
+references/products/*.jpeg
+master/*.png
+output/**/*.png
+output/**/*.jpg
+__pycache__/
+*.pyc
