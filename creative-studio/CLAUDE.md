@@ -16,8 +16,8 @@
 | Python 3.11 + Pillow + numpy | ✅ | 決定論的な合成・差分検出・LOCK検証・QA自動化 |
 | Chromium + Playwright | ✅ | 日本語文字レイヤーの正確なレンダリング（HTML→PNG） |
 | Node.js 22 | ✅ | 補助 |
-| 外部HTTPS（プロキシ経由） | ✅ | **ユーザーがAPIキーを渡した場合のみ** 外部画像生成APIを呼べる |
-| AI画像"生成"モデル / 画像生成MCP | ❌ 未接続 | この環境には無い。存在するかのように扱わない |
+| 外部HTTPS（プロキシ経由） | ✅ | 生成API3社へ到達確認済み。**キー提供時のみ** `generate.py` で生成可 |
+| AI画像"生成"モデル / 画像生成MCP | ⚠ キー待ち | `qa/scripts/generate.py`（Gemini/nano-banana対応・参照画像入力可）実装済み。`GEMINI_API_KEY` 設定で接続完了 |
 
 **原則**: AI生成は未接続。よって商品再現が要る工程は、可能な限り
 **「参照画像を保持して決定論的に合成」**（`composite.py`）で行い、AI再生成を避ける。

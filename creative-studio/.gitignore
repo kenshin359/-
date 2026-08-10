@@ -9,3 +9,5 @@ output/**/*.png
 output/**/*.jpg
 __pycache__/
 *.pyc
+# APIキー（絶対にコミットしない）
+.env
