@@ -1,0 +1,111 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8">
+<style>
+  :root{
+    --pink:#EC5D9E; --pink-deep:#C7387B; --pink-soft:#FBE3EF; --ink:#1c1327;
+    --band:#F5C7DE;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{width:1080px;height:1920px;}
+  .stage{position:relative;width:1080px;height:1920px;overflow:hidden;
+    font-family:"Hiragino Kaku Gothic ProN","Noto Sans CJK JP",sans-serif;
+    background:linear-gradient(155deg,#FDEFF6 0%,#FBD9EA 42%,#F6BCD8 100%);}
+
+  /* 斜めカラー帯（参照の意匠） */
+  .band{position:absolute;top:-120px;left:-160px;width:1500px;height:920px;
+    background:linear-gradient(135deg,var(--pink) 0%,var(--pink-deep) 100%);
+    transform:rotate(-9deg);border-radius:60px;opacity:.97;}
+  /* ジオメトリ・アクセント（ドット/斜線） */
+  .dots{position:absolute;top:1180px;left:70px;width:260px;height:260px;
+    background-image:radial-gradient(var(--pink) 7px, transparent 8px);
+    background-size:46px 46px;opacity:.5;}
+  .stripes{position:absolute;top:120px;right:-40px;width:360px;height:360px;
+    background:repeating-linear-gradient(120deg,transparent 0 26px,#ffffff88 26px 34px);
+    transform:rotate(6deg);opacity:.35;}
+
+  /* 上部：カテゴリチップ＋共感コピー（引用風） */
+  .top{position:absolute;top:250px;left:70px;right:70px;}
+  .chip{display:inline-block;background:#fff;color:var(--pink-deep);
+    font-weight:800;font-size:30px;padding:12px 26px;border-radius:999px;
+    box-shadow:0 6px 18px #c7387b33;}
+  .quote{margin-top:22px;color:#fff;font-weight:800;font-size:46px;line-height:1.35;
+    text-shadow:0 2px 10px #00000022;}
+  .quote small{font-size:34px;opacity:.95;}
+
+  /* 見出し：黒箱＋一語ピンク（参照の核） */
+  .head{position:absolute;top:470px;left:60px;background:var(--ink);
+    color:#fff;font-weight:900;font-size:110px;line-height:1.12;
+    padding:26px 40px 30px;border-radius:26px;letter-spacing:.01em;
+    box-shadow:0 14px 34px #1c132733;}
+  .head .hl{color:#FF7CB6;}
+  .subhead{position:absolute;top:720px;left:70px;color:var(--pink-deep);
+    font-weight:800;font-size:40px;}
+
+  /* 写真差し込み枠（実写真をここに） */
+  .photo{position:absolute;top:790px;left:70px;width:940px;height:520px;
+    border:6px dashed #ffffffcc;border-radius:34px;
+    background:linear-gradient(160deg,#ffffff55,#ffffff22);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;}
+  .photo .ic{font-size:96px;}
+  .photo .g{color:#fff;font-weight:800;font-size:40px;text-align:center;
+    line-height:1.5;text-shadow:0 2px 8px #00000030;margin-top:8px;}
+  .photo .g small{font-size:28px;font-weight:700;opacity:.9;}
+
+  /* 無料バッジ（オファー＝転換ドライバー） */
+  .badge{position:absolute;top:1120px;right:70px;width:220px;height:220px;
+    border-radius:50%;background:#fff;color:var(--pink-deep);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    box-shadow:0 12px 30px #c7387b44;border:8px solid var(--pink);transform:rotate(-6deg);}
+  .badge b{font-size:40px;font-weight:900;line-height:1.1;}
+  .badge .big{font-size:78px;font-weight:900;color:var(--pink);}
+
+  /* サービスのミニタグ（最小限） */
+  .tags{position:absolute;top:1380px;left:70px;display:flex;gap:18px;}
+  .tag{background:#fff;color:var(--ink);font-weight:800;font-size:33px;
+    padding:14px 28px;border-radius:16px;box-shadow:0 5px 14px #1c132714;}
+
+  /* CTA */
+  .cta{position:absolute;top:1490px;left:70px;width:940px;background:var(--ink);
+    color:#fff;font-weight:900;font-size:52px;text-align:center;
+    padding:34px 0;border-radius:999px;box-shadow:0 12px 30px #1c132733;}
+  .cta .ar{color:#FF7CB6;}
+
+  /* フッター（ブランド＋URL 小さく） */
+  .foot{position:absolute;top:1630px;left:70px;right:70px;text-align:center;
+    color:var(--pink-deep);font-weight:800;font-size:32px;}
+  .foot small{font-weight:700;font-size:26px;opacity:.8;}
+
+  /* ストーリー安全域の目安（本番では非表示。制作確認用の薄線） */
+  .safe{position:absolute;left:0;right:0;height:0;border-top:2px dashed #ffffff66;}
+  .safe.t{top:250px;} .safe.b{top:1660px;}
+</style></head>
+<body><div class="stage">
+  <div class="band"></div>
+  <div class="stripes"></div>
+  <div class="dots"></div>
+
+  <div class="top">
+    <span class="chip">女性専用パーソナルジム</span>
+    <div class="quote">鏡を見るのが、<small>楽しみになる。</small></div>
+  </div>
+
+  <div class="head"><span class="hl">キレイ</span>は、<br>習慣から。</div>
+
+  <div class="photo">
+    <div class="ic">🖼️</div>
+    <div class="g">お客様／トレーナー／店内の写真をここに<br>
+      <small>（笑顔・清潔感・明るいピンク背景がおすすめ）</small></div>
+  </div>
+
+  <div class="badge"><b>初回体験</b><span class="big">無料</span></div>
+
+  <div class="tags">
+    <span class="tag">酸素カプセル</span>
+    <span class="tag">痩身エステ</span>
+    <span class="tag">脱毛</span>
+  </div>
+
+  <div class="cta">無料体験を予約する <span class="ar">→</span></div>
+
+  <div class="foot">O2 GYM ｜ 駅近・手ぶらOK<br><small>p-o2gym.com</small></div>
+
+</div></body></html>
