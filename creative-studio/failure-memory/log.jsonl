@@ -1,1 +1,2 @@
 {"date":"2026-08-10","creative":"_seed","symptom":"（初期化）失敗記録の例。実運用でここに追記していく。","root_cause":"参照画像を確認せずAIで商品を再生成してしまう","fix":"composite.pyで参照画像を保持合成に変更","prevention":"商品領域は必ずPRODUCT LOCK＋composite。AI再生成を禁止。","agent":"03-product-accuracy"}
+{"date":"2026-08-10","creative":"o2gym-summer","symptom":"Gemini APIキーで画像生成が429(無料枠=0)","root_cause":"Gemini APIの画像モデルはアプリ課金と別にAPI課金が必要","fix":"Canvaコネクタ(Magic Media)経由で生成に切替え、edit-designでQA修正後にPNG出力","prevention":"画像生成はまずCanva MCPを第一候補にする。generate.pyはAPI課金有効時のバックアップ","agent":"00-orchestrator"}
