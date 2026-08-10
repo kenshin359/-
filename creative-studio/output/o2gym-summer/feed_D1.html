@@ -1,0 +1,89 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8">
+<style>
+  :root{
+    --pink:#EC5D9E; --pink-deep:#D6216B; --pink-panel:#F3CFE1;
+    --ink:#3a2430; --crimson:#E0356E; --yellow:#F9E86E;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{width:1080px;height:1350px;}
+  .stage{position:relative;width:1080px;height:1350px;overflow:hidden;
+    background:linear-gradient(180deg,#FDF3F8 0%,#FBE7F1 100%);
+    font-family:"IPAPGothic","IPAGothic",sans-serif;}
+  .mincho{font-family:"IPAPMincho","IPAMincho",serif;}
+
+  .photo{position:absolute;top:0;left:0;width:1080px;height:850px;
+    background:url('photo_zone_feed.png') center/cover no-repeat;}
+  .photo::after{content:"";position:absolute;left:0;bottom:0;width:100%;height:110px;
+    background:linear-gradient(180deg,transparent 0%,#FBEFF6 100%);}
+
+  .band{position:absolute;top:640px;left:52px;background:var(--pink);
+    color:#fff;font-weight:bold;font-size:38px;letter-spacing:.14em;
+    padding:15px 32px;box-shadow:0 8px 22px #d6216b2e;}
+  .band2{position:absolute;top:708px;left:372px;background:var(--ink);
+    color:#fff;font-weight:bold;font-size:26px;letter-spacing:.2em;padding:9px 22px;}
+
+  .big{position:absolute;top:772px;left:52px;color:var(--pink-deep);
+    font-size:100px;line-height:1.2;letter-spacing:.04em;font-weight:bold;
+    text-shadow:0 2px 0 #fff;}
+
+  .chip-y{position:absolute;top:742px;right:64px;background:var(--yellow);
+    color:var(--ink);font-weight:bold;font-size:27px;padding:10px 26px;
+    letter-spacing:.08em;box-shadow:0 6px 14px #00000014;z-index:3;}
+  .cta{position:absolute;top:806px;right:52px;width:258px;height:258px;border-radius:50%;
+    background:radial-gradient(circle at 34% 28%, #ef5f92 0%, var(--crimson) 62%);
+    color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    font-weight:bold;font-size:37px;line-height:1.5;letter-spacing:.06em;
+    box-shadow:0 16px 34px #e0356e55;z-index:2;}
+  .cta .ar{margin-top:4px;font-size:29px;}
+
+  .panel{position:absolute;top:1085px;left:0;width:1080px;height:265px;
+    background:var(--pink-panel);}
+  .ribbon{position:absolute;top:1046px;left:50%;transform:translateX(-50%);
+    background:var(--yellow);color:var(--pink-deep);font-weight:bold;font-size:34px;
+    padding:13px 40px;letter-spacing:.06em;white-space:nowrap;
+    box-shadow:0 8px 20px #00000018;z-index:2;}
+  .cards{position:absolute;top:1128px;left:52px;width:976px;display:flex;gap:20px;}
+  .card{background:#fff;flex:1;padding:18px 16px 16px;text-align:center;
+    box-shadow:0 8px 20px #d6216b1a;position:relative;}
+  .card .lb{font-size:29px;font-weight:bold;color:var(--ink);line-height:1.4;}
+  .card .zero{color:var(--crimson);font-size:76px;line-height:1.05;font-weight:bold;}
+  .card .zero small{font-size:36px;}
+  .card .svc{margin-top:8px;font-size:29px;font-weight:bold;color:var(--ink);line-height:1.65;}
+  .bubble{position:absolute;top:-28px;right:-10px;background:var(--crimson);color:#fff;
+    font-weight:bold;font-size:23px;padding:11px 16px;border-radius:999px;transform:rotate(6deg);
+    box-shadow:0 8px 18px #e0356e44;}
+  .plus{align-self:center;font-size:54px;color:var(--crimson);font-weight:bold;}
+
+  .foot{position:absolute;top:1310px;left:0;width:1080px;text-align:center;
+    color:var(--pink-deep);font-weight:bold;font-size:23px;letter-spacing:.12em;}
+</style></head>
+<body><div class="stage">
+
+  <div class="photo"></div>
+
+  <div class="band">女性専用パーソナルジム</div>
+  <div class="band2">O2 GYM</div>
+
+  <div class="big mincho">手ぶらで、<br>結果まで。</div>
+
+  <div class="chip-y">駅近・手ぶらOK</div>
+  <div class="cta"><span>無料体験を</span><span>予約する</span><span class="ar">▶</span></div>
+
+  <div class="panel"></div>
+  <div class="ribbon">＼ 夏キャンペーン実施中！ ／</div>
+
+  <div class="cards">
+    <div class="card">
+      <div class="lb">初回体験</div>
+      <div class="zero mincho">0<small>円</small></div>
+    </div>
+    <div class="plus">＋</div>
+    <div class="card">
+      <div class="bubble">美容も充実！</div>
+      <div class="svc">酸素カプセル<br>痩身エステ／脱毛</div>
+    </div>
+  </div>
+
+  <div class="foot">O2 GYM｜p-o2gym.com</div>
+
+</div></body></html>
