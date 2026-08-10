@@ -31,5 +31,21 @@
         "o2gym-summer/story_D_final.png"
       ]
     }
+  ],
+  "brand": [
+    {
+      "id": "logo-o2gym",
+      "name": "O2GYM ロゴ（正式）",
+      "category": "F_brand_logo",
+      "file": "products/logo-o2gym.png",
+      "ground_truth": {
+        "brand_color": "#762732 (ボルドー)",
+        "typeface": "セリフ体",
+        "sub": "女性専用パーソナルジム",
+        "locations": "梅田｜難波"
+      },
+      "source": "user_provided",
+      "registered_at": "2026-08-10"
+    }
   ]
 }
