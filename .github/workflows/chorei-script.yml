@@ -1,0 +1,52 @@
+# ============================================================
+#  朝礼台本の自動配信（毎朝7:55・日本時間）
+# ------------------------------------------------------------
+#  昨日の売上・件数・広告費・必要日販をまとめた15分朝礼の台本を
+#  司会（西岡さん）のChatworkへ自動送信します。
+# ============================================================
+name: 朝礼台本の自動配信（毎朝7:55）
+
+on:
+  schedule:
+    # 日本時間 7:55 = 前日 22:55 UTC
+    - cron: '55 22 * * *'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: '表示だけで送信しない（true/false）'
+        required: false
+        default: 'false'
+
+concurrency:
+  group: chorei-script
+  cancel-in-progress: false
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: daily-report-system
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 台本を作って送る
+        env:
+          KINTONE_BASE_URL: ${{ secrets.KINTONE_BASE_URL }}
+          KINTONE_USER: ${{ secrets.KINTONE_USER }}
+          KINTONE_PASSWORD: ${{ secrets.KINTONE_PASSWORD }}
+          KINTONE_SALES_DETAIL_APP_ID: ${{ secrets.KINTONE_SALES_DETAIL_APP_ID }}
+          KINTONE_KPI_APP_ID: ${{ secrets.KINTONE_KPI_APP_ID || '30' }}
+          CHATWORK_API_TOKEN: ${{ secrets.CHATWORK_API_TOKEN }}
+          CHATWORK_CHOREI_ROOM_ID: ${{ secrets.CHATWORK_CHOREI_ROOM_ID }}
+          APP_ENV: production
+          REPORT_TIMEZONE: Asia/Tokyo
+        run: |
+          args=""
+          if [ "${{ inputs.dry_run }}" = "true" ]; then args="--dry-run"; fi
+          node scripts/choreiDaily.js $args
