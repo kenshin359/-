@@ -1,0 +1,72 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8">
+<style>
+  :root{
+    --bordeaux:#762732; --gold:#C4A15E; --ink:#40343a; --ivory:#faf6f0; --ivory-d:#f0e8dd;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{width:1080px;height:1920px;}
+  .stage{position:relative;width:1080px;height:1920px;overflow:hidden;
+    background:linear-gradient(180deg,#fdfbf8 0%,var(--ivory) 55%,var(--ivory-d) 100%);
+    font-family:"IPAPGothic","IPAGothic",sans-serif;}
+  .mincho{font-family:"IPAPMincho","IPAMincho",serif;}
+
+  /* 写真（無加工・全景を保持） */
+  .photo{position:absolute;top:70px;left:0;width:1080px;height:1300px;
+    background:url('bridal_photo.jpg') center/cover no-repeat;}
+  .photo::before{content:"";position:absolute;top:0;left:0;width:100%;height:230px;
+    background:linear-gradient(180deg,#fdfbf8 0%,#fdfbf8cc 40%,transparent 100%);}
+  .photo::after{content:"";position:absolute;bottom:0;left:0;width:100%;height:200px;
+    background:linear-gradient(0deg,var(--ivory) 6%,transparent 100%);}
+
+  /* フローティングカード（写真の裾に浮く） */
+  .card{position:absolute;top:1116px;left:90px;width:900px;
+    background:rgba(253,250,245,.82);backdrop-filter:blur(18px) saturate(1.1);
+    border:1.6px solid rgba(196,161,94,.45);border-radius:30px;
+    box-shadow:0 30px 70px rgba(90,60,40,.28), inset 0 1px 0 #fff;
+    padding:28px 46px 24px;text-align:center;}
+  .card .logo{width:190px;margin:0 auto 4px;display:block;}
+  .card h1{color:var(--ink);font-size:48px;line-height:1.45;letter-spacing:.06em;
+    font-weight:bold;}
+  .card h1 b{color:var(--bordeaux);}
+  .card .rule{height:2px;margin:12px auto 12px;width:480px;
+    background:linear-gradient(90deg,transparent,#c4a15e88,transparent);}
+  .card .facts{display:flex;align-items:center;justify-content:center;gap:26px;
+    color:var(--ink);font-size:33px;font-weight:bold;letter-spacing:.06em;}
+  .card .facts b{color:var(--bordeaux);font-size:46px;}
+  .card .facts .sep{width:1.4px;height:44px;background:#c4a15e77;}
+  .card .sub{margin-top:12px;color:#8a7566;font-size:26px;letter-spacing:.1em;}
+
+  /* Metaリンクボタンへの誘導（セーフゾーン直上） */
+  .nudge{position:absolute;top:1568px;left:0;width:100%;text-align:center;}
+  .nudge .t{display:inline-block;color:#fff;font-size:29px;font-weight:bold;letter-spacing:.1em;
+    background:var(--bordeaux);padding:11px 36px;border-radius:999px;
+    box-shadow:0 12px 28px rgba(118,39,50,.35);}
+  .nudge .ch{margin-top:2px;font-size:36px;line-height:1.05;color:var(--bordeaux);}
+  .nudge .ch span{display:block;}
+  .nudge .ch span:nth-child(2){opacity:.45;font-size:30px;margin-top:-10px;}
+
+  /* 下部310px = Metaのリンクボタン/キャプション領域（装飾のみ） */
+</style></head>
+<body><div class="stage">
+
+  <div class="photo"></div>
+
+  <div class="card">
+    <img class="logo" src="logo_color.png">
+    <h1 class="mincho">一生に一度の日を、<br><b>いちばんの私</b>で。</h1>
+    <div class="rule"></div>
+    <div class="facts">
+      <span>初回体験 <b>0</b>円</span>
+      <span class="sep"></span>
+      <span>梅田｜難波</span>
+      <span class="sep"></span>
+      <span>女性専用</span>
+    </div>
+  </div>
+
+  <div class="nudge">
+    <div class="t">無料カウンセリング・体験の予約は、下のボタンから</div>
+    <div class="ch"><span>⌄</span><span>⌄</span></div>
+  </div>
+
+</div></body></html>

@@ -30,6 +30,16 @@
       "used_in": [
         "o2gym-summer/story_D_final.png"
       ]
+    },
+    {
+      "id": "photo-bridal-mirror",
+      "name": "ブライダル ドレスルーム写真（実在のお客様/関係者）",
+      "category": "E_photo_material",
+      "file": "products/photo-bridal-mirror.jpg",
+      "source": "user_provided",
+      "consent_required": true,
+      "notes": "実在人物。顔・体のAI生成/改変は禁止。配信前に本人の掲載同意が必須。",
+      "registered_at": "2026-08-10"
     }
   ],
   "brand": [
