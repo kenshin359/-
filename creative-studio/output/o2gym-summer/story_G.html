@@ -1,0 +1,143 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8">
+<style>
+  :root{
+    --bordeaux:#762732; --gold-a:#CDA84F; --gold-b:#E9CE7E; --gold-c:#B8923C;
+    --ink:#26222a; --paper:#fff;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{width:1080px;height:1920px;}
+  .stage{position:relative;width:1080px;height:1920px;overflow:hidden;
+    background:linear-gradient(160deg,var(--gold-b) 0%,var(--gold-a) 46%,var(--gold-c) 100%);
+    font-family:"IPAPGothic","IPAGothic",sans-serif;}
+  .mincho{font-family:"IPAPMincho","IPAMincho",serif;}
+
+  /* 上部チャコールゾーン（斜めエッジ＝見本の意匠） */
+  .top{position:absolute;top:0;left:0;width:1080px;height:800px;
+    background:linear-gradient(135deg,#4b4950 0%,#2f2d34 70%);
+    clip-path:polygon(0 0, 1080px 0, 1080px 560px, 0 780px);}
+  .top::after{content:"";position:absolute;left:0;top:0;width:100%;height:100%;
+    background:radial-gradient(ellipse 70% 60% at 24% 40%, #ffffff14 0%, transparent 60%);}
+  .sheen{position:absolute;inset:0;pointer-events:none;
+    background:
+      linear-gradient(115deg, transparent 0 34%, #ffffff2e 40% 46%, transparent 52%),
+      linear-gradient(115deg, transparent 0 60%, #ffffff18 64% 67%, transparent 71%),
+      radial-gradient(ellipse 120% 90% at 50% 45%, transparent 55%, #6b4d1440 100%);}
+
+  .logo{position:absolute;top:238px;left:64px;width:300px;opacity:.97;}
+  .logo img{width:100%;display:block;}
+
+  /* 体験談風見出し（実績注記つき） */
+  .head{position:absolute;top:248px;left:400px;width:640px;color:#fff;font-weight:bold;}
+  .head .l1{font-size:64px;line-height:1.35;}
+  .head .l1 b{color:var(--gold-b);font-size:76px;}
+  .head .l2{font-size:74px;line-height:1.3;letter-spacing:.01em;
+    text-shadow:0 4px 18px rgba(0,0,0,.35);}
+  .head .cred{margin-top:14px;font-size:24px;color:#cfc9c2;font-weight:normal;
+    letter-spacing:.04em;}
+
+  /* シルバーの円バッジ（事実のみ） */
+  .badges{position:absolute;top:788px;left:64px;display:flex;gap:26px;}
+  .badge{width:196px;height:196px;border-radius:50%;
+    background:radial-gradient(circle at 32% 26%, #ffffff 0%, #e8e6e2 45%, #b9b5ae 100%);
+    box-shadow:0 14px 30px rgba(60,40,10,.35), inset 0 2px 6px #fff;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    color:var(--ink);font-weight:bold;font-size:33px;line-height:1.4;text-align:center;}
+  .badge small{font-size:26px;}
+
+  /* 被写体（ゴールドの上・斜めバーの手前に立つ） */
+  .subject{position:absolute;top:724px;left:620px;width:600px;height:906px;
+    background:url('subject_dark.png') center/contain no-repeat;
+    filter:brightness(1.02) contrast(1.04)
+      drop-shadow(-24px 34px 55px rgba(90,60,10,.45));}
+
+  /* 実績の斜めバー（見本の段積み） */
+  .stats{position:absolute;top:1084px;left:0;width:720px;}
+  .bar{position:relative;background:#fff;transform:skewX(-8deg);
+    margin:0 0 26px -30px;padding:16px 48px 16px 84px;width:690px;
+    box-shadow:0 14px 30px rgba(60,40,10,.30);
+    display:flex;align-items:baseline;gap:28px;}
+  .bar .lb{font-size:44px;font-weight:bold;color:var(--ink);transform:skewX(8deg);
+    min-width:200px;}
+  .bar .vl{font-size:96px;font-weight:bold;color:var(--bordeaux);line-height:1.0;
+    transform:skewX(8deg);letter-spacing:-.01em;}
+  .bar .vl small{font-size:52px;}
+  .bar .as{font-size:22px;color:#8a8378;transform:skewX(8deg);}
+
+  .period{position:absolute;top:1002px;left:64px;color:var(--ink);
+    font-size:56px;font-weight:bold;letter-spacing:.05em;}
+  .period b{font-size:74px;color:var(--bordeaux);}
+
+  .imgnote{position:absolute;top:1318px;left:66px;color:#5d5344;font-size:23px;
+    letter-spacing:.04em;}
+
+  /* ダークグラス帯（脚の手前・注記内蔵） */
+  .infobar{position:absolute;top:1386px;left:80px;width:920px;
+    background:rgba(28,22,16,.55);backdrop-filter:blur(14px);
+    border:1.6px solid rgba(255,244,214,.55);border-radius:22px;
+    padding:22px 30px 16px;box-shadow:0 22px 50px rgba(60,40,10,.4);z-index:3;}
+  .infobar .row{display:flex;align-items:center;justify-content:center;gap:32px;}
+  .infobar .item{color:#fff;font-size:35px;font-weight:bold;letter-spacing:.08em;
+    display:flex;align-items:baseline;gap:10px;white-space:nowrap;}
+  .infobar .item b{color:var(--gold-b);font-size:60px;}
+  .infobar .sep{width:1.6px;height:52px;background:rgba(255,244,214,.5);}
+  .infobar .notei{margin-top:8px;text-align:center;color:#d9cdb9;font-size:22px;}
+
+  /* Metaボタン誘導（セーフゾーン直上） */
+  .nudge{position:absolute;top:1560px;left:0;width:100%;text-align:center;z-index:3;}
+  .nudge .t{display:inline-block;color:#fff;font-size:30px;font-weight:bold;letter-spacing:.1em;
+    background:rgba(28,22,16,.6);padding:10px 34px;border-radius:999px;}
+  .nudge .ch{margin-top:0;font-size:38px;line-height:1.05;color:var(--bordeaux);
+    text-shadow:0 1px 0 #fff8;}
+  .nudge .ch span{display:block;}
+  .nudge .ch span:nth-child(2){opacity:.5;font-size:32px;margin-top:-12px;}
+
+  /* 下部310px = Metaリンクボタン/キャプション領域（重要要素なし・光沢のみ） */
+  .foot-sheen{position:absolute;bottom:0;left:0;width:100%;height:300px;
+    background:linear-gradient(0deg, rgba(120,90,30,.35) 0%, transparent 100%);}
+</style></head>
+<body><div class="stage">
+
+  <div class="top"></div>
+  <div class="sheen"></div>
+  <div class="foot-sheen"></div>
+
+  <div class="logo"><img src="logo_white.png"></div>
+
+  <div class="head">
+    <div class="l1">たった<b>8週間</b>で、</div>
+    <div class="l2">ここまで変われた。</div>
+    <div class="cred">※お客様個人の実績です（8週間プログラム測定値）</div>
+  </div>
+
+  <div class="badges">
+    <div class="badge">女性専用</div>
+    <div class="badge">駅近<br><small>梅田｜難波</small></div>
+  </div>
+
+  <div class="subject"></div>
+
+  <div class="period">たった<b>8週間</b>で</div>
+
+  <div class="stats">
+    <div class="bar"><span class="lb">体重</span><span class="vl">−6.9<small>kg</small></span><span class="as">※1</span></div>
+    <div class="bar"><span class="lb">体脂肪率</span><span class="vl">−6.0<small>％</small></span><span class="as">※1</span></div>
+  </div>
+
+  <div class="infobar">
+    <div class="row">
+      <span class="item">初回体験 <b>0</b>円</span>
+      <span class="sep"></span>
+      <span class="item">手ぶらOK</span>
+      <span class="sep"></span>
+      <span class="item">酸素カプセル併設</span>
+    </div>
+    <div class="notei">痩身エステ／脱毛も、ひとつのジムで。</div>
+    <div class="notei">※1 お客様個人の実績・結果には個人差があります　※写真はイメージです</div>
+  </div>
+
+  <div class="nudge">
+    <div class="t">無料カウンセリング・体験の予約は、下のボタンから</div>
+    <div class="ch"><span>⌄</span><span>⌄</span></div>
+  </div>
+
+</div></body></html>
