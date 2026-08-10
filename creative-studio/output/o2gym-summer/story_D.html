@@ -1,0 +1,126 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8">
+<style>
+  :root{
+    --pink:#EC5D9E; --pink-deep:#D6216B; --pink-pale:#FBE7F1; --pink-panel:#F3CFE1;
+    --ink:#3a2430; --crimson:#E0356E; --yellow:#F9E86E;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{width:1080px;height:1920px;}
+  .stage{position:relative;width:1080px;height:1920px;overflow:hidden;
+    background:linear-gradient(180deg,#FFFDFE 0%,#FDF3F8 55%,#FBE7F1 100%);
+    font-family:"IPAPGothic","IPAGothic",sans-serif;}
+  .mincho{font-family:"IPAPMincho","IPAMincho",serif;}
+
+  /* ===== 写真ゾーン（全幅・実写真をここに） ===== */
+  .photo{position:absolute;top:0;left:0;width:1080px;height:1200px;
+    background:
+      radial-gradient(ellipse 900px 700px at 75% 18%, #ffffff 0%, #fdf0f6 55%, #f7dcea 100%);}
+  .photo .guide{position:absolute;top:430px;left:50%;transform:translateX(-50%);
+    width:660px;text-align:center;color:#c98bab;}
+  .photo .guide .bx{border:5px dashed #e9b7d2;border-radius:28px;padding:46px 30px;
+    background:#ffffff66;}
+  .photo .guide .t1{font-size:36px;font-weight:bold;line-height:1.6;}
+  .photo .guide .t2{font-size:25px;margin-top:10px;line-height:1.6;}
+  /* 窓の光の演出（見本の明るさ） */
+  .lightbar{position:absolute;top:0;left:130px;width:14px;height:1200px;background:#ffffffaa;}
+  .lightbar.b{left:980px;width:10px;opacity:.7;}
+
+  /* ===== 縦書きキャッチ（明朝・見本の意匠） ===== */
+  .tate{position:absolute;top:80px;left:64px;height:840px;
+    writing-mode:vertical-rl;color:var(--ink);
+    font-size:52px;line-height:2.05;letter-spacing:.18em;font-weight:bold;}
+  .tate .col{display:block;white-space:nowrap;margin-left:34px;}
+  .tate .sm{font-size:36px;letter-spacing:.14em;padding-top:14px;}
+  .tate .accent{color:var(--pink-deep);}
+
+  /* ===== 帯（カテゴリ） ===== */
+  .band{position:absolute;top:1005px;left:60px;background:var(--pink);
+    color:#fff;font-weight:bold;font-size:44px;letter-spacing:.14em;
+    padding:18px 38px;box-shadow:0 8px 22px #d6216b2e;}
+  .band2{position:absolute;top:1085px;left:430px;background:var(--ink);
+    color:#fff;font-weight:bold;font-size:30px;letter-spacing:.2em;padding:10px 26px;}
+
+  /* ===== 大見出し（明朝・見本のOPEN相当） ===== */
+  .big{position:absolute;top:1150px;left:60px;color:var(--pink-deep);
+    font-size:128px;line-height:1.22;letter-spacing:.04em;font-weight:bold;
+    text-shadow:0 2px 0 #fff;}
+  .big .l2{font-size:118px;}
+
+  /* ===== 円形CTA（見本の赤丸） ===== */
+  .chip-y{position:absolute;top:1066px;right:88px;background:var(--yellow);
+    color:var(--ink);font-weight:bold;font-size:30px;padding:12px 30px;
+    letter-spacing:.08em;box-shadow:0 6px 14px #00000014;z-index:3;}
+  .cta{position:absolute;top:1135px;right:62px;width:310px;height:310px;border-radius:50%;
+    background:radial-gradient(circle at 34% 28%, #ef5f92 0%, var(--crimson) 62%);
+    color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    font-weight:bold;font-size:44px;line-height:1.5;letter-spacing:.06em;
+    box-shadow:0 16px 34px #e0356e55;z-index:2;}
+  .cta .ar{margin-top:6px;font-size:34px;}
+
+  /* ===== 下部パネル（キャンペーン） ===== */
+  .panel{position:absolute;top:1505px;left:0;width:1080px;height:415px;
+    background:var(--pink-panel);}
+  .ribbon{position:absolute;top:1462px;left:50%;transform:translateX(-50%);
+    background:var(--yellow);color:var(--pink-deep);font-weight:bold;font-size:40px;
+    padding:16px 46px;letter-spacing:.06em;white-space:nowrap;
+    box-shadow:0 8px 20px #00000018;z-index:2;}
+  .plan{position:absolute;top:1552px;left:50%;transform:translateX(-50%);
+    color:#fff;background:var(--pink);font-weight:bold;font-size:36px;
+    letter-spacing:.18em;padding:10px 44px;}
+  .cards{position:absolute;top:1630px;left:60px;width:960px;display:flex;gap:24px;}
+  .card{background:#fff;flex:1;padding:26px 20px 22px;text-align:center;
+    box-shadow:0 8px 20px #d6216b1a;position:relative;}
+  .card .lb{font-size:32px;font-weight:bold;color:var(--ink);line-height:1.5;}
+  .card .zero{color:var(--crimson);font-size:104px;line-height:1.05;font-weight:bold;}
+  .card .zero small{font-size:44px;}
+  .card .svc{margin-top:10px;font-size:33px;font-weight:bold;color:var(--ink);line-height:1.75;}
+  .bubble{position:absolute;top:-34px;right:-14px;background:var(--crimson);color:#fff;
+    font-weight:bold;font-size:27px;padding:14px 20px;border-radius:999px;transform:rotate(6deg);
+    box-shadow:0 8px 18px #e0356e44;}
+  .plus{align-self:center;font-size:64px;color:var(--crimson);font-weight:bold;}
+
+  .foot{position:absolute;top:1856px;left:0;width:1080px;text-align:center;
+    color:var(--pink-deep);font-weight:bold;font-size:27px;letter-spacing:.12em;}
+</style></head>
+<body><div class="stage">
+
+  <div class="photo">
+    <div class="lightbar"></div><div class="lightbar b"></div>
+    <div class="guide"><div class="bx">
+      <div class="t1">🖼️ トレーニング中の写真を<br>ここに配置</div>
+      <div class="t2">（見本のように明るい窓際・白ウェア・<br>横からのフォームが理想）</div>
+    </div></div>
+  </div>
+
+  <div class="tate mincho">
+    <span class="col">わたし史上、<span class="accent">いちばん</span>へ。</span>
+    <span class="col sm">３０代からの、カラダづくり</span>
+  </div>
+
+  <div class="band">女性専用パーソナルジム</div>
+  <div class="band2">O2 GYM</div>
+
+  <div class="big mincho">手ぶらで、<br><span class="l2">結果まで。</span></div>
+
+  <div class="chip-y">駅近・手ぶらOK</div>
+  <div class="cta"><span>無料体験を</span><span>予約する</span><span class="ar">▶</span></div>
+
+  <div class="panel"></div>
+  <div class="ribbon">＼ 夏キャンペーン実施中！ ／</div>
+  <div class="plan">初めての方へ</div>
+
+  <div class="cards">
+    <div class="card">
+      <div class="lb">初回体験</div>
+      <div class="zero mincho">0<small>円</small></div>
+    </div>
+    <div class="plus">＋</div>
+    <div class="card">
+      <div class="bubble">美容も充実！</div>
+      <div class="svc">酸素カプセル<br>痩身エステ／脱毛</div>
+    </div>
+  </div>
+
+  <div class="foot">O2 GYM｜p-o2gym.com</div>
+
+</div></body></html>
