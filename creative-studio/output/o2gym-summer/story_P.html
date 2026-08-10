@@ -1,0 +1,98 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8">
+<style>
+  :root{
+    --pink:#EC5D9E; --pink-hi:#FF9DC6; --pink-deep:#D6216B;
+    --plum:#2a1220; --ink:#3a2430;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{width:1080px;height:1920px;}
+  .stage{position:relative;width:1080px;height:1920px;overflow:hidden;
+    background:#1c0e18;font-family:"IPAPGothic","IPAGothic",sans-serif;}
+  .mincho{font-family:"IPAPMincho","IPAMincho",serif;}
+
+  /* L1: フルブリード写真（シネマグレード） */
+  .bg{position:absolute;inset:0;background:url('bg_full.png') center/cover no-repeat;
+    filter:saturate(1.06) contrast(1.03);}
+  /* L2: シネマティックグラデーション（上下） */
+  .grade{position:absolute;inset:0;
+    background:
+      linear-gradient(180deg, rgba(42,18,32,.68) 0%, rgba(42,18,32,.32) 18%, transparent 34%),
+      linear-gradient(0deg,  rgba(42,18,32,.85) 0%, rgba(42,18,32,.45) 12%, transparent 30%),
+      radial-gradient(ellipse 140% 90% at 50% 40%, transparent 60%, rgba(42,18,32,.28) 100%);}
+
+  /* L3: 大見出し（この上に人物が重なる＝奥行きの核） */
+  .big{position:absolute;top:362px;left:60px;color:#fff;
+    font-size:136px;line-height:1.18;letter-spacing:.03em;font-weight:bold;
+    text-shadow:0 4px 22px rgba(42,18,32,.55), 0 1px 0 rgba(255,255,255,.25);}
+  .big .hl{color:var(--pink-hi);}
+
+  /* L4: 被写体（切り抜き・文字の上に立つ） */
+  .subject{position:absolute;inset:0;background:url('subject_full.png') center/cover no-repeat;
+    filter:saturate(1.06) contrast(1.03) drop-shadow(0 34px 60px rgba(20,6,14,.45));}
+
+  /* L5: 上部ブランド行（ストーリー上部UIを避けて y230〜） */
+  .brand{position:absolute;top:238px;left:60px;display:flex;align-items:center;gap:26px;
+    color:#fff;}
+  .brand .mark{font-size:44px;font-weight:bold;letter-spacing:.3em;}
+  .brand .sep{width:2px;height:44px;background:#ffffff88;}
+  .brand .cat{font-size:31px;font-weight:bold;letter-spacing:.16em;opacity:.95;}
+
+  /* L6: グラスカード（すりガラス・浮遊） */
+  .glass{position:absolute;top:1058px;right:56px;width:560px;
+    background:rgba(255,255,255,.6);backdrop-filter:blur(22px) saturate(1.3);
+    border:2px solid rgba(255,255,255,.75);border-radius:34px;
+    box-shadow:0 30px 70px rgba(42,18,32,.4), inset 0 1px 0 rgba(255,255,255,.9);
+    padding:30px 42px 26px;color:var(--ink);}
+  .glass .camp{color:var(--pink-deep);font-size:29px;font-weight:bold;letter-spacing:.1em;
+    text-align:center;}
+  .glass .offer{margin-top:4px;text-align:center;font-weight:bold;color:var(--ink);
+    font-size:40px;letter-spacing:.06em;}
+  .glass .zero{display:block;color:var(--pink-deep);font-size:112px;line-height:1.06;}
+  .glass .zero small{font-size:46px;}
+  .glass .rule{height:2px;background:linear-gradient(90deg,transparent,#d6216b55,transparent);
+    margin:14px 0 12px;}
+  .glass .svc{text-align:center;font-size:27px;font-weight:bold;line-height:1.8;color:#5a3a4a;}
+  .glass .tags{margin-top:12px;display:flex;justify-content:center;gap:14px;}
+  .glass .tag{background:rgba(214,33,107,.92);color:#fff;font-size:24px;font-weight:bold;
+    padding:9px 22px;border-radius:999px;box-shadow:0 8px 18px rgba(214,33,107,.35);}
+
+  /* L7: Metaリンクボタンへの視線誘導（セーフゾーン境界の直上） */
+  .nudge{position:absolute;top:1548px;left:0;width:100%;text-align:center;color:#fff;}
+  .nudge .t{font-size:30px;font-weight:bold;letter-spacing:.1em;
+    text-shadow:0 2px 14px rgba(42,18,32,.8);}
+  .nudge .ch{margin-top:2px;font-size:40px;line-height:1.1;opacity:.95;
+    text-shadow:0 2px 14px rgba(42,18,32,.8);}
+  .nudge .ch span{display:block;}
+  .nudge .ch span:nth-child(2){opacity:.55;font-size:34px;margin-top:-14px;}
+
+  /* 下部310px = Metaの「詳しくはこちら」ボタン＋キャプション領域。重要要素は置かない */
+</style></head>
+<body><div class="stage">
+
+  <div class="bg"></div>
+  <div class="grade"></div>
+
+  <div class="big mincho">手ぶらで、<br><span class="hl">結果</span>まで。</div>
+
+  <div class="subject"></div>
+
+  <div class="brand">
+    <span class="mark">O2&nbsp;GYM</span>
+    <span class="sep"></span>
+    <span class="cat">女性専用パーソナルジム</span>
+  </div>
+
+  <div class="glass">
+    <div class="camp">＼ 夏キャンペーン ／</div>
+    <div class="offer">初回体験<span class="zero mincho">0<small>円</small></span></div>
+    <div class="rule"></div>
+    <div class="svc">酸素カプセル／痩身エステ／脱毛</div>
+    <div class="tags"><span class="tag">駅近</span><span class="tag">手ぶらOK</span></div>
+  </div>
+
+  <div class="nudge">
+    <div class="t">無料体験の予約は、下のボタンから</div>
+    <div class="ch"><span>⌄</span><span>⌄</span></div>
+  </div>
+
+</div></body></html>
