@@ -18,5 +18,18 @@
       "registered_at": null,
       "source": "user_provided"
     }
+  ],
+  "photos": [
+    {
+      "id": "photo-o2-training-01",
+      "name": "O2ジム トレーニング写真（ダンベルロウ・窓際）",
+      "category": "E_photo_material",
+      "file": "products/photo-o2-training-01.png",
+      "source": "user_provided (Gemini app生成)",
+      "registered_at": "2026-08-10",
+      "used_in": [
+        "o2gym-summer/story_D_final.png"
+      ]
+    }
   ]
 }

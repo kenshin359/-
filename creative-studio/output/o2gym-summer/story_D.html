@@ -13,8 +13,9 @@
 
   /* ===== 写真ゾーン（全幅・実写真をここに） ===== */
   .photo{position:absolute;top:0;left:0;width:1080px;height:1200px;
-    background:
-      radial-gradient(ellipse 900px 700px at 75% 18%, #ffffff 0%, #fdf0f6 55%, #f7dcea 100%);}
+    background:url('photo_zone.png') center/cover no-repeat;}
+  .photo::after{content:"";position:absolute;left:0;bottom:0;width:100%;height:130px;
+    background:linear-gradient(180deg,transparent 0%,#FBEFF6 100%);}
   .photo .guide{position:absolute;top:430px;left:50%;transform:translateX(-50%);
     width:660px;text-align:center;color:#c98bab;}
   .photo .guide .bx{border:5px dashed #e9b7d2;border-radius:28px;padding:46px 30px;
@@ -85,11 +86,7 @@
 <body><div class="stage">
 
   <div class="photo">
-    <div class="lightbar"></div><div class="lightbar b"></div>
-    <div class="guide"><div class="bx">
-      <div class="t1">🖼️ トレーニング中の写真を<br>ここに配置</div>
-      <div class="t2">（見本のように明るい窓際・白ウェア・<br>横からのフォームが理想）</div>
-    </div></div>
+
   </div>
 
   <div class="tate mincho">
