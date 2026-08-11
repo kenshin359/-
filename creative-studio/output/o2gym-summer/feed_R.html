@@ -1,0 +1,110 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8">
+<style>
+  :root{
+    --bordeaux:#762732; --bordeaux-hi:#a03a49;
+    --gold:#D9B36A; --gold-hi:#F3DFA8; --gold-lo:#B98E44;
+    --paper:#f5eee6;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{width:1080px;height:1350px;}
+  .stage{position:relative;width:1080px;height:1350px;overflow:hidden;
+    background:
+      radial-gradient(ellipse 90% 55% at 50% 34%, #2b1518 0%, #170d0f 55%, #0c0809 100%);
+    font-family:"IPAPGothic","IPAGothic",sans-serif;}
+  .mincho{font-family:"IPAPMincho","IPAMincho",serif;}
+
+  /* 被写体の背後の気配（ボルドーの光暈） */
+  .aura{position:absolute;top:430px;left:50%;transform:translateX(-50%);
+    width:860px;height:820px;border-radius:50%;
+    background:radial-gradient(ellipse at center, rgba(118,39,50,.5) 0%, rgba(118,39,50,.18) 45%, transparent 70%);}
+
+  /* ロゴ（白版） */
+  .logo{position:absolute;top:64px;left:50%;transform:translateX(-50%);
+    width:330px;opacity:.96;}
+  .logo img{width:100%;display:block;}
+
+  /* 実績ブロック（この上に人物がかぶる） */
+  .fact{position:absolute;top:252px;left:0;width:1080px;text-align:center;color:#fff;}
+  .fact .label{display:inline-block;color:var(--gold);font-size:37px;font-weight:bold;
+    letter-spacing:.3em;padding:0 30px;}
+  .fact .label::before,.fact .label::after{content:"—";color:#8a6a3a;padding:0 18px;}
+  .fact .num{margin-top:4px;font-weight:bold;line-height:1.0;
+    font-size:250px;letter-spacing:-.01em;
+    background:linear-gradient(180deg,var(--gold-hi) 8%, var(--gold) 55%, var(--gold-lo) 96%);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    filter:drop-shadow(0 6px 26px rgba(0,0,0,.55));}
+  .fact .num small{font-size:95px;letter-spacing:0;}
+  .fact .sub{margin-top:10px;color:var(--paper);font-size:38px;font-weight:bold;letter-spacing:.14em;}
+  .fact .sub b{color:var(--gold-hi);font-size:54px;}
+
+  /* 被写体（実績数字の上に立つ） */
+  .subject{position:absolute;top:496px;left:50%;transform:translateX(-50%);
+    width:470px;height:790px;
+    background:url('subject_dark.png') center/contain no-repeat;
+    filter:brightness(.97) contrast(1.05) saturate(.98)
+      drop-shadow(0 40px 70px rgba(0,0,0,.65));}
+
+  /* 接地の影 */
+  .floor{position:absolute;top:1252px;left:50%;transform:translateX(-50%);
+    width:640px;height:60px;border-radius:50%;
+    background:radial-gradient(ellipse at center, rgba(0,0,0,.55) 0%, transparent 70%);}
+
+  /* ダークグラスの帯（人物の脚の前を通る＝奥行き） */
+  .bar{position:absolute;top:1108px;left:90px;width:900px;
+    background:rgba(20,12,14,.42);backdrop-filter:blur(16px);
+    border:1.6px solid rgba(217,179,106,.5);border-radius:22px;
+    padding:24px 30px 18px;box-shadow:0 24px 55px rgba(0,0,0,.5);}
+  .bar .row{display:flex;align-items:center;justify-content:center;gap:34px;}
+  .bar .notei{margin-top:12px;text-align:center;color:#c3b2a8;font-size:22px;letter-spacing:.05em;}
+  .bar .item{color:var(--paper);font-size:33px;font-weight:bold;letter-spacing:.08em;
+    display:flex;align-items:baseline;gap:10px;white-space:nowrap;}
+  .bar .item b{color:var(--gold-hi);font-size:56px;}
+  .bar .sep{width:1.6px;height:56px;background:rgba(217,179,106,.45);}
+
+  /* 注記（景表法対応） */
+  .note{position:absolute;top:1502px;left:0;width:1080px;text-align:center;
+    color:#b9a9a0;font-size:23px;letter-spacing:.06em;}
+
+  /* Metaボタンへの誘導（セーフゾーン直上） */
+  .nudge{position:absolute;top:1272px;left:0;width:100%;text-align:center;color:#fff;}
+  .nudge .t{display:inline-block;font-size:27px;font-weight:bold;letter-spacing:.1em;
+    background:rgba(12,8,9,.5);padding:9px 30px;border-radius:999px;
+    text-shadow:0 2px 14px rgba(0,0,0,.8);}
+  .nudge .ch{margin-top:0;font-size:38px;line-height:1.05;color:var(--gold);
+    text-shadow:0 2px 14px rgba(0,0,0,.8);}
+  .nudge .ch span{display:block;}
+  .nudge .ch span:nth-child(2){opacity:.5;font-size:32px;margin-top:-12px;}
+
+  /* 下部310pxはMetaのリンクボタン/キャプション領域（何も置かない） */
+</style></head>
+<body><div class="stage">
+
+  <div class="aura"></div>
+
+  <div class="fact">
+    <span class="label mincho">8週間の実績</span>
+    <div class="num mincho">−6.9<small>kg</small></div>
+    <div class="sub mincho">体脂肪 <b>−6.0</b>％</div>
+  </div>
+
+  <div class="subject"></div>
+  <div class="floor"></div>
+
+  <div class="logo"><img src="logo_white.png"></div>
+
+  <div class="bar">
+    <div class="row">
+      <span class="item">初回体験 <b>0</b>円</span>
+      <span class="sep"></span>
+      <span class="item">梅田｜難波</span>
+      <span class="sep"></span>
+      <span class="item">女性専用</span>
+    </div>
+    <div class="notei">※お客様個人の実績です。結果には個人差があります。</div>
+  </div>
+
+  <div class="nudge">
+    <div class="t">ご予約は プロフィールのリンクから</div>
+  </div>
+
+</div></body></html>
