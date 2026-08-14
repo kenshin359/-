@@ -15,9 +15,10 @@
 name: Amazon売上取込（毎朝7:19）
 
 on:
-  schedule:
-    # 日本時間 7:19 = 前日 22:19 UTC（混雑回避のため前倒し）
-    - cron: '19 22 * * *'
+  # ※SP-API連携が完了するまで毎朝の自動実行は停止中（休み明けに再開予定）。
+  #   再開するときは下の2行の # を外すだけ。
+  # schedule:
+  #   - cron: '19 22 * * *'   # 日本時間 7:19
   workflow_dispatch:
     inputs:
       from:

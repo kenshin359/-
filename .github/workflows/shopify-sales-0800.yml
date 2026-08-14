@@ -96,4 +96,6 @@ jobs:
             args="--from=$from --to=$to"
             echo "朝の確定モード: $from 〜 $to の3日ぶんを取り直します（数字のずれ防止）"
           fi
+          # 定期実行はChatwork通知なし（部屋への報告は毎朝の参謀レポート1通に集約）
+          if [ "${{ github.event_name }}" = "schedule" ]; then args="$args --no-notify"; fi
           node scripts/shopifyImport.js $args

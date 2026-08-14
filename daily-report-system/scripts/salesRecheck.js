@@ -170,11 +170,19 @@ async function main() {
     reimport(x.date, x.channel);
   }
 
-  try {
-    await notifyDrift(drifts);
-    console.log('Chatworkに差分を報告しました。');
-  } catch (e) {
-    console.warn(`⚠ Chatwork通知に失敗（修正は完了しています）: ${e.message}`);
+  // 部屋への報告は1日1回（毎朝の参謀レポート）に集約するため、
+  // 自動修正できたずれはログ記録のみ。人の判断が必要なとき（自動修正
+  // できないずれ）だけChatworkへ知らせる。
+  const manual = drifts.filter((x) => !x.fixable);
+  if (manual.length) {
+    try {
+      await notifyDrift(drifts);
+      console.log('⚠ 自動修正できないずれがあるためChatworkに報告しました。');
+    } catch (e) {
+      console.warn(`⚠ Chatwork通知に失敗: ${e.message}`);
+    }
+  } else {
+    console.log('自動修正のみ（Chatwork通知は省略・参謀レポートに反映されます）');
   }
 }
 
