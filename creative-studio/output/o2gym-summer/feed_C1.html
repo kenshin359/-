@@ -12,19 +12,16 @@
     font-family:"IPAPGothic","IPAGothic",sans-serif;}
   .mincho{font-family:"IPAPMincho","IPAMincho",serif;}
 
-  /* 写真ゾーン（右40%・後から貼り付け） */
-  .photo{position:absolute;top:0;right:0;width:470px;height:880px;
-    background:linear-gradient(200deg,#3a3540 0%,#232028 70%);}
-  .photo::after{content:"";position:absolute;inset:0;
-    background:linear-gradient(90deg,#232028 0%,transparent 30%);}
-  .model{position:absolute;bottom:0;left:50%;transform:translateX(-50%);
-    width:470px;height:830px;overflow:hidden;}
-  .model img{position:absolute;bottom:-115px;left:50%;transform:translateX(-50%);
-    height:935px;display:block;
+  /* 人物: 連続背景に直接配置（矩形ゾーン廃止=継ぎ目ゼロ） */
+  .aura{position:absolute;top:60px;right:-140px;width:820px;height:1000px;
+    background:radial-gradient(ellipse 50% 46% at center,
+      rgba(90,82,100,.38) 0%, rgba(60,55,70,.16) 55%, transparent 75%);}
+  .model{position:absolute;top:130px;right:-6px;width:560px;height:950px;}
+  .model img{width:100%;display:block;
     filter:contrast(1.04) saturate(1.02)
-      drop-shadow(-18px 24px 44px rgba(0,0,0,.55));}
-  .photo::before{content:"";position:absolute;left:0;bottom:0;width:100%;height:120px;
-    background:linear-gradient(0deg,#161419 0%,transparent 100%);z-index:2;}
+      drop-shadow(-14px 22px 40px rgba(0,0,0,.45));
+    -webkit-mask-image:linear-gradient(180deg,#000 82%,transparent 99%);
+    mask-image:linear-gradient(180deg,#000 82%,transparent 99%);}
 
   /* ロゴ（白版・右上） */
   .logo{position:absolute;top:44px;right:44px;width:210px;z-index:5;}
@@ -98,9 +95,8 @@
 </style></head>
 <body><div class="stage">
 
-  <div class="photo">
-    <div class="model"><img src="model_navy_cut.png"></div>
-  </div>
+  <div class="aura"></div>
+  <div class="model"><img src="model_navy_cut.png"></div>
 
   <div class="logo"><img src="logo_white.png"></div>
 
