@@ -1,0 +1,149 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8">
+<style>
+  :root{
+    --bordeaux:#762732; --gold:#C0A060; --gold-d:#9c7f45; --ink:#33282e;
+    --ivory:#faf6ef; --ivory-d:#f1e9dc; --popular:#B23A5A;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{width:1080px;height:1920px;}
+  .stage{position:relative;width:1080px;height:1920px;overflow:hidden;
+    background:
+      radial-gradient(ellipse 120% 70% at 50% 0%, #fffdf9 0%, var(--ivory) 55%, var(--ivory-d) 100%);
+    font-family:"IPAPGothic","IPAGothic",sans-serif;}
+  .mincho{font-family:"IPAPMincho","IPAMincho",serif;}
+  /* 上質な光沢（ベタ回避） */
+  .sheen{position:absolute;inset:0;pointer-events:none;
+    background:
+      linear-gradient(115deg, transparent 0 30%, #ffffff66 38% 44%, transparent 52%),
+      radial-gradient(ellipse 130% 80% at 50% 100%, transparent 55%, #c9b28e33 100%);}
+
+  .logo{position:absolute;top:242px;left:50%;transform:translateX(-50%);width:430px;}
+  .logo img{width:100%;display:block;}
+
+  /* フック：入会金0円 */
+  .hook{position:absolute;top:420px;left:0;width:1080px;text-align:center;color:var(--ink);}
+  .hook .l1{font-size:40px;font-weight:bold;letter-spacing:.12em;}
+  .hook .l1 s{color:#9a8a7c;text-decoration-thickness:3px;}
+  .hook .l2{margin-top:0;font-weight:bold;color:var(--bordeaux);
+    font-size:150px;line-height:1.05;letter-spacing:.02em;}
+  .hook .l2 small{font-size:66px;}
+  .hook .l2 .yen{font-size:88px;}
+  .hook .l3{font-size:29px;color:#8a7566;letter-spacing:.14em;margin-top:2px;}
+
+  /* プランカード×3 */
+  .plans{position:absolute;top:812px;left:48px;width:984px;display:flex;gap:22px;}
+  .plan{position:relative;flex:1;background:#fff;border:1.6px solid #e4d8c4;
+    border-radius:24px;padding:64px 18px 22px;text-align:center;
+    box-shadow:0 18px 40px rgba(120,90,50,.16);}
+  .plan.reco{border-color:#b9a06d;}
+  .plan.pop{border-color:var(--popular);box-shadow:0 22px 48px rgba(178,58,90,.22);}
+  .ribbon{position:absolute;top:-24px;left:50%;transform:translateX(-50%);
+    font-size:25px;font-weight:bold;color:#fff;padding:10px 24px;border-radius:999px;
+    white-space:nowrap;box-shadow:0 8px 18px rgba(0,0,0,.18);}
+  .reco .ribbon{background:linear-gradient(135deg,#b9a06d,#96794a);}
+  .pop .ribbon{background:linear-gradient(135deg,#c9506f,#a02c50);font-size:27px;}
+  .plan .nm{font-size:31px;font-weight:bold;color:var(--ink);letter-spacing:.04em;}
+  .plan .lbl{margin-top:8px;font-size:22px;color:#9a8a7c;letter-spacing:.2em;}
+  .plan .pr{margin-top:2px;color:var(--bordeaux);font-weight:bold;line-height:1.0;
+    white-space:nowrap;}
+  .plan .pr b{font-size:57px;}
+  .plan .pr small{font-size:27px;}
+  .plan .rule{height:1.6px;margin:14px auto 12px;width:82%;
+    background:linear-gradient(90deg,transparent,#c0a06088,transparent);}
+  .plan ul{list-style:none;font-size:24.5px;color:#5d4f56;line-height:1.95;font-weight:bold;}
+
+  /* パーソナルのみ（スリム行） */
+  .personal{position:absolute;top:1268px;left:48px;width:984px;
+    background:#fff;border:1.6px solid #e4d8c4;border-radius:20px;
+    padding:20px 28px;display:flex;align-items:center;justify-content:center;gap:22px;
+    box-shadow:0 14px 30px rgba(120,90,50,.14);}
+  .personal .nm{white-space:nowrap;font-size:30px;font-weight:bold;color:var(--ink);}
+  .personal .pr{color:var(--bordeaux);font-weight:bold;white-space:nowrap;}
+  .personal .pr b{font-size:48px;}
+  .personal .pr small{font-size:24px;color:#9a8a7c;font-weight:normal;}
+  .personal .inc{white-space:nowrap;font-size:23px;color:#5d4f56;font-weight:bold;}
+  .personal .sep{width:1.4px;height:44px;background:#c0a06066;}
+
+  /* 共通事項・注記 */
+  .common{position:absolute;top:1392px;left:0;width:1080px;text-align:center;
+    color:var(--ink);font-size:29px;font-weight:bold;letter-spacing:.08em;}
+  .common b{color:var(--bordeaux);}
+  .notes{position:absolute;top:1444px;left:0;width:1080px;text-align:center;
+    color:#9a8a7c;font-size:21px;line-height:1.7;letter-spacing:.03em;}
+
+  /* Metaボタン誘導 */
+  .nudge{position:absolute;top:1548px;left:0;width:100%;text-align:center;}
+  .nudge .t{display:inline-block;color:#fff;font-size:29px;font-weight:bold;letter-spacing:.1em;
+    background:var(--bordeaux);padding:11px 38px;border-radius:999px;
+    box-shadow:0 12px 26px rgba(118,39,50,.32);}
+  .nudge .ch{margin-top:2px;font-size:36px;line-height:1.05;color:var(--bordeaux);}
+  .nudge .ch span{display:block;}
+  .nudge .ch span:nth-child(2){opacity:.45;font-size:30px;margin-top:-10px;}
+  /* 下部310px = Metaのリンクボタン/キャプション領域 */
+</style></head>
+<body><div class="stage">
+  <div class="sheen"></div>
+
+  <div class="logo"><img src="logo_en.png"></div>
+
+  <div class="hook mincho">
+    <div class="l1">入会金 <s>通常55,000円</s> が、いま</div>
+    <div class="l2">0<span class="yen">円</span></div>
+    <div class="l3">全プラン対象 ｜ 女性専用 ｜ 梅田・難波</div>
+  </div>
+
+  <div class="plans">
+    <div class="plan">
+      <div class="nm mincho">Beauty plan A</div>
+      <div class="lbl">月額（税込）</div>
+      <div class="pr mincho"><b>43,560</b><small>円</small></div>
+      <div class="rule"></div>
+      <ul>
+        <li>痩身エステ 月4回(30分)</li>
+        <li>美容脱毛 月2回</li>
+        <li>酸素BOX 使い放題</li>
+      </ul>
+    </div>
+    <div class="plan reco">
+      <span class="ribbon">当店おすすめ</span>
+      <div class="nm mincho">Beauty plan B</div>
+      <div class="lbl">月額（税込）</div>
+      <div class="pr mincho"><b>54,560</b><small>円</small></div>
+      <div class="rule"></div>
+      <ul>
+        <li>痩身エステ 月4回(60分)</li>
+        <li>美容脱毛 月3回</li>
+        <li>酸素BOX 使い放題</li>
+      </ul>
+    </div>
+    <div class="plan pop">
+      <span class="ribbon">＼ 1番人気 ／</span>
+      <div class="nm mincho">Beauty plan C</div>
+      <div class="lbl">月額（税込）</div>
+      <div class="pr mincho"><b>65,560</b><small>円</small></div>
+      <div class="rule"></div>
+      <ul>
+        <li>痩身エステ 月8回(60分)</li>
+        <li>美容脱毛 月4回</li>
+        <li>酸素BOX 使い放題</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="personal">
+    <span class="nm mincho">パーソナルのみ</span>
+    <span class="sep"></span>
+    <span class="pr mincho"><small>月額</small> <b>32,560</b>円<small>(税込)</small></span>
+    <span class="sep"></span>
+    <span class="inc">美容脱毛 月1回・酸素BOX付き</span>
+  </div>
+
+  <div class="common">全プラン、<b>完全マンツーマンパーソナル</b>つき。</div>
+  <div class="notes">※パーソナルは1・2ヶ月目 月16回／3ヶ月目以降 月4回　※入会金は通常50,000円(税込55,000円)<br>※2026年7月改定価格・表示は税込</div>
+
+  <div class="nudge">
+    <div class="t">無料カウンセリング・体験の予約は、下のボタンから</div>
+    <div class="ch"><span>⌄</span><span>⌄</span></div>
+  </div>
+
+</div></body></html>
