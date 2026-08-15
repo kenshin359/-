@@ -40,6 +40,19 @@
       "consent_required": true,
       "notes": "実在人物。顔・体のAI生成/改変は禁止。配信前に本人の掲載同意が必須。",
       "registered_at": "2026-08-10"
+    },
+    {
+      "id": "photo-model-navy",
+      "name": "モデル写真（ネイビーウェア・スタジオ・実在の方）",
+      "category": "E_photo_material",
+      "file": "products/photo-model-navy.jpg",
+      "source": "user_provided",
+      "consent_required": true,
+      "notes": "実在人物。顔・体の生成/改変禁止。切り抜き合成のみ可。配信前に本人同意必須。",
+      "used_in": [
+        "o2gym-summer/feed_C1_final.png"
+      ],
+      "registered_at": "2026-08-10"
     }
   ],
   "brand": [

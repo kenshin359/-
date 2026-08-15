@@ -17,9 +17,14 @@
     background:linear-gradient(200deg,#3a3540 0%,#232028 70%);}
   .photo::after{content:"";position:absolute;inset:0;
     background:linear-gradient(90deg,#232028 0%,transparent 30%);}
-  .photo .guide{position:absolute;top:340px;left:50%;transform:translateX(-50%);
-    width:330px;text-align:center;color:#8d8595;border:4px dashed #5a5364;
-    border-radius:24px;padding:36px 18px;font-size:27px;line-height:1.7;font-weight:bold;}
+  .model{position:absolute;bottom:0;left:50%;transform:translateX(-50%);
+    width:470px;height:830px;overflow:hidden;}
+  .model img{position:absolute;bottom:-115px;left:50%;transform:translateX(-50%);
+    height:935px;display:block;
+    filter:contrast(1.04) saturate(1.02)
+      drop-shadow(-18px 24px 44px rgba(0,0,0,.55));}
+  .photo::before{content:"";position:absolute;left:0;bottom:0;width:100%;height:120px;
+    background:linear-gradient(0deg,#161419 0%,transparent 100%);z-index:2;}
 
   /* ロゴ（白版・右上） */
   .logo{position:absolute;top:44px;right:44px;width:210px;z-index:5;}
@@ -88,13 +93,13 @@
   .cta span{font-size:36px;}
 
   /* 注記 */
-  .notes{position:absolute;bottom:206px;left:56px;width:980px;color:#8d8578;
+  .notes{position:absolute;bottom:206px;left:56px;width:590px;color:#8d8578;
     font-size:18px;text-align:left;letter-spacing:.02em;line-height:1.6;}
 </style></head>
 <body><div class="stage">
 
   <div class="photo">
-    <div class="guide">🖼️ モデル写真を<br>ここに配置<br><span style="font-size:21px;color:#6f6879;">（横向き・ダンベル/バーベル・<br>黒 or 白ウェアが見本の雰囲気）</span></div>
+    <div class="model"><img src="model_navy_cut.png"></div>
   </div>
 
   <div class="logo"><img src="logo_white.png"></div>
@@ -116,7 +121,7 @@
   <div class="bens">
     <div class="ben"><span class="ic">✦</span>完全<br>マンツーマン</div>
     <div class="ben"><span class="ic">✦</span><em>駅近</em>で<br>手ぶらOK</div>
-    <div class="ben"><span class="ic">✦</span>1回あたり<br><em>2,035円</em>※2<br><span class="sm">圧倒的コスパ</span></div>
+    <div class="ben"><span class="ic">✦</span>1回あたり<br><em>2,035円</em>※2</div>
   </div>
 
   <div class="notes">※1 パーソナルのみプラン。1・2ヶ月目 月16回／3ヶ月目以降 月4回　※2 月額32,560円(税込)÷月16回(1・2ヶ月目)で算出</div>
