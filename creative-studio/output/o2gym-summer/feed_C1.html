@@ -1,0 +1,129 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8">
+<style>
+  :root{
+    --gold:#D9B36A; --gold-hi:#F3DFA8; --gold-lo:#A8874A;
+    --ink:#17151a; --paper:#f2ede4; --red:#c93457; --bordeaux:#762732;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{width:1080px;height:1080px;}
+  .stage{position:relative;width:1080px;height:1080px;overflow:hidden;
+    background:
+      radial-gradient(ellipse 90% 80% at 30% 30%, #322e36 0%, #232028 55%, #161419 100%);
+    font-family:"IPAPGothic","IPAGothic",sans-serif;}
+  .mincho{font-family:"IPAPMincho","IPAMincho",serif;}
+
+  /* 写真ゾーン（右40%・後から貼り付け） */
+  .photo{position:absolute;top:0;right:0;width:470px;height:880px;
+    background:linear-gradient(200deg,#3a3540 0%,#232028 70%);}
+  .photo::after{content:"";position:absolute;inset:0;
+    background:linear-gradient(90deg,#232028 0%,transparent 30%);}
+  .photo .guide{position:absolute;top:340px;left:50%;transform:translateX(-50%);
+    width:330px;text-align:center;color:#8d8595;border:4px dashed #5a5364;
+    border-radius:24px;padding:36px 18px;font-size:27px;line-height:1.7;font-weight:bold;}
+
+  /* ロゴ（白版・右上） */
+  .logo{position:absolute;top:44px;right:44px;width:210px;z-index:5;}
+  .logo img{width:100%;display:block;}
+
+  /* 見出し（金→白のグラデ明朝） */
+  .head{position:absolute;top:64px;left:56px;z-index:4;font-weight:bold;line-height:1.28;}
+  .head .g{font-size:96px;letter-spacing:.01em;
+    background:linear-gradient(180deg,var(--gold-hi) 10%,var(--gold) 60%,var(--gold-lo) 95%);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    filter:drop-shadow(0 4px 16px rgba(0,0,0,.5));}
+  .head .w{color:#fff;font-size:88px;text-shadow:0 4px 18px rgba(0,0,0,.5);}
+
+  /* カテゴリ帯 */
+  .cat{position:absolute;top:342px;left:56px;width:560px;text-align:center;
+    color:var(--paper);font-size:34px;font-weight:bold;letter-spacing:.18em;
+    border-top:1.6px solid #a8874a88;border-bottom:1.6px solid #a8874a88;
+    padding:12px 0;}
+  .sub{position:absolute;top:424px;left:56px;width:560px;text-align:center;
+    color:#fff;background:#00000055;font-size:29px;font-weight:bold;
+    letter-spacing:.06em;padding:10px 0;}
+
+  /* 価格ブロック */
+  .price{position:absolute;top:500px;left:56px;width:600px;display:flex;
+    align-items:center;gap:24px;}
+  .badge{width:150px;height:150px;border-radius:50%;flex:none;
+    background:radial-gradient(circle at 34% 28%, #a03a52 0%, var(--bordeaux) 65%);
+    border:2px solid #d9b36a99;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    color:#fff;font-weight:bold;font-size:30px;line-height:1.35;}
+  .badge b{font-size:44px;color:var(--gold-hi);}
+  .pr{font-weight:bold;line-height:1.0;white-space:nowrap;}
+  .pr .n{font-size:120px;letter-spacing:0;
+    background:linear-gradient(180deg,var(--gold-hi) 10%,var(--gold) 60%,var(--gold-lo) 95%);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    filter:drop-shadow(0 4px 14px rgba(0,0,0,.5));}
+  .pr .y{font-size:56px;color:var(--gold);}
+  .pr .tx{display:block;margin-top:8px;text-align:right;color:#b9ae9e;font-size:25px;
+    font-weight:normal;letter-spacing:.06em;}
+
+  /* 3つのベネフィット */
+  .bens{position:absolute;top:678px;left:56px;width:600px;display:flex;}
+  .ben{flex:1;text-align:center;color:var(--paper);font-size:24px;font-weight:bold;
+    line-height:1.5;padding:0 10px;}
+  .ben+.ben{border-left:1.4px solid #a8874a55;}
+  .ben .ic{font-size:44px;display:block;margin-bottom:4px;
+    background:linear-gradient(180deg,var(--gold-hi),var(--gold-lo));
+    -webkit-background-clip:text;background-clip:text;color:transparent;}
+  .ben em{font-style:normal;color:#e8788f;}
+  .ben .sm{font-size:20px;color:#9a9082;font-weight:normal;}
+
+  /* 下部バー（体験無料＋CTA） */
+  .foot{position:absolute;bottom:0;left:0;width:1080px;height:200px;background:#0d0b0e;
+    display:flex;align-items:center;justify-content:center;gap:52px;}
+  .laurel{text-align:center;color:var(--gold-hi);}
+  .laurel .s{display:block;font-size:26px;color:#c9bda6;letter-spacing:.06em;}
+  .laurel .b{font-size:62px;font-weight:bold;letter-spacing:.1em;
+    background:linear-gradient(180deg,var(--gold-hi),var(--gold));
+    -webkit-background-clip:text;background-clip:text;color:transparent;}
+  .laurel .b::before{content:"❧ ";-webkit-text-fill-color:var(--gold);}
+  .laurel .b::after{content:" ☙";-webkit-text-fill-color:var(--gold);}
+  .cta{background:linear-gradient(180deg,#e15a7c,#c9345e);color:#fff;
+    font-size:44px;font-weight:bold;letter-spacing:.08em;
+    padding:26px 56px;border-radius:18px;border:2.5px solid #f3dfa8;
+    box-shadow:0 12px 30px rgba(201,52,94,.4);}
+  .cta span{font-size:36px;}
+
+  /* 注記 */
+  .notes{position:absolute;bottom:206px;left:56px;width:980px;color:#8d8578;
+    font-size:18px;text-align:left;letter-spacing:.02em;line-height:1.6;}
+</style></head>
+<body><div class="stage">
+
+  <div class="photo">
+    <div class="guide">🖼️ モデル写真を<br>ここに配置<br><span style="font-size:21px;color:#6f6879;">（横向き・ダンベル/バーベル・<br>黒 or 白ウェアが見本の雰囲気）</span></div>
+  </div>
+
+  <div class="logo"><img src="logo_white.png"></div>
+
+  <div class="head mincho">
+    <div class="g">60日、32回で、</div>
+    <div class="w">本気で変わる。</div>
+  </div>
+
+  <div class="cat mincho">女性専用パーソナルジム</div>
+  <div class="sub">"キレイ"まで含めた、本気のボディメイク</div>
+
+  <div class="price">
+    <div class="badge"><span>1ヶ月</span><b>16回</b><span style="font-size:22px;">※1</span></div>
+    <div class="pr mincho"><span class="n">32,560</span><span class="y">円</span>
+      <span class="tx">月額（税込）／パーソナルのみプラン</span></div>
+  </div>
+
+  <div class="bens">
+    <div class="ben"><span class="ic">✦</span>完全<br>マンツーマン</div>
+    <div class="ben"><span class="ic">✦</span><em>駅近</em>で<br>手ぶらOK</div>
+    <div class="ben"><span class="ic">✦</span>1回あたり<br><em>2,035円</em>※2<br><span class="sm">圧倒的コスパ</span></div>
+  </div>
+
+  <div class="notes">※1 パーソナルのみプラン。1・2ヶ月目 月16回／3ヶ月目以降 月4回　※2 月額32,560円(税込)÷月16回(1・2ヶ月目)で算出</div>
+
+  <div class="foot">
+    <div class="laurel"><span class="s">初回体験が、いま</span><span class="b mincho">体験無料</span></div>
+    <div class="cta">今すぐ予約する <span>＞</span></div>
+  </div>
+
+</div></body></html>
