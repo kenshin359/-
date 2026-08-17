@@ -7,15 +7,15 @@
     {
       "order_no": "ABC-HANDYFAN",
       "seq": 1,
-      "status": "計画",
+      "status": "入港済",
       "container_no": "ABC-HANDYFAN-AIR",
       "shipping_date": "",
       "po_number": "ABC-HANDYFAN",
       "size": "-",
       "total_qty": 1000,
       "pod": "関西国際空港 (KIX)",
-      "arrival_date": "2026-08-14",
-      "remarks": "ABCテレビ出演に伴う緊急発注 / エアー便 1,000個 / 8/14(金) 関空到着予定 / 到着後に通関依頼予定 / 未出荷",
+      "arrival_date": "2026-08-12",
+      "remarks": "ABCテレビ出演に伴う緊急発注 / エアー便 1,000個 / 8/12 関空(KIX)到着済 / パッキングリスト・AWB受領済 / ⚠到着後12時間でフリータイム終了→別途保管料が発生する見込み / 至急通関",
       "items": [
         { "item_name": "ハンディファン", "item_color": "", "item_spec": "AIR", "item_qty": 1000 }
       ]
@@ -23,14 +23,14 @@
     {
       "order_no": "ABC-HANDYFAN",
       "seq": 2,
-      "status": "計画",
+      "status": "出荷済",
       "container_no": "ABC-HANDYFAN-SEA",
       "shipping_date": "",
       "po_number": "ABC-HANDYFAN",
       "size": "-",
       "total_qty": 2000,
       "arrival_date": "2026-08-18",
-      "remarks": "ABCテレビ出演に伴う緊急発注 / 船便 2,000個 / 8/18到着予定 / 現在未出荷",
+      "remarks": "ABCテレビ出演に伴う緊急発注 / 船便 2,000個 / 8/18到着予定 / パッキングリスト・B/L・アライバル受領済 / 書類揃い次第まとめて共有",
       "items": [
         { "item_name": "ハンディファン", "item_color": "", "item_spec": "SEA", "item_qty": 2000 }
       ]
