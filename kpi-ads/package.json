@@ -1,0 +1,12 @@
+{
+  "name": "o2gym-kpi-ads",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "O2GYM 広告売上KPI 自動連携（STORES/Shopify/Google/Meta → kintone）",
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "run": "node src/main.js",
+    "dry": "DRY_RUN=1 node src/main.js"
+  }
+}

@@ -6,6 +6,7 @@
 |--------------|------|
 | （リポジトリ直下 / `src/`） | **売上日報ツール**（下記）：「売上・転換率報告」アプリの自動構築・データ移行・分析 |
 | [`daily-report-system/`](./daily-report-system/) | **AI日報システム**：Kintone→Claude→LINE を n8n で自動化。社長・部長向け経営日報を毎日自動生成・通知。緊急案件は即時通知。 |
+| [`kpi-ads/`](./kpi-ads/) | **O2GYM 広告売上KPI 自動連携**：STORES/Shopify/Google広告/Meta広告 の数字を毎朝6:00に自動取得し、kintone KPI管理アプリへ自動投入。GitHub Actions で完全自動。 |
 
 > **AI日報システムをこれから導入する方へ**
 > パソコンが得意でなくても大丈夫です。まずは
