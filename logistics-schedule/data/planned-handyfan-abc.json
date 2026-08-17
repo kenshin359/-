@@ -1,13 +1,13 @@
 {
-  "_comment": "ABCテレビ出演に伴うハンディファンの緊急発注（8/9時点・未出荷）。エアー便1,000個は8/14(金)関空到着予定、船便2,000個は8/18到着予定。container_no は仮キー。到着後に通関を依頼する運用。",
+  "_comment": "ABCテレビ出演に伴うハンディファンの緊急発注。エアー便1,000個は8/12関空到着→8/14通関対応済み。船便はLCL GZTLE2608003（品番F13）1,920個・ETA8/17大阪・荷受人REK CO,LTD。container_no は仮キー。",
   "order_no": "ABC-HANDYFAN",
-  "total_qty": 3000,
+  "total_qty": 2920,
   "count": 2,
   "records": [
     {
       "order_no": "ABC-HANDYFAN",
       "seq": 1,
-      "status": "入港済",
+      "status": "通関済",
       "container_no": "ABC-HANDYFAN-AIR",
       "shipping_date": "",
       "po_number": "ABC-HANDYFAN",
@@ -15,7 +15,8 @@
       "total_qty": 1000,
       "pod": "関西国際空港 (KIX)",
       "arrival_date": "2026-08-12",
-      "remarks": "ABCテレビ出演に伴う緊急発注 / エアー便 1,000個 / 8/12 関空(KIX)到着済 / パッキングリスト・AWB受領済 / ⚠到着後12時間でフリータイム終了→別途保管料が発生する見込み / 至急通関",
+      "customs_date": "2026-08-14",
+      "remarks": "ABCテレビ出演に伴う緊急発注 / エアー便 1,000個 / 8/12 関空(KIX)到着 / AWB・PL受領 / 8/14 通関対応済み / ※到着後12時間でフリータイム終了のため別途保管料が発生する見込み",
       "items": [
         { "item_name": "ハンディファン", "item_color": "", "item_spec": "AIR", "item_qty": 1000 }
       ]
@@ -28,11 +29,18 @@
       "shipping_date": "",
       "po_number": "ABC-HANDYFAN",
       "size": "-",
-      "total_qty": 2000,
-      "arrival_date": "2026-08-18",
-      "remarks": "ABCテレビ出演に伴う緊急発注 / 船便 2,000個 / 8/18到着予定 / パッキングリスト・B/L・アライバル受領済 / 書類揃い次第まとめて共有",
+      "total_qty": 1920,
+      "hbl_no": "GZTLE2608003",
+      "mbl_no": "GSPC26044E21Q20",
+      "bl_surrendered": "済",
+      "vessel": "PANSTAR MIRACLE 6098E",
+      "pol": "SHIDAO, CHINA",
+      "pod": "OSAKA, JAPAN",
+      "arrival_date": "2026-08-17",
+      "remarks": "ABCテレビ出演に伴う緊急発注 / 船便(LCL) 品番F13 1,920個(white/gray) / ETA 8/17 大阪 / B/L GZTLE2608003 サレンダー済 / コンテナ SDFU5001174(LCL) 1パレット 304kg 1.2CBM / 搬入先:上組大阪支店KNCC H/W / 荷受人:REK CO,LTD(岡山県総社市) / FREIGHT COLLECT",
       "items": [
-        { "item_name": "ハンディファン", "item_color": "", "item_spec": "SEA", "item_qty": 2000 }
+        { "item_name": "ハンディファン(F13)", "item_color": "ホワイト", "item_spec": "SEA", "item_qty": 660 },
+        { "item_name": "ハンディファン(F13)", "item_color": "グレー", "item_spec": "SEA", "item_qty": 1260 }
       ]
     }
   ]
