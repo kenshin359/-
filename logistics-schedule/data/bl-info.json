@@ -45,7 +45,7 @@
   "WHSU5628824": {
     "hbl_no": "GZTLF2608006",
     "mbl_no": "025G754677",
-    "bl_surrendered": "",
+    "bl_surrendered": "済",
     "vessel": "INTERASIA TENACITY N022",
     "pol": "SHEKOU, CHINA",
     "pod": "OSAKA, JAPAN",
@@ -54,6 +54,6 @@
     "arrival_date": "2026-08-16",
     "total_cartons": 606,
     "ref_no": "TGL26-1498",
-    "remarks": "H B/L: GZTLF2608006 / 本船 INTERASIA TENACITY N022 ETA 2026-08-16 大阪 / A/N発行 2026-08-13 / 40HQ 606CTN 5,211.6KGS 69.084CBM / CY:南港C-9 三菱倉庫(06-6612-4861) / フリータイム:入港日翌日から6日間 / サレンダー:AN上に記載なし要確認 / OCEANチャージ 82,025円(FREIGHT PREPAID)"
+    "remarks": "H B/L: GZTLF2608006(HBL受領・サレンダー済/8/14) / M B/L 025G754677 / 荷受人 LIBETEE.INC / 本船 INTERASIA TENACITY N022 ETA 2026-08-16 大阪 On board 8/13 / 40HQ 606CTN 5,211.6KGS 69.084CBM / 必要書類3点(PL/BL/AN)揃い / CY:南港C-9 三菱倉庫(06-6612-4861) / フリータイム:入港日翌日から6日間 / OCEANチャージ 82,025円(FREIGHT PREPAID)"
   }
 }
