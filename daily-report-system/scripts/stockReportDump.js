@@ -21,8 +21,7 @@ export const encodeDigits = (s) => String(s).replace(/[0-9]/g, (d) => 'ABCDEFGHI
 
 async function main() {
   const days = Number(arg('days', '14'));
-  const app = optional('KINTONE_STOCK_REPORT_APP_ID') || arg('app', '');
-  if (!app) throw new Error('KINTONE_STOCK_REPORT_APP_ID か --app=番号 を指定してください');
+  const app = optional('KINTONE_STOCK_REPORT_APP_ID') || arg('app', '35');
 
   const since = new Date(Date.now() + 9 * 3600 * 1000);
   since.setUTCDate(since.getUTCDate() - days);
