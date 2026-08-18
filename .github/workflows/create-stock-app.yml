@@ -1,0 +1,33 @@
+# ============================================================
+#  在庫報告（CS出荷後）アプリの作成（手動・1回だけ）
+# ------------------------------------------------------------
+#  CSチームが出荷後に残り在庫数を入力するアプリを
+#  キントーンに新規作成します。
+#  ★既存アプリは一切変更しません。新規に作るだけです。
+# ============================================================
+name: 在庫報告アプリ作成（手動）
+
+on:
+  workflow_dispatch:
+
+jobs:
+  create:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: daily-report-system
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: アプリを作成
+        env:
+          KINTONE_BASE_URL: ${{ secrets.KINTONE_BASE_URL }}
+          KINTONE_USER: ${{ secrets.KINTONE_USER }}
+          KINTONE_PASSWORD: ${{ secrets.KINTONE_PASSWORD }}
+          APP_ENV: production
+        run: node kintone/createBusinessApps.js stockreport
