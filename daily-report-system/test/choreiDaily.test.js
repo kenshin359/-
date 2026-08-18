@@ -46,3 +46,37 @@ test('台本に必要日販・昨日売上・チーム枠が入る', () => {
   assert.ok(body.includes('1️⃣ 広告運用'));
   assert.ok(body.includes('西岡さん'));
 });
+
+test('タスクボードのブロックが台本に入る（期限超過・本日期限・完了数）', () => {
+  const base = {
+    dateISO: '2026-08-19',
+    yesterday: '2026-08-18',
+    sales: { yday: { 楽天: 1000 }, ydayOrders: 1, mtd: 1000, avg7: 1000 },
+    ads: { byMedia: {}, unread: 0 },
+    plan: null,
+  };
+  const tasks = {
+    overdue: [{ tantou: '黒葛原', name: 'ピクセル設置確認', due: '2026-08-18' }],
+    todayDue: [{ tantou: '北野', name: 'SP-API担当指名', due: '2026-08-19' }],
+    doneCount: 2,
+  };
+  const body = buildScript({ ...base, tasks });
+  assert.match(body, /期限超過 1件/);
+  assert.match(body, /ピクセル設置確認（黒葛原・08\/18期限）/);
+  assert.match(body, /本日期限：SP-API担当指名（北野）/);
+  assert.match(body, /昨日完了：2件/);
+});
+
+test('タスクアプリ未設定（tasks=null）なら従来どおりの台本', () => {
+  const base = {
+    dateISO: '2026-08-19',
+    yesterday: '2026-08-18',
+    sales: { yday: { 楽天: 1000 }, ydayOrders: 1, mtd: 1000, avg7: 1000 },
+    ads: { byMedia: {}, unread: 0 },
+    plan: null,
+    tasks: null,
+  };
+  const body = buildScript(base);
+  assert.doesNotMatch(body, /タスクボード/);
+  assert.match(body, /各チーム報告/);
+});

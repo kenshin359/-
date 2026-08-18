@@ -1,0 +1,42 @@
+# ============================================================
+#  タスク管理（チーム進捗）アプリの作成＋初期タスク投入（手動・1回）
+# ------------------------------------------------------------
+#  Excelの進捗ボード＋柳井管理を統合したアプリを新規作成し、
+#  現在の生きているタスク20件を初期登録します。
+#  ★既存アプリは一切変更しません。
+# ============================================================
+name: タスク管理アプリ作成（手動）
+
+on:
+  workflow_dispatch:
+    inputs:
+      seed_app:
+        description: '初期タスク投入だけやり直す場合はアプリ番号を指定（空なら新規作成から）'
+        required: false
+
+jobs:
+  create:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: daily-report-system
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: アプリ作成＋初期タスク投入
+        env:
+          KINTONE_BASE_URL: ${{ secrets.KINTONE_BASE_URL }}
+          KINTONE_USER: ${{ secrets.KINTONE_USER }}
+          KINTONE_PASSWORD: ${{ secrets.KINTONE_PASSWORD }}
+          APP_ENV: production
+        run: |
+          if [ -n "${{ inputs.seed_app }}" ]; then
+            node scripts/taskBoardSeed.js --app=${{ inputs.seed_app }}
+          else
+            node kintone/createBusinessApps.js taskboard | tee /tmp/create.log
+            appid=$(grep -o 'appId=[0-9]*' /tmp/create.log | head -1 | cut -d= -f2)
+            echo "作成されたアプリ番号: $appid"
+            node scripts/taskBoardSeed.js --app=$appid
+          fi

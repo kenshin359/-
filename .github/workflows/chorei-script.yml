@@ -44,6 +44,7 @@ jobs:
           KINTONE_KPI_APP_ID: ${{ secrets.KINTONE_KPI_APP_ID || '30' }}
           CHATWORK_API_TOKEN: ${{ secrets.CHATWORK_API_TOKEN }}
           CHATWORK_CHOREI_ROOM_ID: ${{ secrets.CHATWORK_CHOREI_ROOM_ID }}
+          KINTONE_TASK_APP_ID: ${{ secrets.KINTONE_TASK_APP_ID }}
           APP_ENV: production
           REPORT_TIMEZONE: Asia/Tokyo
         run: |

@@ -120,7 +120,31 @@ async function fetchYesterdayAds(yesterday) {
   return { byMedia, unread };
 }
 
-export function buildScript({ dateISO, yesterday, sales, ads, plan }) {
+/** タスク管理（チーム進捗）アプリから朝礼用のアラートを読む（未設定なら null） */
+async function fetchTasks(dateISO, yesterday) {
+  const app = optional('KINTONE_TASK_APP_ID');
+  if (!app) return null;
+  try {
+    const get = async (cond, order) => {
+      const q = encodeURIComponent(`${cond} ${order ?? ''} limit 50`);
+      const r = await call('GET', `/k/v1/records.json?app=${app}&query=${q}`);
+      return r.records ?? [];
+    };
+    const overdue = await get(`due < "${dateISO}" and status not in ("完了")`, 'order by due asc');
+    const todayDue = await get(`due = "${dateISO}" and status not in ("完了")`, '');
+    const done = await get(`status in ("完了") and 更新日時 >= "${yesterday}T00:00:00+09:00"`, '');
+    const brief = (r) => ({
+      tantou: r.tantou?.value ?? '',
+      name: r.task_name?.value ?? '',
+      due: r.due?.value ?? '',
+    });
+    return { overdue: overdue.map(brief), todayDue: todayDue.map(brief), doneCount: done.length };
+  } catch {
+    return null; // タスクアプリが読めなくても朝礼は止めない
+  }
+}
+
+export function buildScript({ dateISO, yesterday, sales, ads, plan, tasks }) {
   const dow = '日月火水木金土'[new Date(`${dateISO}T00:00:00+09:00`).getDay()];
   const ydayTotal = Object.values(sales.yday).reduce((s, v) => s + v, 0);
   const planDay = plan?.days?.[yesterday]
@@ -157,6 +181,21 @@ export function buildScript({ dateISO, yesterday, sales, ads, plan }) {
   if (need120 !== null) L.push(`・1.2億ライン：毎日 ${yen(need120)}`);
   L.push(`・直近7日の実力：${yen(sales.avg7)}/日${gap !== null ? (gap > 0 ? ` → 毎日あと +${yen(gap)}` : ' → 貯金ペース✅') : ''}`);
   L.push('');
+  if (tasks) {
+    L.push('📋 タスクボード（キントーン「タスク管理」より自動）');
+    if (tasks.overdue.length) {
+      const top = tasks.overdue.slice(0, 5);
+      L.push(`・⚠ 期限超過 ${tasks.overdue.length}件：${top.map((x) => `${x.name}（${x.tantou}・${x.due.slice(5).replace('-', '/')}期限）`).join('／')}`);
+      if (tasks.overdue.length > 5) L.push(`　…ほか${tasks.overdue.length - 5}件はアプリの「⚠期限超過」ビューで`);
+    } else {
+      L.push('・⚠ 期限超過なし✅');
+    }
+    if (tasks.todayDue.length) {
+      L.push(`・📅 本日期限：${tasks.todayDue.map((x) => `${x.name}（${x.tantou}）`).join('／')}`);
+    }
+    if (tasks.doneCount) L.push(`・✅ 昨日完了：${tasks.doneCount}件`);
+    L.push('');
+  }
   L.push('━━━ 各チーム報告（1チーム90秒・数字→学び→今日 の3行のみ） ━━━');
   L.push('1️⃣ 広告運用：基準 CV単価3,000円以下/クリック単価10円以下。クリアした広告は作成者名を称賛');
   L.push('2️⃣ LPチーム：イベント日程の新情報／ミンジさん・三浦さん・久保さん「今日ここまで」各1行');
@@ -177,7 +216,8 @@ async function main() {
   const yesterday = yesterdayISO(dateISO);
   const [sales, ads] = [await fetchMonthSales(yesterday), await fetchYesterdayAds(yesterday)];
   const plan = loadDailyPlan(yesterday);
-  const body = buildScript({ dateISO, yesterday, sales, ads, plan });
+  const tasks = await fetchTasks(dateISO, yesterday);
+  const body = buildScript({ dateISO, yesterday, sales, ads, plan, tasks });
   console.log(body);
   if (isDry) { console.log('\n（--dry-run のため送信しません）'); return; }
   const roomId = optional('CHATWORK_CHOREI_ROOM_ID') || '433161347'; // 司会・西岡さん
