@@ -83,7 +83,7 @@ export const VIEWS = {
     type: 'LIST',
     name: '今月完了した仕事',
     fields: ['team', 'tantou', 'task_name', 'due'],
-    filterCond: 'status in ("完了") and 更新日時 >= FROM_TODAY(-31, DAYS)',
-    sort: '更新日時 desc',
+    filterCond: 'status in ("完了")',
+    sort: 'due desc',
   },
 };
