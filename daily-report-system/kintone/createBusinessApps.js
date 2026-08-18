@@ -24,6 +24,7 @@ import * as salesdetail from './salesDetailSchema.js';
 import * as kpi from './kpiSchema.js';
 import * as anken from './ankenSchema.js';
 import * as stockreport from './stockReportSchema.js';
+import * as ankenirai from './ankenIraiSchema.js';
 import { VIEWS as AD_VIEWS, REPORTS as AD_REPORTS } from './adCostViews.js';
 import { VIEWS as INTAKE_VIEWS } from './intakeViews.js';
 import { VIEWS as INV_VIEWS, REPORTS as INV_REPORTS } from './inventoryViews.js';
@@ -129,6 +130,7 @@ async function main() {
   if (which === 'kpi') targets.push(['kpi', kpi]);
   if (which === 'anken') targets.push(['anken', anken]);
   if (which === 'stockreport') targets.push(['stockreport', stockreport]);
+  if (which === 'ankenirai') targets.push(['ankenirai', ankenirai]);
 
   if (isDry) {
     console.log('[dry-run] 作成せず、内容だけ表示します。');
@@ -144,6 +146,7 @@ async function main() {
     kpi: { views: kpi.VIEWS },
     anken: { views: anken.VIEWS },
     stockreport: { views: stockreport.VIEWS },
+    ankenirai: { views: ankenirai.VIEWS },
   };
 
   const results = {};
