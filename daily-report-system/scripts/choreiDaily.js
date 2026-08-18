@@ -122,7 +122,7 @@ async function fetchYesterdayAds(yesterday) {
 
 /** タスク管理（チーム進捗）アプリから朝礼用のアラートを読む（未設定なら null） */
 async function fetchTasks(dateISO, yesterday) {
-  const app = optional('KINTONE_TASK_APP_ID');
+  const app = optional('KINTONE_TASK_APP_ID', '38');
   if (!app) return null;
   try {
     const get = async (cond, order) => {
