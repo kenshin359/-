@@ -238,6 +238,23 @@ cron の例（Linux サーバー）：
 
 ---
 
+## kintoneの一覧を見やすくする（アプリ化せず、kintone上でカード表示）
+
+別アプリを開かなくても、kintoneの「業務タスク」アプリの**一覧画面そのもの**に、
+KPIサマリー＋チーム別のカード表示を出せます（遅延は赤、期日・担当・種別つき）。
+
+**導入（コピペするだけ）**
+1. kintone：業務タスクアプリ →「アプリの設定」→「JavaScript / CSSでカスタマイズ」
+2. **PC用のJavaScript** に `kintone/taskListCustomize.js` をアップロード
+3. **PC用のCSS** に `kintone/taskListCustomize.css` をアップロード
+4. 「保存」→「アプリを更新」
+
+- 一覧画面の上部に、対象/未着手/進行中/遅延/完了率のKPIと、チーム別カードが表示されます。
+- 期日超過（未完了）は自動で「遅延」として赤く強調。カードのクリックで各レコードへ。
+- 標準の一覧（表）はそのまま残るので、絞り込み・編集も従来どおり使えます。
+- フィールドコード（`task_title`/`assignee`/`team`/`category`/`priority`/`status`/`due_date`）は
+  `kintone/taskAppSchema.js` と一致。既存アプリに合わせる場合はJS冒頭の `F` を書き換えてください。
+
 ## よくある質問
 
 - **Q. kintone を書き換えませんか？** … いいえ。取得（GET）のみです。

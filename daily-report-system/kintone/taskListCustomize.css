@@ -1,0 +1,48 @@
+/* ============================================================
+ *  業務タスクアプリ 一覧カスタマイズ  スタイル
+ * ============================================================ */
+.tkc-wrap {
+  font-family: system-ui, -apple-system, "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
+  color: #1f2937; margin: 10px 0 4px; max-width: 1080px;
+}
+.tkc-head { font-size: 17px; font-weight: 700; margin-bottom: 12px; }
+.tkc-head .tkc-sub { font-size: 12px; font-weight: 400; color: #8b8a84; margin-left: 8px; }
+
+.tkc-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-bottom: 16px; }
+.tkc-tile { background: #f4f5f2; border: 1px solid #e4e3dc; border-radius: 10px; padding: 11px 14px; }
+.tkc-tile-l { font-size: 12px; color: #6b6a66; margin-bottom: 2px; }
+.tkc-tile-v { font-size: 22px; font-weight: 700; letter-spacing: -.01em; }
+.tkc-tile.late .tkc-tile-v { color: #d03b3b; }
+.tkc-tile.done .tkc-tile-v { color: #1e9e5a; }
+
+.tkc-group { margin-bottom: 16px; }
+.tkc-group-h { font-size: 13.5px; font-weight: 700; color: #33404f; margin: 0 0 8px; padding-bottom: 5px; border-bottom: 2px solid #eceef1; }
+.tkc-group-h .tkc-count { font-weight: 500; color: #8b8a84; font-size: 12px; margin-left: 8px; }
+.tkc-red { color: #d03b3b; }
+
+.tkc-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 9px; }
+.tkc-card {
+  display: block; text-decoration: none; color: inherit;
+  background: #fff; border: 1px solid #e4e3dc; border-left: 3px solid #c3c2b7;
+  border-radius: 9px; padding: 10px 12px; transition: box-shadow .12s, border-color .12s;
+}
+.tkc-card:hover { box-shadow: 0 3px 10px rgba(20,30,50,.10); }
+.tkc-card-top { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.tkc-title { font-size: 14px; font-weight: 650; line-height: 1.35; }
+.tkc-badge { font-size: 11px; font-weight: 700; padding: 2px 9px; border-radius: 999px; white-space: nowrap; flex: none; }
+.tkc-card-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin-top: 7px; font-size: 12px; color: #54534f; }
+.tkc-who { font-weight: 700; }
+.tkc-pill { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; color: #54534f; background: #f1f1ed; border-radius: 999px; padding: 1px 9px; }
+.tkc-pill i { width: 8px; height: 8px; border-radius: 2px; display: inline-block; }
+.tkc-prio { font-size: 11.5px; padding: 1px 7px; border-radius: 999px; }
+.tkc-prio-高 { color: #d03b3b; font-weight: 700; background: #fbe9e9; }
+.tkc-prio-中 { color: #b06a00; background: #fbf1df; }
+.tkc-prio-低 { color: #6b6a66; background: #f1f1ed; }
+.tkc-due { margin-left: auto; color: #8b8a84; font-variant-numeric: tabular-nums; }
+.tkc-due-late { color: #d03b3b; font-weight: 700; }
+
+.tkc-foot { font-size: 11.5px; color: #9aa4b0; margin-top: 4px; }
+
+@media (max-width: 720px) {
+  .tkc-cards { grid-template-columns: 1fr; }
+}
