@@ -22,6 +22,8 @@ import { fileURLToPath } from 'node:url';
 
 import { optional } from '../lib/env.js';
 import { fetchRooms, fetchRoomTasks, chatworkTasksToTasks } from '../lib/chatworkTasks.js';
+import { fetchRoomMessages, messagesToText } from '../lib/chatworkMessages.js';
+import { extractTasks } from '../lib/taskExtract.js';
 import { buildDataset } from '../lib/taskData.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -71,9 +73,42 @@ async function main() {
     }
   }
 
-  const tasks = chatworkTasksToTasks(all, { todayKey });
-  const dataset = buildDataset(tasks, new Date().toISOString(), 'Chatwork');
-  console.log(`\n担当者: ${dataset.members.length}名 / タスク: ${dataset.tasks.length}件`);
+  // A) Chatworkの「タスク」機能から
+  const taskA = chatworkTasksToTasks(all, { todayKey });
+  console.log(`A) タスク機能から: ${taskA.length}件`);
+
+  // B) 議事録メッセージ本文からタスク抽出（CHATWORK_MINUTES_ROOMS が設定されている場合）
+  let taskB = [];
+  const minutesRooms = optional('CHATWORK_MINUTES_ROOMS');
+  if (minutesRooms) {
+    const rids = minutesRooms.split(',').map((s) => s.trim()).filter(Boolean);
+    console.log(`B) 議事録ルームから抽出: ${rids.join(', ')}`);
+    for (const rid of rids) {
+      try {
+        const msgs = await fetchRoomMessages(rid);
+        const text = messagesToText(msgs, { maxChars: 16000 });
+        if (!text) { console.log(`  ・${rid}: メッセージなし`); continue; }
+        const { tasks, method } = await extractTasks(text, { todayKey });
+        console.log(`  ・${rid}: ${tasks.length}件（抽出方法: ${method}）`);
+        taskB.push(...tasks);
+      } catch (e) {
+        console.warn(`  ⚠ ルーム ${rid} の議事録抽出に失敗: ${e.message}`);
+      }
+    }
+  }
+
+  // A + B を統合（担当者|タスク名|期日 が同じものは1つに）
+  const merged = [];
+  const seen = new Set();
+  for (const t of [...taskA, ...taskB]) {
+    const key = `${t.memberName}|${t.title}|${t.key}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    merged.push(t);
+  }
+
+  const dataset = buildDataset(merged, new Date().toISOString(), 'Chatwork');
+  console.log(`\n合計 担当者: ${dataset.members.length}名 / タスク: ${dataset.tasks.length}件（A:${taskA.length} + B:${taskB.length} − 重複）`);
 
   fs.mkdirSync(path.dirname(outPath), { recursive: true });
   fs.writeFileSync(outPath, JSON.stringify(dataset), 'utf8');

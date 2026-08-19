@@ -49,7 +49,7 @@ const CAT_RULES = [
   [/実装|バグ|デプロイ|コード|API|LP改修|開発|システム|不具合/i, 'dev'],
   [/レビュー|校正|確認|承認|チェック|添削/i, 'review'],
 ];
-function inferCategory(body) {
+export function inferCategory(body) {
   for (const [re, cat] of CAT_RULES) if (re.test(body)) return cat;
   return 'doc';
 }

@@ -73,13 +73,26 @@ kintoneの代わりに、**Chatworkの「タスク」機能**（各ルームの�
 ```
 # .env に Chatworkトークンと、取り込む元ルームを設定
 CHATWORK_API_TOKEN=＜Chatworkのトークン＞
-CHATWORK_TASK_SOURCE_ROOMS=428303793,443746924   # 未設定なら参加中の全ルーム
+CHATWORK_TASK_SOURCE_ROOMS=443746924        # A) Chatworkの「タスク」を取り込むルーム（未設定なら全ルーム）
+CHATWORK_MINUTES_ROOMS=428303793            # B) 議事録メッセージからタスク抽出するルーム（任意）
+ANTHROPIC_API_KEY=＜Claudeのキー＞           # B) AI抽出に使用（無ければ簡易ルール抽出）
 
 # 取得 → HTML生成 を一気に
 npm run task:chatwork:sync
 # 完了タスクも含めたい場合
 node scripts/exportChatworkTasks.js --with-done && npm run task:build
 ```
+
+**2つの取り込み方（両方同時に使えます）**
+
+- **A) Chatworkの「タスク」機能**（`CHATWORK_TASK_SOURCE_ROOMS`）
+  … 担当者に振られたタスク（期限・完了つき）をそのまま取り込みます。
+- **B) 議事録メッセージからの抽出**（`CHATWORK_MINUTES_ROOMS`）
+  … 【朝礼/月初会議報告所】のような議事録本文を読み、「担当者・内容・期限」を抽出します。
+  `ANTHROPIC_API_KEY` があれば **Claudeで自然文から抽出**、無ければ「担当：内容（期限）」形式の
+  **簡易ルール抽出**にフォールバックします。共有・決定事項などタスクでない行は除外します。
+
+A と B は自動で統合し、同じ「担当者・タスク名・期日」の重複は1つにまとめます。
 
 - 担当者名から**自動でチーム分け**します（名簿 `lib/taskData.js` の `ROSTER` に基づく／
   兼務者も対応）。名簿に無い人は「本部チーム」に寄せます。
