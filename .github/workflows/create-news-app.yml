@@ -1,0 +1,53 @@
+# ============================================================
+#  デイリーニュースアプリの作成（手動・1回）
+# ------------------------------------------------------------
+#  「リベティ・デイリーニュース」アプリを新規作成し、
+#  カード型ニュースフィード（📱 ニュース ビュー）を設定して、
+#  昨日分のニュースを1本テスト投稿します。
+#  ★既存アプリは一切変更しません。
+# ============================================================
+name: デイリーニュースアプリ作成（手動）
+
+on:
+  workflow_dispatch:
+    inputs:
+      app:
+        description: 'ビュー設定や投稿だけやり直す場合はアプリ番号（空なら新規作成から）'
+        required: false
+
+jobs:
+  create:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: daily-report-system
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: アプリ作成＋ニュースビュー設定＋テスト投稿
+        env:
+          KINTONE_BASE_URL: ${{ secrets.KINTONE_BASE_URL }}
+          KINTONE_USER: ${{ secrets.KINTONE_USER }}
+          KINTONE_PASSWORD: ${{ secrets.KINTONE_PASSWORD }}
+          KINTONE_SALES_DETAIL_APP_ID: ${{ secrets.KINTONE_SALES_DETAIL_APP_ID }}
+          KINTONE_KPI_APP_ID: ${{ secrets.KINTONE_KPI_APP_ID }}
+          APP_ENV: production
+          REPORT_TIMEZONE: Asia/Tokyo
+        run: |
+          appid="${{ inputs.app }}"
+          if [ -z "$appid" ]; then
+            node kintone/createBusinessApps.js news | tee /tmp/create.log
+            appid=$(grep -o 'appId=[0-9]*' /tmp/create.log | head -1 | cut -d= -f2)
+          fi
+          echo "対象アプリ番号: $appid"
+          node kintone/newsCustomize.js --app=$appid
+          node scripts/newsCvr.js || true
+          KINTONE_NEWS_APP_ID=$appid python3 scripts/newsDaily.py
+          echo ""
+          echo "──────── 次にやること ────────"
+          echo "GitHubのSecretsに KINTONE_NEWS_APP_ID=$appid を登録してください"

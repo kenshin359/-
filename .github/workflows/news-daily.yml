@@ -1,0 +1,53 @@
+# ============================================================
+#  デイリーニュース自動投稿（毎朝11:10 JST）
+# ------------------------------------------------------------
+#  広告費レポート（11:02）の後に走り、昨日の売上・個数・転換率・
+#  広告費・良い広告/悪い広告をニュース記事にしてキントーンの
+#  「リベティ・デイリーニュース」アプリへ投稿します。
+# ============================================================
+name: デイリーニュース投稿（毎朝11:10）
+
+on:
+  schedule:
+    # 日本時間 11:10 = 02:10 UTC
+    - cron: '10 2 * * *'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: '投稿せず本文だけ表示（true/false）'
+        required: false
+        default: 'false'
+      date:
+        description: '対象日（YYYY-MM-DD／空なら昨日）'
+        required: false
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: daily-report-system
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: ニュースを作って投稿
+        env:
+          KINTONE_BASE_URL: ${{ secrets.KINTONE_BASE_URL }}
+          KINTONE_USER: ${{ secrets.KINTONE_USER }}
+          KINTONE_PASSWORD: ${{ secrets.KINTONE_PASSWORD }}
+          KINTONE_NEWS_APP_ID: ${{ secrets.KINTONE_NEWS_APP_ID }}
+          KINTONE_SALES_DETAIL_APP_ID: ${{ secrets.KINTONE_SALES_DETAIL_APP_ID }}
+          KINTONE_KPI_APP_ID: ${{ secrets.KINTONE_KPI_APP_ID }}
+          APP_ENV: production
+          REPORT_TIMEZONE: Asia/Tokyo
+        run: |
+          args=""
+          if [ "${{ inputs.dry_run }}" = "true" ]; then args="--dry-run"; fi
+          if [ -n "${{ inputs.date }}" ]; then args="$args --date=${{ inputs.date }}"; fi
+          node scripts/newsCvr.js ${{ inputs.date != '' && format('--date={0}', inputs.date) || '' }} || true
+          python3 scripts/newsDaily.py $args

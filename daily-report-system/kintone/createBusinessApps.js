@@ -26,6 +26,7 @@ import * as anken from './ankenSchema.js';
 import * as stockreport from './stockReportSchema.js';
 import * as ankenirai from './ankenIraiSchema.js';
 import * as taskboard from './taskBoardSchema.js';
+import * as news from './newsSchema.js';
 import { VIEWS as AD_VIEWS, REPORTS as AD_REPORTS } from './adCostViews.js';
 import { VIEWS as INTAKE_VIEWS } from './intakeViews.js';
 import { VIEWS as INV_VIEWS, REPORTS as INV_REPORTS } from './inventoryViews.js';
@@ -133,6 +134,7 @@ async function main() {
   if (which === 'stockreport') targets.push(['stockreport', stockreport]);
   if (which === 'ankenirai') targets.push(['ankenirai', ankenirai]);
   if (which === 'taskboard') targets.push(['taskboard', taskboard]);
+  if (which === 'news') targets.push(['news', news]);
 
   if (isDry) {
     console.log('[dry-run] 作成せず、内容だけ表示します。');
@@ -150,6 +152,7 @@ async function main() {
     stockreport: { views: stockreport.VIEWS },
     ankenirai: { views: ankenirai.VIEWS },
     taskboard: { views: taskboard.VIEWS },
+    news: { views: news.VIEWS },
   };
 
   const results = {};
