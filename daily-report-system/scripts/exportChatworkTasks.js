@@ -24,6 +24,7 @@ import { optional } from '../lib/env.js';
 import { fetchRooms, fetchRoomTasks, chatworkTasksToTasks } from '../lib/chatworkTasks.js';
 import { fetchRoomMessages, messagesToText } from '../lib/chatworkMessages.js';
 import { extractTasks } from '../lib/taskExtract.js';
+import { loadStore, storeTasksToCalendar } from '../lib/reportStore.js';
 import { buildDataset } from '../lib/taskData.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -97,10 +98,14 @@ async function main() {
     }
   }
 
-  // A + B を統合（担当者|タスク名|期日 が同じものは1つに）
+  // C) タスク報告部屋（登録・完了・退勤）のストアから
+  const taskC = storeTasksToCalendar(loadStore(), { todayKey });
+  if (taskC.length) console.log(`C) タスク報告部屋から: ${taskC.length}件`);
+
+  // A + B + C を統合（担当者|タスク名|期日 が同じものは1つに）
   const merged = [];
   const seen = new Set();
-  for (const t of [...taskA, ...taskB]) {
+  for (const t of [...taskA, ...taskB, ...taskC]) {
     const key = `${t.memberName}|${t.title}|${t.key}`;
     if (seen.has(key)) continue;
     seen.add(key);
@@ -108,7 +113,7 @@ async function main() {
   }
 
   const dataset = buildDataset(merged, new Date().toISOString(), 'Chatwork');
-  console.log(`\n合計 担当者: ${dataset.members.length}名 / タスク: ${dataset.tasks.length}件（A:${taskA.length} + B:${taskB.length} − 重複）`);
+  console.log(`\n合計 担当者: ${dataset.members.length}名 / タスク: ${dataset.tasks.length}件（A:${taskA.length} + B:${taskB.length} + C:${taskC.length} − 重複）`);
 
   fs.mkdirSync(path.dirname(outPath), { recursive: true });
   fs.writeFileSync(outPath, JSON.stringify(dataset), 'utf8');

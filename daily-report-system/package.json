@@ -66,6 +66,8 @@
     "task:notify": "node scripts/notifyTasksChatwork.js",
     "task:watch": "node scripts/watchTasks.js",
     "task:chatwork": "node scripts/exportChatworkTasks.js",
-    "task:chatwork:sync": "node scripts/exportChatworkTasks.js && node scripts/buildTaskCalendar.js"
+    "task:chatwork:sync": "node scripts/exportChatworkTasks.js && node scripts/buildTaskCalendar.js",
+    "task:create-room": "node scripts/createReportRoom.js",
+    "task:collect": "node scripts/collectReports.js"
   }
 }
