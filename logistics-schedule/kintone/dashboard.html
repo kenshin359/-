@@ -1,0 +1,249 @@
+<title>物流スケジュールボード</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700;900&family=Noto+Sans+JP:wght@400;500;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+:root{
+  --bg:#eaeff7; --surface:#ffffff; --surface-2:#f4f7fc; --ink:#17202e; --muted:#57647c;
+  --line:#dbe3f0; --navy:#2b4f92; --navy-soft:#e6edf9;
+  --green:#12855a; --green-bg:#d7f0e2; --green-ink:#0b5a3c;
+  --amber:#b5720a; --amber-bg:#f8e6c7; --amber-ink:#7a4c00;
+  --shadow:0 1px 2px rgba(23,32,46,.06),0 8px 24px rgba(23,32,46,.06);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0e1622; --surface:#161f2e; --surface-2:#1c2637; --ink:#e9eef7; --muted:#93a1b8;
+    --line:#293449; --navy:#7aa5ec; --navy-soft:#1d2c46;
+    --green:#35d399; --green-bg:#123528; --green-ink:#7bebba;
+    --amber:#efb45f; --amber-bg:#382713; --amber-ink:#f7cd8d;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.35);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0e1622; --surface:#161f2e; --surface-2:#1c2637; --ink:#e9eef7; --muted:#93a1b8;
+  --line:#293449; --navy:#7aa5ec; --navy-soft:#1d2c46;
+  --green:#35d399; --green-bg:#123528; --green-ink:#7bebba;
+  --amber:#efb45f; --amber-bg:#382713; --amber-ink:#f7cd8d;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:"Noto Sans JP",system-ui,sans-serif; line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1160px; margin:0 auto; padding:28px 20px 56px}
+.mono{font-family:"IBM Plex Mono",ui-monospace,monospace; font-variant-numeric:tabular-nums}
+.num{font-family:"IBM Plex Mono",ui-monospace,monospace; font-variant-numeric:tabular-nums}
+
+/* Header */
+header{display:flex; align-items:flex-end; justify-content:space-between; gap:16px; flex-wrap:wrap; margin-bottom:22px}
+.brand{display:flex; flex-direction:column; gap:2px}
+.eyebrow{font-size:12px; letter-spacing:.18em; text-transform:uppercase; color:var(--navy); font-weight:700}
+h1{font-family:"Zen Kaku Gothic New",sans-serif; font-weight:900; font-size:clamp(26px,4vw,38px);
+   margin:0; letter-spacing:.01em; text-wrap:balance}
+.asof{font-size:13px; color:var(--muted)}
+.asof b{color:var(--ink); font-weight:700}
+.legend{display:flex; gap:14px; font-size:12px; color:var(--muted); margin-top:6px}
+.dot{display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:5px; vertical-align:middle}
+
+/* KPI */
+.kpis{display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:22px}
+.kpi{background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:16px 18px; box-shadow:var(--shadow); position:relative; overflow:hidden}
+.kpi::before{content:""; position:absolute; left:0; top:0; bottom:0; width:4px; background:var(--navy)}
+.kpi.green::before{background:var(--green)} .kpi.amber::before{background:var(--amber)}
+.kpi .label{font-size:12.5px; color:var(--muted); font-weight:500}
+.kpi .big{font-family:"IBM Plex Mono",monospace; font-weight:600; font-size:30px; line-height:1.1; margin:6px 0 2px; letter-spacing:-.01em}
+.kpi .sub{font-size:12px; color:var(--muted)}
+.kpi .big .u{font-size:15px; font-weight:500; color:var(--muted); margin-left:3px}
+
+/* Layout */
+.grid{display:grid; grid-template-columns:1.55fr 1fr; gap:18px}
+.card{background:var(--surface); border:1px solid var(--line); border-radius:16px; box-shadow:var(--shadow); overflow:hidden}
+.card h2{font-family:"Zen Kaku Gothic New",sans-serif; font-weight:700; font-size:15px; margin:0;
+   padding:14px 18px; border-bottom:1px solid var(--line); display:flex; align-items:center; gap:8px}
+.card h2 .count{margin-left:auto; font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--muted); font-weight:500}
+
+/* Container rows */
+.rows{display:flex; flex-direction:column}
+.row{display:grid; grid-template-columns:12px 1fr auto; gap:12px; align-items:center;
+     padding:11px 16px 11px 0; border-bottom:1px solid var(--line)}
+.row:last-child{border-bottom:none}
+.stripe{width:5px; align-self:stretch; border-radius:0 3px 3px 0}
+.st-green{background:var(--green)} .st-amber{background:var(--amber)}
+.r-main{min-width:0}
+.r-code{font-family:"IBM Plex Mono",monospace; font-weight:600; font-size:14px; letter-spacing:.01em}
+.r-meta{font-size:12px; color:var(--muted); margin-top:1px}
+.r-meta .tag{display:inline-block; background:var(--surface-2); border:1px solid var(--line); border-radius:5px; padding:0 6px; margin-right:5px; font-size:11px}
+.r-right{text-align:right; white-space:nowrap}
+.r-qty{font-family:"IBM Plex Mono",monospace; font-weight:600; font-size:15px}
+.r-qty .u{font-size:11px; color:var(--muted); font-weight:500; margin-left:2px}
+.chip{display:inline-block; font-size:11px; font-weight:700; padding:2px 9px; border-radius:20px; margin-top:3px}
+.chip.green{background:var(--green-bg); color:var(--green-ink)}
+.chip.amber{background:var(--amber-bg); color:var(--amber-ink)}
+.r-eta{font-size:11px; color:var(--muted); margin-top:2px}
+
+/* News / actions */
+.side{display:flex; flex-direction:column; gap:18px}
+.feed{padding:6px 0}
+.item{display:grid; grid-template-columns:auto 1fr; gap:12px; padding:10px 16px}
+.date{font-family:"IBM Plex Mono",monospace; font-size:12px; font-weight:600; color:var(--navy); padding-top:1px; white-space:nowrap}
+.item p{margin:0; font-size:13px}
+.item p b{font-family:"IBM Plex Mono",monospace; font-weight:600}
+.acts{list-style:none; margin:0; padding:6px 16px 14px}
+.acts li{position:relative; padding:8px 0 8px 22px; font-size:13px; border-bottom:1px dashed var(--line)}
+.acts li:last-child{border-bottom:none}
+.acts li::before{content:"!"; position:absolute; left:0; top:8px; width:15px; height:15px; border-radius:50%;
+   background:var(--amber-bg); color:var(--amber-ink); font-size:11px; font-weight:700; text-align:center; line-height:15px}
+
+/* Pipeline */
+.pipe{margin-top:18px}
+.bars{display:grid; grid-template-columns:repeat(7,1fr); gap:12px; padding:20px 20px 14px; align-items:end}
+.bar-col{display:flex; flex-direction:column; align-items:center; gap:8px}
+.bar-val{font-family:"IBM Plex Mono",monospace; font-size:12px; font-weight:600}
+.bar-track{width:100%; max-width:56px; height:150px; display:flex; align-items:flex-end}
+.bar{width:100%; border-radius:6px 6px 3px 3px; background:var(--navy); position:relative; transition:height .8s cubic-bezier(.2,.7,.2,1)}
+.bar.done{background:var(--green)}
+.bar-x{font-size:12px; color:var(--muted); font-weight:500}
+.bar-x .tiny{display:block; font-size:10px}
+.pipe-foot{display:flex; gap:18px; padding:0 20px 18px; font-size:12px; color:var(--muted); flex-wrap:wrap}
+
+footer{margin-top:26px; font-size:11.5px; color:var(--muted); text-align:center; line-height:1.7}
+
+@media (max-width:820px){
+  .kpis{grid-template-columns:repeat(2,1fr)}
+  .grid{grid-template-columns:1fr}
+  .bars{grid-template-columns:repeat(7,1fr); gap:6px; overflow-x:auto}
+}
+@media (prefers-reduced-motion:reduce){.bar{transition:none}}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <span class="eyebrow">Libetee ・ Import Logistics</span>
+      <h1>物流スケジュールボード</h1>
+      <div class="legend">
+        <span><span class="dot" style="background:var(--green)"></span>通関完了</span>
+        <span><span class="dot" style="background:var(--amber)"></span>出荷済・書類待ち</span>
+        <span><span class="dot" style="background:var(--navy)"></span>生産計画</span>
+      </div>
+    </div>
+    <div class="asof">更新 <b>2026/08/17</b><br>コンテナ番号で一意化・重複集約済み</div>
+  </header>
+
+  <section class="kpis">
+    <div class="kpi green">
+      <div class="label">🟢 通関完了</div>
+      <div class="big num">7,044<span class="u">個</span></div>
+      <div class="sub">8 件（スーツケース6＋ハンディファン2）</div>
+    </div>
+    <div class="kpi amber">
+      <div class="label">🟠 出荷済・書類待ち</div>
+      <div class="big num">2,316<span class="u">個</span></div>
+      <div class="sub">3 本｜BL・アライバル未受領</div>
+    </div>
+    <div class="kpi">
+      <div class="label">📦 下期 出荷計画</div>
+      <div class="big num">21,316<span class="u">個</span></div>
+      <div class="sub">7月〜10月・18便</div>
+    </div>
+    <div class="kpi">
+      <div class="label">📦 LM20260808</div>
+      <div class="big num">10,750<span class="u">個</span></div>
+      <div class="sub">11月〜2027年1月・13本</div>
+    </div>
+  </section>
+
+  <div class="grid">
+    <!-- Container board -->
+    <div class="card">
+      <h2>🚢 コンテナ・ステータス<span class="count">11 本 ＋ エア便</span></h2>
+      <div class="rows" id="board"></div>
+    </div>
+
+    <!-- Side: news + actions -->
+    <div class="side">
+      <div class="card">
+        <h2>🆕 最新ニュース</h2>
+        <div class="feed">
+          <div class="item"><span class="date">8/17</span><p>ジップ便2本を出荷（<b>EITU1030111</b> 1,093個・<b>CAAU5731521</b> 633個／PO LM260320）。ハンディファン<b>船便</b>(GZTLE2608003) <b>通関完了</b>。</p></div>
+          <div class="item"><span class="date">8/14</span><p>スーツケース No.1〜4・ハンディファン<b>エア便</b>、LM251008(<b>CAAU8766326・IAAU1910400</b>)まで<b>全て通関完了</b>。</p></div>
+          <div class="item"><span class="date">8/12</span><p>ハンディファン エア便 <b>関空(KIX)</b> 到着。</p></div>
+        </div>
+      </div>
+      <div class="card">
+        <h2>⚠ 要対応</h2>
+        <ul class="acts">
+          <li>ハンディファン<b>エア便</b>：フリータイム12h超過につき<b>別途保管料</b>が発生見込み（精算確認）。</li>
+          <li><b>書類待ち3本</b>のBL・アライバル受領 → 受領後クローズ。</li>
+          <li>No.2・3：ドレー<b>14日枠ヘッド</b>の確保判断（在庫切れで急ぎ）。</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Production pipeline -->
+  <div class="card pipe">
+    <h2>📈 生産・出荷パイプライン<span class="count">月別 出荷計画数量</span></h2>
+    <div class="bars" id="bars"></div>
+    <div class="pipe-foot">
+      <span><span class="dot" style="background:var(--green)"></span>出荷済み（7月分）</span>
+      <span><span class="dot" style="background:var(--navy)"></span>予定</span>
+      <span>合計：下期 21,316個 ＋ LM20260808 10,750個 ＝ <b class="num">32,066個</b></span>
+    </div>
+  </div>
+
+  <footer>
+    コンテナ番号（container_no）をユニークキーに集約 ／ 詳細は kintone「物流スケジュール」アプリを参照<br>
+    実便 通関完了 7,044個・書類待ち 2,316個｜生産計画 32,066個
+  </footer>
+</div>
+
+<script>
+const containers=[
+  {code:"TWIU4232923", type:"40HQ", item:"PCスーツケース(S)", qty:"1,060", eta:"8/5 着", st:"green", stx:"通関完了"},
+  {code:"IAAU1022523", type:"40HQ", item:"多機能PC(M/S)", qty:"745", eta:"8/14 着", st:"green", stx:"通関完了"},
+  {code:"IAAU2971329", type:"20GP", item:"多機能/ノーマルアルミ(S)", qty:"381", eta:"8/14 着", st:"green", stx:"通関完了"},
+  {code:"WHSU5628824", type:"40HQ", item:"PC多機能(L)", qty:"606", eta:"8/16 着", st:"green", stx:"通関完了"},
+  {code:"ハンディファン(エア)", type:"AIR", item:"ABC緊急", qty:"1,000", eta:"8/12 着(KIX)", st:"green", stx:"通関完了"},
+  {code:"SDFU5001174", type:"LCL", item:"ハンディファン(F13)", qty:"1,920", eta:"8/17 着", st:"green", stx:"通関完了"},
+  {code:"CAAU8766326", type:"40HQ", item:"PCスーツケース(L)・LM251008", qty:"599", eta:"着", st:"green", stx:"通関完了"},
+  {code:"IAAU1910400", type:"40HQ", item:"PC+アルミ(S)・LM251008", qty:"733", eta:"着", st:"green", stx:"通関完了"},
+  {code:"WHSU5830223", type:"40HQ", item:"ノーマルアルミ(M)", qty:"590", eta:"到着未定", st:"amber", stx:"書類待ち"},
+  {code:"EITU1030111", type:"40GP", item:"ジップ多機能PC(S/M+S)", qty:"1,093", eta:"到着未定", st:"amber", stx:"書類待ち"},
+  {code:"CAAU5731521", type:"40GP", item:"ジップ多機能PC+アルミ", qty:"633", eta:"到着未定", st:"amber", stx:"書類待ち"},
+];
+document.getElementById("board").innerHTML=containers.map(c=>`
+  <div class="row">
+    <span class="stripe st-${c.st}"></span>
+    <div class="r-main">
+      <div class="r-code">${c.code}</div>
+      <div class="r-meta"><span class="tag">${c.type}</span>${c.item}</div>
+    </div>
+    <div class="r-right">
+      <div class="r-qty num">${c.qty}<span class="u">個</span></div>
+      <div class="chip ${c.st}">${c.stx}</div>
+      <div class="r-eta">${c.eta}</div>
+    </div>
+  </div>`).join("");
+
+const months=[
+  {m:"7月", v:3358, done:true},
+  {m:"8月", v:7208, done:false},
+  {m:"9月", v:7300, done:false},
+  {m:"10月", v:3450, done:false},
+  {m:"11月", v:3600, done:false},
+  {m:"12月", v:3250, done:false},
+  {m:"1月", y:"'27", v:3900, done:false},
+];
+const max=Math.max(...months.map(m=>m.v));
+document.getElementById("bars").innerHTML=months.map(m=>`
+  <div class="bar-col">
+    <span class="bar-val num">${m.v.toLocaleString()}</span>
+    <div class="bar-track"><div class="bar ${m.done?"done":""}" style="height:0" data-h="${Math.round(m.v/max*100)}"></div></div>
+    <span class="bar-x">${m.m}${m.y?`<span class="tiny">${m.y}</span>`:""}</span>
+  </div>`).join("");
+requestAnimationFrame(()=>document.querySelectorAll(".bar").forEach(b=>b.style.height=b.dataset.h+"%"));
+</script>
