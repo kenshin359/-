@@ -25,6 +25,8 @@ jobs:
       run:
         working-directory: daily-report-system
     steps:
+      - name: 連絡先データをログからマスク
+        run: echo "::add-mask::${{ inputs.seed }}"
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
