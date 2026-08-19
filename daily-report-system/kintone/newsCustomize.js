@@ -68,12 +68,15 @@ async function main() {
   if (!app) throw new Error('--app=<アプリ番号> を指定してください');
 
   // ① カード表示用JSをアップロードして適用（PC・モバイル両方）
-  const fileKey = await uploadFile(path.join(__dirname, 'customize', 'newsFeed.js'));
+  //    ★kintoneは同じfileKeyを2箇所で使えないため、2回アップロードする
+  const jsPath = path.join(__dirname, 'customize', 'newsFeed.js');
+  const desktopKey = await uploadFile(jsPath);
+  const mobileKey = await uploadFile(jsPath);
   await call('PUT', '/k/v1/preview/app/customize.json', {
     app,
     scope: 'ALL',
-    desktop: { js: [{ type: 'FILE', file: { fileKey } }], css: [] },
-    mobile: { js: [{ type: 'FILE', file: { fileKey } }], css: [] },
+    desktop: { js: [{ type: 'FILE', file: { fileKey: desktopKey } }], css: [] },
+    mobile: { js: [{ type: 'FILE', file: { fileKey: mobileKey } }], css: [] },
   });
   console.log('① カード表示JSを設定しました');
 
