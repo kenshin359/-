@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 //  ・楽天/自社: キントーン「売上明細（自動取込）」から日別合計
 //  ・Amazon:   毎朝KPIアプリの添付ビジネスレポートから日別売上
-//              （添付がない日は data/chorei/amazon-manual-*.json で補完）
+//              （添付がない日は config/chorei/amazon-manual-*.json で補完）
 //  結果を out/chorei-progress.json に書き出します。読むだけ・書き込みなし。
 // ============================================================
 import fs from 'node:fs';
@@ -144,7 +144,7 @@ async function main() {
   const channel = app ? await fetchChannelDaily(app, from, to) : {};
 
   let amazon = {};
-  const manualPath = path.join(ROOT, 'data', 'chorei', `amazon-manual-${month}.json`);
+  const manualPath = path.join(ROOT, 'config', 'chorei', `amazon-manual-${month}.json`);
   if (fs.existsSync(manualPath)) {
     const manual = JSON.parse(fs.readFileSync(manualPath, 'utf8'));
     for (const [k, v] of Object.entries(manual)) if (/^\d{4}-/.test(k)) amazon[k] = v;
@@ -156,7 +156,7 @@ async function main() {
   }
 
   const events = JSON.parse(
-    fs.readFileSync(path.join(ROOT, 'data', 'chorei', `events-${month}.json`), 'utf8')
+    fs.readFileSync(path.join(ROOT, 'config', 'chorei', `events-${month}.json`), 'utf8')
   );
 
   const days = {};

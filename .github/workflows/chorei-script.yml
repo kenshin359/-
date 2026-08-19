@@ -69,6 +69,8 @@ jobs:
           REPORT_TIMEZONE: Asia/Tokyo
         run: |
           pip install --quiet openpyxl
+          args=""
+          if [ "${{ inputs.dry_run }}" = "true" ]; then args="--dry-run"; fi
           node scripts/choreiSheetData.js
           python3 scripts/buildChoreiSheet.py
-          node scripts/sendChoreiSheet.js
+          node scripts/sendChoreiSheet.js $args

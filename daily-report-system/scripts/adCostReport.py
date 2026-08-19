@@ -5,7 +5,7 @@
 #  毎朝KPIアプリ(30)の添付から当月の広告費を媒体別に自動集計し、
 #  チーム報告と同じ形式で朝礼ルームへ投稿します。
 #  自動で取れない項目（ガジェティ/TDA/TikTok/案件費）は
-#  data/chorei/adcost-extra-*.json の手動値を使います。
+#  config/chorei/adcost-extra-*.json の手動値を使います。
 #  ★キントーンは読むだけ。--dry-run で本文表示のみ。
 # ============================================================
 import base64, csv, io, json, os, re, sys, unicodedata, urllib.request
@@ -60,13 +60,22 @@ def main():
     month = now.strftime('%Y-%m')
     upto = (now - timedelta(days=1)).day  # 前日まで
 
-    q = urllib.parse.quote(f'report_date >= "{month}-01" order by report_date desc limit 40')
-    data = json.loads(kget(f'/k/v1/records.json?app={KPI_APP}&query={q}'))
+    # 当月レコードを全件取得（1回100件ずつ・最大10ページ）
+    records = []
+    offset = 0
+    while True:
+        q = urllib.parse.quote(
+            f'report_date >= "{month}-01" order by report_date desc limit 100 offset {offset}')
+        chunk = json.loads(kget(f'/k/v1/records.json?app={KPI_APP}&query={q}')).get('records', [])
+        records.extend(chunk)
+        if len(chunk) < 100 or offset >= 900:
+            break
+        offset += 100
 
     # (media, day) -> 金額。新しいレコードを先に処理し、最初の値を採用（重複添付対策）
     vals = {}
     google_daily = {}
-    for rec in data.get('records', []):
+    for rec in records:
         for field in ('file_ads', 'file_sales', 'file_other'):
             for f in rec.get(field, {}).get('value', []):
                 name = f.get('name', '')
@@ -113,7 +122,7 @@ def main():
     google = sum(v for d, v in google_daily.items() if d <= upto)
 
     extra = {}
-    ep = os.path.join(ROOT, 'data', 'chorei', f'adcost-extra-{month}.json')
+    ep = os.path.join(ROOT, 'config', 'chorei', f'adcost-extra-{month}.json')
     if os.path.exists(ep):
         extra = json.load(open(ep, encoding='utf-8'))
     gadg = extra.get('ガジェティ', {}).get('amount', 0)
