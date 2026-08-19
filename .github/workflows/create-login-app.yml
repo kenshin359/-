@@ -1,0 +1,49 @@
+# ============================================================
+#  ログイン情報アプリの作成＋サービス一覧登録（手動）
+# ------------------------------------------------------------
+#  新人さん向けに「どのサービスに・どこから・何のために
+#  ログインするか」をまとめるアプリを作成します。
+#  ★ログインIDやパスワードは一切扱いません。
+#    枠とサービス名・URL・メモだけを登録します。
+#  ★既存アプリは一切変更しません。
+# ============================================================
+name: ログイン情報アプリ作成（手動）
+
+on:
+  workflow_dispatch:
+    inputs:
+      app:
+        description: '登録だけやり直す場合はアプリ番号（空なら新規作成から）'
+        required: false
+      seed:
+        description: 'サービス一覧JSON（base64）。空ならアプリ作成のみ'
+        required: false
+
+jobs:
+  create:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: daily-report-system
+    steps:
+      - name: seedデータをログからマスク
+        run: echo "::add-mask::${{ inputs.seed }}"
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: アプリ作成＋サービス一覧登録
+        env:
+          KINTONE_BASE_URL: ${{ secrets.KINTONE_BASE_URL }}
+          KINTONE_USER: ${{ secrets.KINTONE_USER }}
+          KINTONE_PASSWORD: ${{ secrets.KINTONE_PASSWORD }}
+          SEED_RECORDS_B64: ${{ inputs.seed }}
+          APP_ENV: production
+        run: |
+          appid="${{ inputs.app }}"
+          if [ -z "$appid" ]; then
+            node kintone/createBusinessApps.js logininfo | tee /tmp/create.log
+            appid=$(grep -o 'appId=[0-9]*' /tmp/create.log | head -1 | cut -d= -f2)
+          fi
+          echo "対象アプリ番号: $appid"
+          node scripts/loginInfoSeed.js --app=$appid
