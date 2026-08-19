@@ -17,7 +17,7 @@ DRY = '--dry-run' in sys.argv
 
 BASE = os.environ['KINTONE_BASE_URL'].rstrip('/')
 AUTH = base64.b64encode(f"{os.environ['KINTONE_USER']}:{os.environ['KINTONE_PASSWORD']}".encode()).decode()
-KPI_APP = os.environ.get('KINTONE_KPI_APP_ID', '30')
+KPI_APP = os.environ.get('KINTONE_KPI_APP_ID') or '30'
 
 def kget(path):
     req = urllib.request.Request(BASE + path, headers={'X-Cybozu-Authorization': AUTH})
