@@ -255,6 +255,23 @@ KPIサマリー＋チーム別のカード表示を出せます（遅延は赤�
 - フィールドコード（`task_title`/`assignee`/`team`/`category`/`priority`/`status`/`due_date`）は
   `kintone/taskAppSchema.js` と一致。既存アプリに合わせる場合はJS冒頭の `F` を書き換えてください。
 
+## kintoneの「お知らせ」に貼る（スクリプト不要の静的HTML）
+
+一覧カスタマイズ（JS）ではなく、kintoneの**お知らせ欄に貼り付けるHTML**を生成することもできます。
+お知らせ欄はJavaScriptが動かないため、**inline styleのみ・script/styleタグなし**の静的HTMLにしています。
+
+```
+npm run task:chatwork      # まず最新データを取得（or task:export）
+npm run task:notice        # → task-calendar/out/kintone-notice.html を生成
+```
+
+1. 生成された `out/kintone-notice.html` の**中身をすべてコピー**。
+2. kintone：アプリの「お知らせ」→ **HTML編集モード**にして貼り付け → 保存。
+3. お知らせ欄に、KPI（対象/未着手/進行中/遅延/完了率）＋「要対応（遅延・本日締切）」＋チーム別サマリーが表示されます。
+
+- お知らせは**貼り付けた時点のスナップショット**です。最新化したい場合は `task:notice` を定期実行して貼り替え（または一覧カスタマイズJSを併用）。
+- 外部文字列はHTMLエスケープ済み。`<script>`/`<style>` は使っていないため、お知らせ欄でそのまま表示されます。
+
 ## よくある質問
 
 - **Q. kintone を書き換えませんか？** … いいえ。取得（GET）のみです。
