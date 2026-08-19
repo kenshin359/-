@@ -34,6 +34,7 @@ jobs:
           KINTONE_USER: ${{ secrets.KINTONE_USER }}
           KINTONE_PASSWORD: ${{ secrets.KINTONE_PASSWORD }}
           KINTONE_STOCK_REPORT_APP_ID: ${{ secrets.KINTONE_STOCK_REPORT_APP_ID }}
+          KINTONE_INVENTORY_APP_ID: ${{ secrets.KINTONE_INVENTORY_APP_ID }}
           APP_ENV: production
           REPORT_TIMEZONE: Asia/Tokyo
         run: node scripts/stockReportDump.js --days=${{ inputs.days || '14' }}
