@@ -1,0 +1,39 @@
+# ============================================================
+#  SP-API設定チェック（手動）
+# ------------------------------------------------------------
+#  鍵の中身は一切表示しません。長さ・形式・余分な空白の有無だけを
+#  確認して、コピーミスを特定します。
+# ============================================================
+name: SP-API設定チェック（手動）
+
+on:
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 形式チェック
+        env:
+          SPAPI_CLIENT_ID: ${{ secrets.SPAPI_CLIENT_ID }}
+          SPAPI_CLIENT_SECRET: ${{ secrets.SPAPI_CLIENT_SECRET }}
+          SPAPI_REFRESH_TOKEN: ${{ secrets.SPAPI_REFRESH_TOKEN }}
+        run: |
+          node -e '
+            const checks = [
+              ["SPAPI_CLIENT_ID", process.env.SPAPI_CLIENT_ID, "amzn1.application-oa2-client."],
+              ["SPAPI_CLIENT_SECRET", process.env.SPAPI_CLIENT_SECRET, "amzn1.oa2-cs.v1."],
+              ["SPAPI_REFRESH_TOKEN", process.env.SPAPI_REFRESH_TOKEN, "Atzr|"],
+            ];
+            for (const [name, v0, prefix] of checks) {
+              const v = v0 || "";
+              const trimmed = v.trim();
+              console.log(`${name}:`);
+              console.log(`  設定されている: ${v ? "はい" : "★いいえ（未設定）"}`);
+              console.log(`  文字数: ${v.length}` + (v.length !== trimmed.length ? ` ★前後に空白/改行あり（実質${trimmed.length}文字）` : ""));
+              console.log(`  正しい書き出し(${prefix}): ${trimmed.startsWith(prefix) ? "はい" : "★いいえ"}`);
+              console.log(`  改行を含む: ${/\n|\r/.test(v) ? "★はい" : "いいえ"}`);
+            }
+            console.log("");
+            console.log("目安: CLIENT_IDは約61文字 / CLIENT_SECRETは約80文字 / REFRESH_TOKENは数百文字");
+          '
