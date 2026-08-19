@@ -1,0 +1,138 @@
+#!/usr/bin/env python3
+# ============================================================
+#  朝礼用 売上進捗シート（イベント加重）を Excel で生成
+# ------------------------------------------------------------
+#  入力: out/chorei-progress.json（choreiSheetData.js が作る）
+#  出力: out/売上進捗シート.xlsx
+# ============================================================
+import json, os, sys
+from openpyxl import Workbook
+from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+data = json.load(open(os.path.join(ROOT, 'out', 'chorei-progress.json'), encoding='utf-8'))
+
+month = data['month']; days = data['days']; upTo = data['upTo']
+N = int(upTo[8:10]); DIM = 31
+MAIN = data['targets']['main']; STRETCH = data['targets']['stretch']
+events = {int(k): v for k, v in data.get('events', {}).items()}
+
+AR='Arial'
+H=Font(name=AR,bold=True,size=15); BOLD=Font(name=AR,bold=True); NORM=Font(name=AR,size=10)
+SMALL=Font(name=AR,size=9,color='666666'); WHITE_B=Font(name=AR,bold=True,color='FFFFFF')
+RED_B=Font(name=AR,bold=True,color='C00000'); BLUE=Font(name=AR,color='0000FF')
+NAVY=PatternFill('solid',fgColor='1F3864'); GRAY=PatternFill('solid',fgColor='F2F2F2')
+EVE=PatternFill('solid',fgColor='DDEBF7'); TSF=PatternFill('solid',fgColor='FDE9D9')
+thin=Side(style='thin',color='BFBFBF'); B=Border(left=thin,right=thin,top=thin,bottom=thin)
+YEN='\\¥#,##0'; PCT='0.0%'; DIFF='\\¥#,##0;[Red]\\¥-#,##0'
+
+wb = Workbook()
+
+# --- 日別実績 ---
+ws2 = wb.active; ws2.title='日別実績'
+ws2['A1']=f'日別実績（媒体別・{month[5:]}月 {upTo[8:10]}日まで）'; ws2['A1'].font=H
+for i,h in enumerate(['日付','楽天','Amazon','自社','売上日計','実績累計'],1):
+    c=ws2.cell(row=2,column=i,value=h); c.font=WHITE_B; c.fill=NAVY; c.border=B; c.alignment=Alignment(horizontal='center')
+for d in range(1,N+1):
+    iso=f'{month}-{d:02d}'; r=2+d
+    v=days.get(iso,{'rakuten':0,'amazon':0,'own':0})
+    ws2.cell(row=r,column=1,value=f'{int(month[5:7])}/{d}')
+    ws2.cell(row=r,column=2,value=v['rakuten']); ws2.cell(row=r,column=3,value=v['amazon']); ws2.cell(row=r,column=4,value=v['own'])
+    ws2.cell(row=r,column=5,value=f'=SUM(B{r}:D{r})')
+    ws2.cell(row=r,column=6,value=f'=E{r}' if d==1 else f'=F{r-1}+E{r}')
+    for cc in range(1,7):
+        c=ws2.cell(row=r,column=cc); c.border=B; c.font=NORM
+        if cc>=2: c.number_format=YEN
+tot=2+N+1
+ws2.cell(row=tot,column=1,value=f'計').font=BOLD
+for col,letter in [(2,'B'),(3,'C'),(4,'D'),(5,'E')]:
+    ws2.cell(row=tot,column=col,value=f'=SUM({letter}3:{letter}{tot-1})').font=BOLD
+ws2.cell(row=tot,column=6,value=f'=F{tot-1}').font=BOLD
+for cc in range(1,7):
+    c=ws2.cell(row=tot,column=cc); c.border=B; c.fill=GRAY
+    if cc>=2: c.number_format=YEN
+for col,w in zip('ABCDEF',[9,12,12,12,13,14]): ws2.column_dimensions[col].width=w
+
+# --- 目標乖離 ---
+ws3 = wb.create_sheet('目標乖離')
+ws3['A1']='日別目標との乖離（イベント日は目標を厚く配分・青字=変更可）'; ws3['A1'].font=H
+ws3['A2']='重み: 通常1.0／楽天イベント1.7／タイムセール祭り2.0。イベント・重みを変えると全て自動再計算。'; ws3['A2'].font=SMALL
+heads=['日付','イベント','重み','日次目標(1.1億)','累計目標(1.1億)','乖離(1.1億)','日次目標(1.2億)','累計目標(1.2億)','乖離(1.2億)','実績日計','累計実績']
+for i,h in enumerate(heads,1):
+    c=ws3.cell(row=3,column=i,value=h); c.font=WHITE_B; c.fill=NAVY; c.border=B; c.alignment=Alignment(horizontal='center',wrap_text=True)
+WSUM=f'SUM($C$4:$C${3+DIM})'
+for d in range(1,DIM+1):
+    r=3+d
+    ev=events.get(d,{}); label=ev.get('label',''); w=ev.get('weight',1.0)
+    ws3.cell(row=r,column=1,value=f'{int(month[5:7])}/{d}')
+    c=ws3.cell(row=r,column=2,value=label); c.font=BLUE
+    c=ws3.cell(row=r,column=3,value=w); c.font=BLUE; c.number_format='0.0'
+    ws3.cell(row=r,column=4,value=f'=ROUND(サマリー!$B$5*C{r}/{WSUM},0)')
+    ws3.cell(row=r,column=5,value=f'=D{r}' if d==1 else f'=E{r-1}+D{r}')
+    ws3.cell(row=r,column=7,value=f'=ROUND(サマリー!$C$5*C{r}/{WSUM},0)')
+    ws3.cell(row=r,column=8,value=f'=G{r}' if d==1 else f'=H{r-1}+G{r}')
+    if d<=N:
+        ws3.cell(row=r,column=10,value=f'=日別実績!E{2+d}')
+        ws3.cell(row=r,column=11,value=f'=J{r}' if d==1 else f'=K{r-1}+J{r}')
+        ws3.cell(row=r,column=6,value=f'=K{r}-E{r}')
+        ws3.cell(row=r,column=9,value=f'=K{r}-H{r}')
+    for cc in range(1,12):
+        c=ws3.cell(row=r,column=cc); c.border=B
+        if cc not in (2,3) and (c.font is None or c.font.name!=AR): c.font=NORM
+        if cc in (4,5,7,8,10,11): c.number_format=YEN
+        if cc in (6,9): c.number_format=DIFF
+    if label.startswith('楽天'):
+        for cc in (1,2,3): ws3.cell(row=r,column=cc).fill=EVE
+    if label.startswith('タイム'):
+        for cc in (1,2,3): ws3.cell(row=r,column=cc).fill=TSF
+r=3+DIM+1
+ws3.cell(row=r,column=1,value='月計').font=BOLD
+ws3.cell(row=r,column=3,value=f'={WSUM}').font=BOLD
+ws3.cell(row=r,column=4,value=f'=SUM(D4:D{r-1})').font=BOLD
+ws3.cell(row=r,column=7,value=f'=SUM(G4:G{r-1})').font=BOLD
+for cc in range(1,12):
+    c=ws3.cell(row=r,column=cc); c.border=B; c.fill=GRAY
+    if cc in (4,7): c.number_format=YEN
+for col,w in zip('ABCDEFGHIJK',[8,17,6,14,15,14,14,15,14,13,14]): ws3.column_dimensions[col].width=w
+ws3.freeze_panes='A4'
+
+# --- サマリー ---
+ws = wb.create_sheet('サマリー',0)
+ws['A1']=f'売上進捗サマリー（イベント加重・{upTo[5:].replace("-","/")}実績まで）'
+ws['A1'].font=H
+ws['A2']='売上=クーポン適用後。目標はイベント日加重で日割り。青字=変更可。'
+ws['A2'].font=SMALL
+for i,h in enumerate(['項目','目標1.1億','目標1.2億'],1):
+    c=ws.cell(row=4,column=i,value=h); c.font=WHITE_B; c.fill=NAVY; c.border=B; c.alignment=Alignment(horizontal='center')
+ws['B5']=MAIN; ws['C5']=STRETCH
+ws['E5']='経過日数'; ws['F5']=N; ws['E6']='月日数'; ws['F6']=DIM
+ws['E5'].font=SMALL; ws['E6'].font=SMALL; ws['F5'].font=BLUE; ws['F6'].font=BLUE
+rows=[
+    ('月間目標', None, None, YEN),
+    ('本日までの目標（イベント加重）','=INDEX(目標乖離!E:E,3+$F$5)','=INDEX(目標乖離!H:H,3+$F$5)',YEN),
+    ('実績累計',f'=日別実績!F{tot}',f'=日別実績!F{tot}',YEN),
+    ('乖離（実績−加重目標）','=B7-B6','=C7-C6',DIFF),
+    ('進捗率（対 加重目標）','=B7/B6','=C7/C6',PCT),
+    ('進捗率（対 月間目標）','=B7/B5','=C7/C5',PCT),
+    ('残り目標額','=B5-B7','=C5-C7',YEN),
+    ('残りの重み合計',f'=目標乖離!C{3+DIM+1}-SUM(目標乖離!C4:C{3+N})','=B12','0.0'),
+    ('残り期間の必要額：通常日','=B11/B12','=C11/C12',YEN),
+    ('　同：楽天イベント日（×1.7）','=B13*1.7','=C13*1.7',YEN),
+    ('　同：タイムセール祭り日（×2.0）','=B13*2','=C13*2',YEN),
+]
+for j,(nm,f1,f2,fmt) in enumerate(rows):
+    r=5+j
+    ws.cell(row=r,column=1,value=nm).font=NORM
+    if f1 is not None: ws.cell(row=r,column=2,value=f1)
+    if f2 is not None: ws.cell(row=r,column=3,value=f2)
+    for cc in (1,2,3):
+        c=ws.cell(row=r,column=cc); c.border=B
+        if cc>1: c.number_format=fmt
+    if nm=='月間目標': ws.cell(row=r,column=2).font=BLUE; ws.cell(row=r,column=3).font=BLUE
+    if '乖離' in nm or '必要額' in nm: ws.cell(row=r,column=2).font=RED_B; ws.cell(row=r,column=3).font=RED_B
+    if nm.startswith('進捗率'): ws.cell(row=r,column=2).font=BOLD; ws.cell(row=r,column=3).font=BOLD
+for col,w in zip('ABC',[34,17,17]): ws.column_dimensions[col].width=w
+
+out = os.path.join(ROOT,'out','売上進捗シート.xlsx')
+wb.save(out)
+print('saved', out)

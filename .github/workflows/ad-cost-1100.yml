@@ -1,0 +1,44 @@
+# ============================================================
+#  広告費デイリー報告（毎朝11:02 JST）
+# ------------------------------------------------------------
+#  KPIアプリの添付から前日までの広告費を媒体別に自動集計し、
+#  チーム報告と同じ形式で朝礼ルーム（みさきさん）へ投稿します。
+#  ※角南さんの朝のデータ添付（〜10:30目安）の後に走ります。
+# ============================================================
+name: 広告費レポート（毎朝11:02）
+
+on:
+  schedule:
+    # 日本時間 11:02 = 02:02 UTC
+    - cron: '2 2 * * *'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: '送信せず本文だけ表示（true/false）'
+        required: false
+        default: 'false'
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: daily-report-system
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: 集計して送信
+        env:
+          KINTONE_BASE_URL: ${{ secrets.KINTONE_BASE_URL }}
+          KINTONE_USER: ${{ secrets.KINTONE_USER }}
+          KINTONE_PASSWORD: ${{ secrets.KINTONE_PASSWORD }}
+          KINTONE_KPI_APP_ID: ${{ secrets.KINTONE_KPI_APP_ID }}
+          CHATWORK_API_TOKEN: ${{ secrets.CHATWORK_API_TOKEN }}
+          CHATWORK_CHOREI_ROOM_ID: ${{ secrets.CHATWORK_CHOREI_ROOM_ID }}
+        run: |
+          pip install --quiet openpyxl
+          args=""
+          if [ "${{ inputs.dry_run }}" = "true" ]; then args="--dry-run"; fi
+          python3 scripts/adCostReport.py $args

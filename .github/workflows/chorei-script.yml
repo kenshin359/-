@@ -51,3 +51,24 @@ jobs:
           args=""
           if [ "${{ inputs.dry_run }}" = "true" ]; then args="--dry-run"; fi
           node scripts/choreiDaily.js $args
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 進捗シートの生成と送付（みさきさんルーム）
+        env:
+          KINTONE_BASE_URL: ${{ secrets.KINTONE_BASE_URL }}
+          KINTONE_USER: ${{ secrets.KINTONE_USER }}
+          KINTONE_PASSWORD: ${{ secrets.KINTONE_PASSWORD }}
+          KINTONE_SALES_DETAIL_APP_ID: ${{ secrets.KINTONE_SALES_DETAIL_APP_ID }}
+          KINTONE_KPI_APP_ID: ${{ secrets.KINTONE_KPI_APP_ID }}
+          CHATWORK_API_TOKEN: ${{ secrets.CHATWORK_API_TOKEN }}
+          CHATWORK_CHOREI_ROOM_ID: ${{ secrets.CHATWORK_CHOREI_ROOM_ID }}
+          APP_ENV: production
+          REPORT_TIMEZONE: Asia/Tokyo
+        run: |
+          pip install --quiet openpyxl
+          node scripts/choreiSheetData.js
+          python3 scripts/buildChoreiSheet.py
+          node scripts/sendChoreiSheet.js
