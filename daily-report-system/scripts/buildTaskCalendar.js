@@ -43,8 +43,12 @@ function main() {
   if (fs.existsSync(dataPath)) {
     const raw = fs.readFileSync(dataPath, 'utf8');
     JSON.parse(raw); // 壊れたJSONを埋め込まないよう検証
-    // </script> で早期に閉じないようエスケープ
-    const safe = raw.replace(/<\//g, '<\\/');
+    // </script> で早期に閉じないよう、また JSON では有効だが JS リテラルを壊す
+    // 行区切り(U+2028)・段落区切り(U+2029)も無害化してから埋め込む。
+    const safe = raw
+      .replace(/<\//g, '<\\/')
+      .replace(/\u2028/g, '\\u2028')
+      .replace(/\u2029/g, '\\u2029');
     injected = `<script>window.__TASK_DATA__ = ${safe};</script>`;
     console.log(`実データを埋め込みます: ${dataPath}`);
   } else {

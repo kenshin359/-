@@ -483,6 +483,21 @@
   const deptMap   = Object.fromEntries(DEPTS.map(d => [d.id, d]));
   const statusMap = Object.fromEntries(STATUSES.map(s => [s.id, s]));
 
+  // 既定の所属（名簿・部門に無い担当者の寄せ先）。バックエンド teamForName と一致。
+  const FALLBACK_DEPT = (DEPTS[0] && DEPTS[0].id) || "honbu";
+  const deptName = (id) => (deptMap[id] || {}).name || id || "";
+  const catName  = (id) => (catMap[id]  || {}).name || id || "";
+
+  // HTMLエスケープ（担当者名・タスク名など外部/利用者由来の文字列を innerHTML に入れる前に必ず通す）
+  function esc(s) {
+    return String(s == null ? "" : s)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
   // チームごとに使われやすい種別（サンプルを現実的にするため）
   const TEAM_CATS = {
     honbu:  ["meeting","analyze","doc","review"],
@@ -654,7 +669,7 @@
     const mem = MEMBERS.find(m => m.id === o.member);
     return {
       id, title: o.title, cat: o.cat,
-      dept: mem ? mem.dept : (o.dept || "admin"),
+      dept: mem ? mem.dept : (o.dept || FALLBACK_DEPT),
       member: o.member, memberName: mem ? mem.name : (o.memberName || o.member),
       status: o.status, prio: o.prio,
       y: yy, mo: mm - 1, d: dd, key: o.date, user: true,
@@ -910,20 +925,20 @@
           // 上位2件のタスク名
           list.slice(0,2).forEach(t => {
             const ln = document.createElement("div"); ln.className = "task-line";
-            ln.innerHTML = `<span class="tk" style="background:${statusMap[t.status].v}"></span>${t.title}`;
+            ln.innerHTML = `<span class="tk" style="background:${(statusMap[t.status]||{}).v||'var(--st-todo)'}"></span>${esc(t.title)}`;
             cell.appendChild(ln);
           });
         } else if (state.view === "cat") {
           list.slice(0,3).forEach(t => {
             const ln = document.createElement("div"); ln.className = "task-line";
-            ln.innerHTML = `<span class="tk" style="background:${catMap[t.cat].v}"></span>${t.title}`;
+            ln.innerHTML = `<span class="tk" style="background:${(catMap[t.cat]||{}).v||'var(--c-doc)'}"></span>${esc(t.title)}`;
             cell.appendChild(ln);
           });
           if (list.length > 3) { const m = document.createElement("div"); m.className="more"; m.textContent = `他 ${list.length-3} 件`; cell.appendChild(m); }
         } else {
           // load: 種別ドット
           const dots = document.createElement("div"); dots.className = "dots";
-          list.slice(0,12).forEach(t => { const dt = document.createElement("span"); dt.className="dot"; dt.style.background = catMap[t.cat].v; dots.appendChild(dt); });
+          list.slice(0,12).forEach(t => { const dt = document.createElement("span"); dt.className="dot"; dt.style.background = (catMap[t.cat]||{}).v||'var(--c-doc)'; dots.appendChild(dt); });
           cell.appendChild(dots);
         }
       }
@@ -980,14 +995,14 @@
     list.sort((a,b) => (prioOrder[a.prio]-prioOrder[b.prio]) || a.status.localeCompare(b.status));
     list.forEach(t => {
       const c = document.createElement("div"); c.className = "task-card" + (t.status === "done" ? " done" : "");
-      c.style.borderLeftColor = catMap[t.cat].v;
-      const st = statusMap[t.status];
+      c.style.borderLeftColor = (catMap[t.cat]||{}).v || "var(--c-doc)";
+      const st = statusMap[t.status] || { cls: "todo", name: t.status };
       c.innerHTML =
-        `<div class="t1"><span class="ttl">${t.title}</span><span class="st ${st.cls}">${st.name}</span></div>` +
-        `<div class="t2"><span class="who">${t.memberName}</span>` +
-        `<span class="pill">${deptMap[t.dept].name}</span>` +
-        `<span class="pill">${catMap[t.cat].name}</span>` +
-        `<span class="prio-${t.prio}">優先度 ${t.prio}</span></div>`;
+        `<div class="t1"><span class="ttl">${esc(t.title)}</span><span class="st ${esc(st.cls)}">${esc(st.name)}</span></div>` +
+        `<div class="t2"><span class="who">${esc(t.memberName)}</span>` +
+        `<span class="pill">${esc(deptName(t.dept))}</span>` +
+        `<span class="pill">${esc(catName(t.cat))}</span>` +
+        `<span class="prio-${esc(t.prio)}">優先度 ${esc(t.prio)}</span></div>`;
 
       // 操作行：ワンクリックで完了 / プルダウンで状態変更
       const act = document.createElement("div"); act.className = "card-actions";
@@ -1017,14 +1032,14 @@
     mtasks.forEach(t => { byMember[t.member] = (byMember[t.member]||0) + 1; });
     const rows = Object.entries(byMember).map(([id,n]) => {
       const mem = MEMBERS.find(x=>x.id===id);
-      return { name: mem?mem.name:id, dept: mem?deptMap[mem.dept].name:"", n };
+      return { name: mem?mem.name:id, dept: mem?deptName(mem.dept):"", n };
     }).sort((a,b)=>b.n-a.n).slice(0,10);
     const max = rows.length ? rows[0].n : 1;
     const el = document.getElementById("rankList"); el.innerHTML = "";
     if (!rows.length) { el.innerHTML = '<div class="hint">該当なし</div>'; return; }
     rows.forEach(r => {
       const row = document.createElement("div"); row.className = "rank-row";
-      row.innerHTML = `<div class="nm"><div>${r.name} <span style="color:var(--ink-3);font-size:11px">${r.dept}</span></div>` +
+      row.innerHTML = `<div class="nm"><div>${esc(r.name)} <span style="color:var(--ink-3);font-size:11px">${esc(r.dept)}</span></div>` +
         `<div class="rank-bar" style="width:${Math.max(8, r.n/max*100)}%"></div></div><div class="v">${r.n}</div>`;
       el.appendChild(row);
     });
@@ -1194,8 +1209,8 @@
   function downloadTemplate() {
     const sample = [
       CSV_HEADER.join(","),
-      [todayKeyStr(), "提案資料の作成", "山田 太郎", "営業部", "資料作成", "高", "未着手"].map(csvEscape).join(","),
-      [todayKeyStr(), "週次定例MTG", "イーロン・マスク", "新チーム", "会議", "中", "進行中"].map(csvEscape).join(","),
+      [todayKeyStr(), "提案資料の作成", "山田 太郎", "本部チーム", "資料作成", "高", "未着手"].map(csvEscape).join(","),
+      [todayKeyStr(), "週次定例MTG", "佐藤 花子", "SNSチーム", "会議", "中", "進行中"].map(csvEscape).join(","),
     ];
     download("tasks_template.csv", sample.join("\n"));
     toast("テンプレートを書き出しました");
@@ -1214,7 +1229,7 @@
       const title = (r[1] || "").trim();
       if (!date || !title) continue;
       const memberName = (r[2] || "担当未定").trim();
-      const deptId = deptByName[(r[3] || "").trim()] || "admin";
+      const deptId = deptByName[(r[3] || "").trim()] || FALLBACK_DEPT;
       const catId = catByName[(r[4] || "").trim()] || "doc";
       const prio = ["高","中","低"].includes((r[5]||"").trim()) ? (r[5]||"").trim() : "中";
       const statusId = statusByName[(r[6] || "").trim()] || "todo";
