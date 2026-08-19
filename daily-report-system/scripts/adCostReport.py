@@ -52,8 +52,33 @@ def sum_col(text, colname):
     if not hdr:
         return None
     i = next(j for j, c in enumerate(hdr) if colname in c)
+    # 行の有効判定は合計列のセルで行う（RPP商品別CSVは先頭列が常に空のため）
     return int(sum(yen_num(r[i]) for r in rows[rows.index(hdr) + 1:]
-                   if len(r) > i and r and r[0]))
+                   if len(r) > i and str(r[i]).strip()))
+
+def parse_date(s):
+    m = re.search(r'(\d{4})[-/年](\d{1,2})[-/月](\d{1,2})', z2h(str(s)))
+    return (int(m.group(1)), int(m.group(2)), int(m.group(3))) if m else None
+
+def daily_col(text, colname):
+    """日付列（レポート開始日/日付）がある表を日ごとに合計して {(年,月,日): 金額} を返す。
+    ファイル名の日付が間違っていても中身の日付で正しく配分できる。日付列が無ければ None。"""
+    rows = list(csv.reader(io.StringIO(text)))
+    hdr = next((r for r in rows if any(colname in c for c in r)), None)
+    if not hdr:
+        return None
+    i = next(j for j, c in enumerate(hdr) if colname in c)
+    di = next((j for j, c in enumerate(hdr) if 'レポート開始日' in c or c.strip() == '日付'), None)
+    if di is None:
+        return None
+    out = {}
+    for r in rows[rows.index(hdr) + 1:]:
+        if len(r) <= max(i, di) or not str(r[i]).strip():
+            continue
+        d = parse_date(r[di])
+        if d:
+            out[d] = out.get(d, 0) + yen_num(r[i])
+    return {k: int(v) for k, v in out.items()} or None
 
 def main():
     now = datetime.now(JST)
@@ -79,9 +104,12 @@ def main():
         for field in ('file_ads', 'file_sales', 'file_other'):
             for f in rec.get(field, {}).get('value', []):
                 name = f.get('name', '')
-                low = z2h(name).lower()
+                # Macからのアップロードは濁点が分解されたNFD形式のことがあるため
+                # 媒体判定はNFKC正規化した名前で行う
+                nk = z2h(name)
+                low = nk.lower()
                 try:
-                    if name.endswith('.xlsx') and 'google' in low and '日別' in name:
+                    if name.endswith('.xlsx') and 'google' in low and '日別' in nk:
                         from openpyxl import load_workbook
                         wb = load_workbook(io.BytesIO(kget(f"/k/v1/file.json?fileKey={f['fileKey']}")), data_only=True)
                         for row in wb.active.iter_rows(values_only=True):
@@ -91,21 +119,31 @@ def main():
                     if not name.endswith('.csv'):
                         continue
                     day = day_from_name(name)
-                    if not day or day > upto:
-                        continue
                     media = None
                     colname = None
-                    if 'トラベル' in name:
+                    if 'トラベル' in nk:
                         media, colname = 'trav', '消化金額'
-                    elif 'カタログ' in name:
+                    elif 'カタログ' in nk:
                         media, colname = 'cat', '消化金額'
                     elif 'rpp' in low or 'r pp' in low:
                         media, colname = 'rpp', '実績額(合計)'
-                    elif ('amazon' in low or 'アマゾン' in name) and '広告' in name:
+                    elif ('amazon' in low or 'アマゾン' in nk) and '広告' in nk:
                         media, colname = 'az', '合計費用 (換算済み)'
-                    if not media or (media, day) in vals:
+                    if not media:
+                        continue
+                    if day and (day > upto or (media, day) in vals):
                         continue
                     text = read_text(kget(f"/k/v1/file.json?fileKey={f['fileKey']}"))
+                    # Meta/RPPはCSV内の日付列で日次配分（添付名の日付間違いに強い）
+                    daily = daily_col(text, colname) if media != 'az' else None
+                    if daily:
+                        for (yy, mm, dd), amt in daily.items():
+                            if f'{yy:04d}-{mm:02d}' == month and dd <= upto \
+                                    and (media, dd) not in vals:
+                                vals[(media, dd)] = amt
+                        continue
+                    if not day or day > upto:
+                        continue
                     total = sum_col(text, colname)
                     if total is not None and total >= 0:
                         vals[(media, day)] = total
