@@ -75,6 +75,10 @@ def daily_col(text, colname):
     for r in rows[rows.index(hdr) + 1:]:
         if len(r) <= max(i, di) or not str(r[i]).strip():
             continue
+        # 「8/1〜8/5」のような期間まとめ行は日別に使えないため除外
+        ds = re.findall(r'(\d{4})[-/年](\d{1,2})[-/月](\d{1,2})', z2h(str(r[di])))
+        if len(ds) >= 2 and ds[0] != ds[1]:
+            continue
         d = parse_date(r[di])
         if d:
             out[d] = out.get(d, 0) + yen_num(r[i])
