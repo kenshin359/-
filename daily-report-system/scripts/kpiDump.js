@@ -10,6 +10,7 @@
 //    復号: A-J → 0-9 に戻してから16進デコード。
 //
 //  実行: node scripts/kpiDump.js --days=3
+//        --app=35 で別アプリ（例: 在庫報告）の添付も取り出せます。
 // ============================================================
 import { optional } from '../lib/env.js';
 import { authHeadersFor } from '../lib/kintone.js';
@@ -61,7 +62,7 @@ async function downloadFile(fileKey) {
 
 async function main() {
   const days = Number(arg('days', '3'));
-  const appId = optional('KINTONE_KPI_APP_ID', '30');
+  const appId = arg('app', '') || optional('KINTONE_KPI_APP_ID', '30');
 
   const since = new Date(Date.now() + 9 * 3600 * 1000);
   since.setUTCDate(since.getUTCDate() - days);
