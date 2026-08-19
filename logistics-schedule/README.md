@@ -40,6 +40,9 @@
 | `npm run create-app` | 「物流スケジュール」アプリを自動作成（フィールド＋一覧ビュー＋デプロイ） |
 | `npm run import` | `packing-lists/` の Excel を解析してレコード投入（コンテナ番号で upsert） |
 | `npm run import-planned` | 発注（出荷計画）を「計画」ステータスの予定レコードとして登録（`data/planned-*.json`） |
+| `npm run create-inventory-app` | 「在庫」アプリを自動作成（SKU管理・在庫合計は自動計算） |
+| `npm run import-inventory` | 在庫CSV（`data/inventory.csv`）を在庫アプリへ投入（商品IDで upsert） |
+| `npm run stock-news` | 在庫＋入荷予定から「在庫・入荷ニュース」HTMLを自動生成（デイリーニュースへ投稿も可） |
 
 ## セットアップ
 
@@ -121,6 +124,25 @@ PLANNED_FILE=data/planned-handyfan-abc.json npm run import-planned
 > ステータスに「計画」を使うため、既にアプリを作成済みの場合は
 > `status` ドロップダウンに **計画** の選択肢を追加してください
 > （まだ未作成なら `npm run create-app` で自動的に含まれます）。
+
+## 在庫アプリ ＆ 在庫ニュース自動生成
+
+日報システムと同じ流れ（データ → 整形 → ニュース）で、**倉庫在庫＋入荷予定**から
+「在庫・入荷ニュース」を自動生成し、デイリーニュースに載せられます。
+
+```bash
+npm run create-inventory-app    # ① 在庫アプリを作成 → 表示IDを .env の KINTONE_INV_APP_ID へ
+npm run import-inventory        # ② data/inventory.csv を投入（商品IDで upsert）
+npm run stock-news             # ③ out/在庫状況_ニュース.html を生成（貼付用）
+```
+
+- **在庫データ**：`data/inventory.csv`（商品ID・ライン・サイズ・色・Amazon分・良品・引当・日販・発注点・在庫ステータス）。同梱は 2026/8/2 スナップショット（多機能PC 19SKU）。最新在庫が届いたら差し替え。
+- **入荷予定**：`data/incoming.json`（物流スケジュール由来。倉庫入れ予定日・状態）。
+- `stock-news` は在庫サマリー・欠品僅少・今週入荷・入荷予定表を計算して**HTMLカード**を作成。
+- **自動投稿**：`.env` に `KINTONE_NEWS_APP_ID` と本文/タイトルのフィールドコードを設定し
+  `POST=1 npm run stock-news` で「リベティ・デイリーニュース」アプリへレコード投稿。
+- **定期実行**：n8n / cron / kintone連携で毎朝 `stock-news` を回せば、売上ニュースの隣に
+  在庫ニュースが自動で並びます。
 
 ## 同梱のサンプル
 
