@@ -95,6 +95,20 @@ export const FIELDS = {
   warehousing_date: dateField('warehousing_date', '入庫日'),
   shippable_date: dateField('shippable_date', '発送可能日'),
 
+  // ── 監査・チェック ──
+  auditor: text('auditor', '監査役'), // 確認担当（1名）
+  check_status: {
+    type: 'CHECK_BOX',
+    code: 'check_status',
+    label: 'チェック',
+    options: {
+      確認済: { label: '確認済', index: '0' },
+      数量突合済: { label: '数量突合済', index: '1' },
+      書類完備: { label: '書類完備', index: '2' },
+    },
+  },
+  audit_date: dateField('audit_date', '監査日'),
+
   // ── その他 ──
   ref_no: text('ref_no', 'REF番号'),
   cargo_control_no: text('cargo_control_no', '貨物管理番号'),
@@ -134,6 +148,8 @@ export const LIST_FIELDS = [
   'warehousing_date', // 入庫日
   'shippable_date', // 発送可能日
   'status',
+  'check_status', // チェック
+  'auditor', // 監査役
 ];
 
 function text(code, label) {
