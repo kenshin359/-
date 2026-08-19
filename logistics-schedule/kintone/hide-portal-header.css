@@ -1,0 +1,37 @@
+/* ============================================================
+   kintone ポータル 上部の画像バナー（色鉛筆など）を非表示にするCSS
+   貼り付け先： kintone システム管理 → カスタマイズ／サービス連携
+              → 「JavaScript / CSS でカスタマイズ」→ ポータル → PC用CSS
+   ※ CSSカスタマイズは【PCブラウザ版のみ】適用（モバイルアプリには効きません）
+   ※ モバイルでも消したい場合は「スペースのカバー画像」を設定変更してください
+   ============================================================ */
+
+/* --- ① ポータル／スペースのヘッダー画像領域を隠す（主要候補を網羅） --- */
+.ocean-portal-header,
+.ocean-portal-header-image,
+.gaia-argoui-space-header,
+.gaia-argoui-space-headerimage,
+.ocean-space-portal-header,
+[class*="portal-header"],
+[class*="space-header"],
+[class*="headerImage"],
+[class*="-coverImage"] {
+  display: none !important;
+}
+
+/* --- ② 背景画像として設定されている場合の保険（画像だけ消して高さは詰める） --- */
+[class*="portal"] [style*="background-image"],
+[class*="space"] [class*="header"][style*="background-image"] {
+  background-image: none !important;
+}
+
+/* --- ③ 画像が消えた分の余白を軽く詰める（必要な場合のみ有効化） --- */
+/*
+.ocean-portal-header,
+.gaia-argoui-space-header {
+  height: 0 !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+*/
