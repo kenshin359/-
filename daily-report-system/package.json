@@ -64,6 +64,8 @@
     "task:build": "node scripts/buildTaskCalendar.js",
     "task:sync": "node scripts/exportTasks.js && node scripts/buildTaskCalendar.js",
     "task:notify": "node scripts/notifyTasksChatwork.js",
-    "task:watch": "node scripts/watchTasks.js"
+    "task:watch": "node scripts/watchTasks.js",
+    "task:chatwork": "node scripts/exportChatworkTasks.js",
+    "task:chatwork:sync": "node scripts/exportChatworkTasks.js && node scripts/buildTaskCalendar.js"
   }
 }

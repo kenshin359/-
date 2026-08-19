@@ -1043,7 +1043,7 @@
     renderRank(mtasks);
     updateHint(mtasks);
     const src = IS_LIVE
-      ? `kintone連携データ（${(EMBEDDED && EMBEDDED.generatedAt) ? new Date(EMBEDDED.generatedAt).toLocaleString("ja-JP") : "最新取得"}）`
+      ? `${(EMBEDDED && EMBEDDED.source) ? EMBEDDED.source + "連携データ" : "連携データ"}（${(EMBEDDED && EMBEDDED.generatedAt) ? new Date(EMBEDDED.generatedAt).toLocaleString("ja-JP") : "最新取得"}）`
       : "サンプルデータ（デモ用に自動生成）";
     document.getElementById("footer").textContent =
       `${src}: 全${MEMBERS.length}名 / 総タスク ${TASKS.length}件。右上「＋タスクを追加」で入力、日別明細の「完了にする」で状態変更（この端末に保存されます）。`;

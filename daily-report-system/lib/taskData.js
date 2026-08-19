@@ -45,6 +45,45 @@ export const STATUSES = [
 
 export const PRIORITIES = ['高', '中', '低'];
 
+// 名簿（カレンダーHTMLの ROSTER と一致）。担当者名からチームを割り当てるのに使う。
+// 兼務者（黒葛原＝広告運用＋LP）は先頭を主所属とする。
+export const ROSTER = [
+  { name: '塚本', teams: ['honbu'] },
+  { name: '北野', teams: ['honbu'] },
+  { name: '角南', teams: ['ad'] },
+  { name: '黒葛原', teams: ['ad', 'lp'] },
+  { name: '倉内', teams: ['sns'] },
+  { name: '内田', teams: ['sns'] },
+  { name: '桝田', teams: ['sns'] },
+  { name: 'ミンジ', teams: ['lp'] },
+  { name: '三浦', teams: ['lp'] },
+  { name: '久保', teams: ['lp'] },
+  { name: '笹本', teams: ['cs'] },
+  { name: '村田', teams: ['cs'] },
+  { name: '関本', teams: ['cs'] },
+  { name: '淵田', teams: ['exec'] },
+  { name: '西岡', teams: ['exec'] },
+  { name: '山本', teams: ['tiktok'] },
+  { name: '山近', teams: ['tiktok'] },
+  { name: '杉本', teams: ['part'] },
+  { name: '辰巳', teams: ['part'] },
+  { name: '小西', teams: ['part'] },
+  { name: '村方', teams: ['part'] },
+  { name: '山下', teams: ['part'] },
+];
+
+/**
+ * 担当者名から所属チームIDを推定する（Chatworkの表示名は姓＋名などのため部分一致）。
+ * 名簿に無ければ 'honbu'（本部チーム）に寄せる。
+ */
+export function teamForName(name) {
+  if (!name) return 'honbu';
+  for (const p of ROSTER) {
+    if (name.includes(p.name)) return p.teams[0];
+  }
+  return 'honbu';
+}
+
 const teamByName = Object.fromEntries(TEAMS.map((t) => [t.name, t.id]));
 const catByName = Object.fromEntries(CATEGORIES.map((c) => [c.name, c.id]));
 const statusByName = Object.fromEntries(STATUSES.map((s) => [s.name, s.id]));
@@ -126,7 +165,7 @@ export function recordToTask(record) {
  * @param {Array} tasks  recordToTask で作ったタスク配列
  * @param {string} generatedAt  ISO文字列（呼び出し側で new Date().toISOString()）
  */
-export function buildDataset(tasks, generatedAt) {
+export function buildDataset(tasks, generatedAt, source) {
   // メンバー（担当者）を集約。所属チームはタスクから復元（兼務対応）。
   const byMember = new Map();
   for (const t of tasks) {
@@ -139,6 +178,7 @@ export function buildDataset(tasks, generatedAt) {
   }
   return {
     generatedAt: generatedAt || null,
+    source: source || null,
     teams: TEAMS,
     members: [...byMember.values()],
     tasks,

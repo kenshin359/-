@@ -65,7 +65,33 @@ npm run task:create-app -- --dry-run   # 作らずに項目だけ確認
 | `status` | ステータス | ドロップダウン（必須） | 未着手/進行中/完了/遅延 |
 | `due_date` | 期日 | 日付（必須） | |
 
-## 3. カレンダーに実データを表示する
+## 3-A. データ元にChatworkのタスクを使う（各スタッフのタスクを毎日可視化）
+
+kintoneの代わりに、**Chatworkの「タスク」機能**（各ルームの担当者つきタスク）を
+そのままカレンダーに取り込めます。毎日実行すれば、各スタッフのタスクが日々可視化されます。
+
+```
+# .env に Chatworkトークンと、取り込む元ルームを設定
+CHATWORK_API_TOKEN=＜Chatworkのトークン＞
+CHATWORK_TASK_SOURCE_ROOMS=428303793,443746924   # 未設定なら参加中の全ルーム
+
+# 取得 → HTML生成 を一気に
+npm run task:chatwork:sync
+# 完了タスクも含めたい場合
+node scripts/exportChatworkTasks.js --with-done && npm run task:build
+```
+
+- 担当者名から**自動でチーム分け**します（名簿 `lib/taskData.js` の `ROSTER` に基づく／
+  兼務者も対応）。名簿に無い人は「本部チーム」に寄せます。
+- タスク本文から**種別**（会議／顧客対応／分析／開発 など）を自動推定します。
+- Chatworkの期限＝カレンダーの期日。期限切れ未完了は自動で「遅延」に。
+- 期限が無いタスクは当日扱いで表示します。
+- **毎日 cron で `npm run task:chatwork:sync`** を回せば、常に最新になります。
+
+> どちらのデータ元でも、生成物（`out/task-calendar.html`）の見た目・操作は同じです。
+> kintone を使う場合は下の 3 を、Chatwork を使う場合はこの 3-A を実行してください。
+
+## 3. データ元にkintoneを使う場合
 
 ```
 npm run task:sync     # 取得 → HTML生成 を一気に

@@ -38,7 +38,7 @@ async function main() {
   const skipped = records.length - tasks.length;
   if (skipped > 0) console.log(`  ※ タスク名または期日が空の ${skipped}件はスキップしました`);
 
-  const dataset = buildDataset(tasks, new Date().toISOString());
+  const dataset = buildDataset(tasks, new Date().toISOString(), 'kintone');
   console.log(`  担当者: ${dataset.members.length}名 / タスク: ${dataset.tasks.length}件`);
 
   fs.mkdirSync(path.dirname(outPath), { recursive: true });

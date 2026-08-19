@@ -19,10 +19,17 @@ kintone の「業務タスク」アプリと接続し、実データのカレン
 
 ```
 cd daily-report-system
-npm run task:sync     # kintoneから取得 → out/task-calendar.html を生成（実データのカレンダー）
+# データ元は2通り（どちらでも見た目・操作は同じ）
+npm run task:chatwork:sync   # Chatworkのタスク（各スタッフ）→ カレンダー（毎日回すと最新に）
+npm run task:sync            # kintoneの業務タスク → カレンダー
+
 npm run task:watch    # 着手・完了・遅延・停滞を随時 Chatwork へ通知（定期実行）
 npm run task:notify   # その日の締切・遅延サマリーを Chatwork へ（毎朝1回）
 ```
+
+**Chatworkのタスクを毎日可視化**：各ルームのタスク（担当者・期限つき）を取り込み、
+担当者から自動でチーム分け・種別推定してカレンダーに表示します
+（元ルームは `CHATWORK_TASK_SOURCE_ROOMS` で指定、未設定なら全ルーム）。
 
 - **随時通知**：`task:watch` を15〜30分おきに実行すると、タスクが「着手／完了／遅延」に
   なった時や「未着手のまま期限が近い（停滞）」時に、その都度 Chatwork に届きます。
