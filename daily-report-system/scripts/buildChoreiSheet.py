@@ -96,6 +96,44 @@ for cc in range(1,12):
 for col,w in zip('ABCDEFGHIJK',[8,17,6,14,15,14,14,15,14,13,14]): ws3.column_dimensions[col].width=w
 ws3.freeze_panes='A4'
 
+# --- 残在庫 ---
+ws4 = wb.create_sheet('残在庫')
+stock = data.get('stock')
+ws4['A1'] = '残在庫（在庫報告アプリ・CS出荷後の入力より）'
+ws4['A1'].font = H
+if stock and stock.get('rows'):
+    rep = (stock.get('reportDate') or '').replace('-', '/')
+    staff = stock.get('staff') or ''
+    ws4['A2'] = f'報告日: {rep}' + (f'　記入者: {staff}' if staff else '')
+    ws4['A2'].font = SMALL
+    for i, h in enumerate(['商品', 'カラー/SKU', '残り在庫数', 'メモ'], 1):
+        c = ws4.cell(row=4, column=i, value=h)
+        c.font = WHITE_B; c.fill = NAVY; c.border = B
+        c.alignment = Alignment(horizontal='center')
+    r = 4
+    for row in stock['rows']:
+        r += 1
+        ws4.cell(row=r, column=1, value=row.get('product', ''))
+        ws4.cell(row=r, column=2, value=row.get('sku', ''))
+        c = ws4.cell(row=r, column=3, value=row.get('qty', 0)); c.number_format = '#,##0'
+        ws4.cell(row=r, column=4, value=row.get('memo', ''))
+        for cc in range(1, 5):
+            cell = ws4.cell(row=r, column=cc); cell.border = B; cell.font = NORM
+    r += 1
+    ws4.cell(row=r, column=1, value='合計').font = BOLD
+    c = ws4.cell(row=r, column=3, value=f'=SUM(C5:C{r-1})')
+    c.font = BOLD; c.number_format = '#,##0'
+    for cc in range(1, 5):
+        cell = ws4.cell(row=r, column=cc); cell.border = B; cell.fill = GRAY
+    if stock.get('memo'):
+        ws4.cell(row=r + 2, column=1, value=f'備考: {stock["memo"]}').font = SMALL
+else:
+    ws4['A3'] = '在庫報告アプリ（CS出荷後）にまだ入力がありません。'
+    ws4['A4'] = 'CSチームが出荷後に入力すると、翌朝からこのシートに自動で載ります。'
+    ws4['A3'].font = NORM; ws4['A4'].font = SMALL
+for col, w in zip('ABCD', [22, 18, 12, 28]):
+    ws4.column_dimensions[col].width = w
+
 # --- サマリー ---
 ws = wb.create_sheet('サマリー',0)
 ws['A1']=f'売上進捗サマリー（イベント加重・{upTo[5:].replace("-","/")}実績まで）'

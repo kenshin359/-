@@ -5,6 +5,7 @@
 //  ・楽天/自社: キントーン「売上明細（自動取込）」から日別合計
 //  ・Amazon:   毎朝KPIアプリの添付ビジネスレポートから日別売上
 //              （添付がない日は config/chorei/amazon-manual-*.json で補完）
+//  ・残在庫:   在庫報告アプリ（CS出荷後・ID35）の最新レコード
 //  結果を out/chorei-progress.json に書き出します。読むだけ・書き込みなし。
 // ============================================================
 import fs from 'node:fs';
@@ -132,6 +133,37 @@ async function fetchAmazonFromKpi(from) {
   return out;
 }
 
+/** 在庫報告レコードの明細行を取り出す（純関数） */
+export function parseStockRows(rec) {
+  const rows = [];
+  for (const row of rec?.stock_rows?.value ?? []) {
+    const v = row.value ?? {};
+    const qty = Number(v.st_qty?.value);
+    rows.push({
+      product: v.st_product?.value ?? '',
+      sku: v.st_sku?.value ?? '',
+      qty: Number.isFinite(qty) ? qty : 0,
+      memo: v.st_memo?.value ?? '',
+    });
+  }
+  return rows;
+}
+
+/** 在庫報告アプリ（CS出荷後）の最新レコードから残在庫を取る */
+async function fetchStock() {
+  const appId = optional('KINTONE_STOCK_APP_ID', '35');
+  const q = encodeURIComponent('order by report_date desc limit 1');
+  const data = await call('GET', `/k/v1/records.json?app=${appId}&query=${q}`);
+  const rec = (data.records ?? [])[0];
+  if (!rec) return null;
+  return {
+    reportDate: rec.report_date?.value ?? '',
+    staff: rec.staff?.value ?? '',
+    memo: rec.memo?.value ?? '',
+    rows: parseStockRows(rec),
+  };
+}
+
 async function main() {
   const today = todayISO();
   const month = today.slice(0, 7);
@@ -159,6 +191,13 @@ async function main() {
     fs.readFileSync(path.join(ROOT, 'config', 'chorei', `events-${month}.json`), 'utf8')
   );
 
+  let stock = null;
+  try {
+    stock = await fetchStock();
+  } catch (e) {
+    console.warn(`⚠ 在庫報告の読み取りに失敗（在庫シートは空欄になります）: ${e.message}`);
+  }
+
   const days = {};
   for (let d = 1; d <= Number(to.slice(8, 10)); d++) {
     const iso = `${month}-${String(d).padStart(2, '0')}`;
@@ -173,9 +212,11 @@ async function main() {
   fs.mkdirSync(outDir, { recursive: true });
   fs.writeFileSync(
     path.join(outDir, 'chorei-progress.json'),
-    JSON.stringify({ month, today, upTo: to, days, ...events }, null, 1)
+    JSON.stringify({ month, today, upTo: to, days, stock, ...events }, null, 1)
   );
-  console.log(`✅ out/chorei-progress.json（${Object.keys(days).length}日分・〜${to}）`);
+  console.log(
+    `✅ out/chorei-progress.json（${Object.keys(days).length}日分・〜${to}・在庫${stock ? stock.rows.length : 0}行）`
+  );
 }
 
 const isMain = process.argv[1] && process.argv[1].endsWith('choreiSheetData.js');
