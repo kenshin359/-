@@ -15,10 +15,8 @@
 name: Amazon売上取込（毎朝7:19）
 
 on:
-  # ※SP-API連携が完了するまで毎朝の自動実行は停止中（休み明けに再開予定）。
-  #   再開するときは下の2行の # を外すだけ。
-  # schedule:
-  #   - cron: '19 22 * * *'   # 日本時間 7:19
+  schedule:
+    - cron: '19 22 * * *'   # 日本時間 7:19
   workflow_dispatch:
     inputs:
       from:
