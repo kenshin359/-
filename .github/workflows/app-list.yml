@@ -1,0 +1,30 @@
+# ============================================================
+#  アプリ棚卸し（手動）
+# ------------------------------------------------------------
+#  キントーン上の全アプリを「ID・レコード件数・最終更新日・名前」で
+#  一覧表示します。使っていないアプリの仕分け用。
+#  ★読み取りのみ。アプリには一切変更を加えません。
+# ============================================================
+name: アプリ棚卸し（手動）
+
+on:
+  workflow_dispatch:
+
+jobs:
+  list:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: daily-report-system
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: 全アプリの一覧を表示
+        env:
+          KINTONE_BASE_URL: ${{ secrets.KINTONE_BASE_URL }}
+          KINTONE_USER: ${{ secrets.KINTONE_USER }}
+          KINTONE_PASSWORD: ${{ secrets.KINTONE_PASSWORD }}
+          APP_ENV: production
+        run: node scripts/listAppsUsage.js
