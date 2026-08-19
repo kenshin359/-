@@ -24,7 +24,7 @@
     {
       "order_no": "ABC-HANDYFAN",
       "seq": 2,
-      "status": "出荷済",
+      "status": "通関済",
       "container_no": "ABC-HANDYFAN-SEA",
       "shipping_date": "",
       "po_number": "ABC-HANDYFAN",
@@ -37,7 +37,8 @@
       "pol": "SHIDAO, CHINA",
       "pod": "OSAKA, JAPAN",
       "arrival_date": "2026-08-17",
-      "remarks": "ABCテレビ出演に伴う緊急発注 / 船便(LCL) 品番F13 1,920個(white/gray) / ETA 8/17 大阪 / B/L GZTLE2608003 サレンダー済 / コンテナ SDFU5001174(LCL) 1パレット 304kg 1.2CBM / 搬入先:上組大阪支店KNCC H/W / 荷受人:REK CO,LTD(岡山県総社市) / FREIGHT COLLECT",
+      "customs_date": "2026-08-14",
+      "remarks": "ABCテレビ出演に伴う緊急発注 / 船便(LCL) 品番F13 1,920個(white/gray) / ETA 8/17 大阪 / B/L GZTLE2608003 サレンダー済 / コンテナ SDFU5001174(LCL) 1パレット 304kg 1.2CBM / 搬入先:上組大阪支店KNCC H/W / 荷受人:REK CO,LTD(岡山県総社市) / FREIGHT COLLECT / 本日 通関対応済み(TGL報告・No.6扱い)",
       "items": [
         { "item_name": "ハンディファン(F13)", "item_color": "ホワイト", "item_spec": "SEA", "item_qty": 660 },
         { "item_name": "ハンディファン(F13)", "item_color": "グレー", "item_spec": "SEA", "item_qty": 1260 }

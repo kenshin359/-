@@ -26,7 +26,7 @@
     "total_cartons": 745,
     "ref_no": "TGL26-1490",
     "dray_note": "8/14枠でヘッド手配可能（8/10朝TGL確認・未手配）",
-    "remarks": "H B/L: GZTLF2607070（IAAU2971329と同一BL・2本口）/ 本船 INTERASIA RESILIENCE N082 ETA 2026-08-14 大阪 / A/N発行 2026-08-10・サレンダー済 / HBL実測 40HQ 745CTN 5,440KGS 68.94CBM ※A/N本文のコンテナ種別(20DR)は誤記、40HQが正 / TGL回答(8/10)で8/14到着確定 / 自社倉庫が在庫切れのため最短で通関希望 / ドレー:8/14枠でヘッド手配可能（未手配）"
+    "remarks": "H B/L: GZTLF2607070（IAAU2971329と同一BL・2本口）/ 本船 INTERASIA RESILIENCE N082 ETA 2026-08-14 大阪 / A/N発行 2026-08-10・サレンダー済 / HBL実測 40HQ 745CTN 5,440KGS 68.94CBM ※A/N本文のコンテナ種別(20DR)は誤記、40HQが正 / 通関対応済み(TGL報告・本日) / ドレー:8/14枠でヘッド手配可能（未手配）"
   },
   "IAAU2971329": {
     "hbl_no": "GZTLF2607070",
@@ -40,7 +40,7 @@
     "total_cartons": 381,
     "ref_no": "TGL26-1490",
     "dray_note": "8/14枠でヘッド手配可能（8/10朝TGL確認・未手配）",
-    "remarks": "H B/L: GZTLF2607070（IAAU1022523と同一BL・2本口）/ 本船 INTERASIA RESILIENCE N082 ETA 2026-08-14 大阪 / A/N発行 2026-08-10・サレンダー済 / HBL実測 20GP 381CTN 2,930KGS 28.79CBM / TGL回答(8/10)で8/14到着確定 / 自社倉庫が在庫切れのため最短で通関希望 / ドレー:8/14枠でヘッド手配可能（未手配）"
+    "remarks": "H B/L: GZTLF2607070（IAAU1022523と同一BL・2本口）/ 本船 INTERASIA RESILIENCE N082 ETA 2026-08-14 大阪 / A/N発行 2026-08-10・サレンダー済 / HBL実測 20GP 381CTN 2,930KGS 28.79CBM / 通関対応済み(TGL報告・本日) / ドレー:8/14枠でヘッド手配可能（未手配）"
   },
   "WHSU5628824": {
     "hbl_no": "GZTLF2608006",
@@ -54,6 +54,6 @@
     "arrival_date": "2026-08-16",
     "total_cartons": 606,
     "ref_no": "TGL26-1498",
-    "remarks": "H B/L: GZTLF2608006(HBL受領・サレンダー済/8/14) / M B/L 025G754677 / 荷受人 LIBETEE.INC / 本船 INTERASIA TENACITY N022 ETA 2026-08-16 大阪 On board 8/13 / 40HQ 606CTN 5,211.6KGS 69.084CBM / 必要書類3点(PL/BL/AN)揃い / CY:南港C-9 三菱倉庫(06-6612-4861) / フリータイム:入港日翌日から6日間 / OCEANチャージ 82,025円(FREIGHT PREPAID)"
+    "remarks": "H B/L: GZTLF2608006(HBL受領・サレンダー済/8/14) / M B/L 025G754677 / 荷受人 LIBETEE.INC / 本船 INTERASIA TENACITY N022 ETA 2026-08-16 大阪 On board 8/13 / 40HQ 606CTN 5,211.6KGS 69.084CBM / 必要書類3点(PL/BL/AN)揃い / 通関対応済み(TGL報告・本日) / CY:南港C-9 三菱倉庫(06-6612-4861) / フリータイム:入港日翌日から6日間 / OCEANチャージ 82,025円(FREIGHT PREPAID)"
   }
 }
