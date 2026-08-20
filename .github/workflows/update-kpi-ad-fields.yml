@@ -1,0 +1,27 @@
+# ============================================================
+#  KPI報告アプリへブランド別・広告CSV添付欄を追加（手動）
+# ============================================================
+name: KPI報告に広告CSV欄を追加（手動）
+
+on:
+  workflow_dispatch:
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: daily-report-system
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: 添付欄を追加
+        env:
+          KINTONE_BASE_URL: ${{ secrets.KINTONE_BASE_URL }}
+          KINTONE_USER: ${{ secrets.KINTONE_USER }}
+          KINTONE_PASSWORD: ${{ secrets.KINTONE_PASSWORD }}
+          KINTONE_KPI_APP_ID: '30'
+          APP_ENV: production
+        run: node scripts/updateKpiAdFields.js

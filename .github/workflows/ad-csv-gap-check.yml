@@ -1,0 +1,47 @@
+# ============================================================
+#  広告CSVの抜けチェック（毎日 11:30 JST）
+# ------------------------------------------------------------
+#  毎朝KPI報告のブランド別・広告CSV欄に未添付があれば
+#  Chatworkへ知らせます。全部そろっていれば何も送りません。
+# ============================================================
+name: 広告CSV抜けチェック
+
+on:
+  schedule:
+    - cron: '30 2 * * *'   # 11:30 JST
+  workflow_dispatch:
+    inputs:
+      date:
+        description: '対象日 YYYY-MM-DD（省略で当日）'
+        required: false
+        default: ''
+      dry_run:
+        description: '送信せず結果だけ表示（true/false）'
+        required: false
+        default: 'false'
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: daily-report-system
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: 抜けチェック
+        env:
+          KINTONE_BASE_URL: ${{ secrets.KINTONE_BASE_URL }}
+          KINTONE_USER: ${{ secrets.KINTONE_USER }}
+          KINTONE_PASSWORD: ${{ secrets.KINTONE_PASSWORD }}
+          KINTONE_KPI_APP_ID: '30'
+          CHATWORK_API_TOKEN: ${{ secrets.CHATWORK_API_TOKEN }}
+          CHATWORK_CHOREI_ROOM_ID: ${{ secrets.CHATWORK_CHOREI_ROOM_ID }}
+          APP_ENV: production
+        run: |
+          args=""
+          if [ -n "${{ inputs.date }}" ]; then args="--date=${{ inputs.date }}"; fi
+          if [ "${{ inputs.dry_run }}" = "true" ]; then args="$args --dry-run"; fi
+          node scripts/adCsvGapCheck.js $args
