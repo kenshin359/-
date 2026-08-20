@@ -1,0 +1,38 @@
+# ============================================================
+#  ECイベント日程をカレンダーに登録（手動）
+# ------------------------------------------------------------
+#  楽天・Amazonの公開セール日程を会社カレンダー（統合）に
+#  一括登録します。重複は自動でスキップされます。
+# ============================================================
+name: イベントカレンダー登録（手動）
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: '登録せず件数だけ表示（true/false）'
+        required: false
+        default: 'false'
+
+jobs:
+  seed:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: daily-report-system
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: カレンダーへ登録
+        env:
+          KINTONE_BASE_URL: ${{ secrets.KINTONE_BASE_URL }}
+          KINTONE_USER: ${{ secrets.KINTONE_USER }}
+          KINTONE_PASSWORD: ${{ secrets.KINTONE_PASSWORD }}
+          KINTONE_CALENDAR_APP_ID: '44'
+          APP_ENV: production
+        run: |
+          args=""
+          if [ "${{ inputs.dry_run }}" = "true" ]; then args="--dry-run"; fi
+          node scripts/calendarEventsSeed.js $args
