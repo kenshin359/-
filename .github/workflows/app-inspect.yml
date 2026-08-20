@@ -1,0 +1,39 @@
+# ============================================================
+#  アプリ構成の調査（手動）
+# ------------------------------------------------------------
+#  指定したアプリのフィールド構成（コード・型・表示名）をログに
+#  出力します。統合・移行の設計用。読み取りのみ・レコードの中身は
+#  一切出しません。
+# ============================================================
+name: アプリ構成調査（手動）
+
+on:
+  workflow_dispatch:
+    inputs:
+      apps:
+        description: 'アプリ番号（カンマ区切り 例: 8,34,16,17）'
+        required: true
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: daily-report-system
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: フィールド構成を表示
+        env:
+          KINTONE_BASE_URL: ${{ secrets.KINTONE_BASE_URL }}
+          KINTONE_USER: ${{ secrets.KINTONE_USER }}
+          KINTONE_PASSWORD: ${{ secrets.KINTONE_PASSWORD }}
+          APP_ENV: production
+        run: |
+          IFS=',' read -ra ids <<< "${{ inputs.apps }}"
+          for id in "${ids[@]}"; do
+            echo "================ アプリ $id ================"
+            node kintone/inspectApp.js "$id" || true
+          done
