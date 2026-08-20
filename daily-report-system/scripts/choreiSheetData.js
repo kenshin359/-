@@ -164,6 +164,23 @@ async function fetchStock() {
   };
 }
 
+async function fetchPromo(from, monthEnd) {
+  const appId = optional('KINTONE_PROMO_APP_ID', '42');
+  const q = encodeURIComponent(
+    `cost_date >= "${from}" and cost_date <= "${monthEnd}" order by cost_date asc limit 200`
+  );
+  const data = await call('GET', `/k/v1/records.json?app=${appId}&query=${q}`);
+  const rows = (data.records ?? []).map((rec) => ({
+    date: rec.cost_date?.value ?? '',
+    category: rec.category?.value ?? 'その他',
+    amount: Number(rec.amount?.value) || 0,
+    partner: rec.partner?.value ?? '',
+    product: rec.product?.value ?? '',
+    memo: rec.memo?.value ?? '',
+  }));
+  return { rows };
+}
+
 async function main() {
   const today = todayISO();
   const month = today.slice(0, 7);
@@ -198,6 +215,16 @@ async function main() {
     console.warn(`⚠ 在庫報告の読み取りに失敗（在庫シートは空欄になります）: ${e.message}`);
   }
 
+  // 販促費（Google/TikTok広告・案件依頼費・TV出演・PRタイムズなど）
+  let promo = null;
+  try {
+    const [y, m] = month.split('-').map(Number);
+    const monthEnd = `${month}-${String(new Date(Date.UTC(y, m, 0)).getUTCDate()).padStart(2, '0')}`;
+    promo = await fetchPromo(from, monthEnd);
+  } catch (e) {
+    console.warn(`⚠ 販促費の読み取りに失敗（販促費シートは案内のみになります）: ${e.message}`);
+  }
+
   const days = {};
   for (let d = 1; d <= Number(to.slice(8, 10)); d++) {
     const iso = `${month}-${String(d).padStart(2, '0')}`;
@@ -212,10 +239,10 @@ async function main() {
   fs.mkdirSync(outDir, { recursive: true });
   fs.writeFileSync(
     path.join(outDir, 'chorei-progress.json'),
-    JSON.stringify({ month, today, upTo: to, days, stock, ...events }, null, 1)
+    JSON.stringify({ month, today, upTo: to, days, stock, promo, ...events }, null, 1)
   );
   console.log(
-    `✅ out/chorei-progress.json（${Object.keys(days).length}日分・〜${to}・在庫${stock ? stock.rows.length : 0}行）`
+    `✅ out/chorei-progress.json（${Object.keys(days).length}日分・〜${to}・在庫${stock ? stock.rows.length : 0}行・販促費${promo ? promo.rows.length : 0}件）`
   );
 }
 

@@ -64,6 +64,7 @@ jobs:
           KINTONE_SALES_DETAIL_APP_ID: ${{ secrets.KINTONE_SALES_DETAIL_APP_ID }}
           KINTONE_KPI_APP_ID: ${{ secrets.KINTONE_KPI_APP_ID }}
           KINTONE_STOCK_APP_ID: ${{ secrets.KINTONE_STOCK_APP_ID }}
+          KINTONE_PROMO_APP_ID: ${{ secrets.KINTONE_PROMO_APP_ID }}
           CHATWORK_API_TOKEN: ${{ secrets.CHATWORK_API_TOKEN }}
           CHATWORK_CHOREI_ROOM_ID: ${{ secrets.CHATWORK_CHOREI_ROOM_ID }}
           APP_ENV: production

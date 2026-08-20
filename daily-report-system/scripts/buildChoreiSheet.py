@@ -134,6 +134,69 @@ else:
 for col, w in zip('ABCD', [22, 18, 12, 28]):
     ws4.column_dimensions[col].width = w
 
+# --- 販促費 ---
+ws5 = wb.create_sheet('販促費')
+promo = data.get('promo')
+ws5['A1'] = f'販促費（{int(month[5:7])}月・販促費管理アプリより）'
+ws5['A1'].font = H
+ws5['A2'] = 'Google広告・TikTok広告・案件依頼費・テレビ出演費用・PRタイムズなど。発生の都度アプリに入力すると翌朝ここに載ります。'
+ws5['A2'].font = SMALL
+if promo and promo.get('rows'):
+    rows5 = promo['rows']
+    # ① 費目別合計
+    cats = []
+    for row in rows5:
+        c = row.get('category', 'その他')
+        if c not in cats:
+            cats.append(c)
+    ws5['A4'] = '■ 費目別合計（今月）'; ws5['A4'].font = BOLD
+    for i, h in enumerate(['費目', '金額', '件数'], 1):
+        c = ws5.cell(row=5, column=i, value=h)
+        c.font = WHITE_B; c.fill = NAVY; c.border = B; c.alignment = Alignment(horizontal='center')
+    r = 5
+    det_first = 5 + len(cats) + 5  # 明細の先頭データ行（下で使う）
+    det_last = det_first + len(rows5) - 1
+    for cat in cats:
+        r += 1
+        ws5.cell(row=r, column=1, value=cat)
+        c = ws5.cell(row=r, column=2, value=f'=SUMIF(B{det_first}:B{det_last},A{r},C{det_first}:C{det_last})')
+        c.number_format = YEN
+        c2 = ws5.cell(row=r, column=3, value=f'=COUNTIF(B{det_first}:B{det_last},A{r})')
+        c2.number_format = '#,##0'
+        for cc in range(1, 4):
+            cell = ws5.cell(row=r, column=cc); cell.border = B; cell.font = NORM
+    r += 1
+    ws5.cell(row=r, column=1, value='合計').font = BOLD
+    c = ws5.cell(row=r, column=2, value=f'=SUM(B6:B{r-1})'); c.font = BOLD; c.number_format = YEN
+    c2 = ws5.cell(row=r, column=3, value=f'=SUM(C6:C{r-1})'); c2.font = BOLD; c2.number_format = '#,##0'
+    for cc in range(1, 4):
+        cell = ws5.cell(row=r, column=cc); cell.border = B; cell.fill = GRAY
+    # ② 明細
+    hdr = det_first - 1
+    ws5.cell(row=hdr - 1, column=1, value='■ 明細').font = BOLD
+    for i, h in enumerate(['日付', '費目', '金額', '支払先・相手', '関連商品', '備考'], 1):
+        c = ws5.cell(row=hdr, column=i, value=h)
+        c.font = WHITE_B; c.fill = NAVY; c.border = B; c.alignment = Alignment(horizontal='center')
+    r = hdr
+    for row in rows5:
+        r += 1
+        d5 = (row.get('date') or '')
+        ws5.cell(row=r, column=1, value=f'{int(d5[5:7])}/{int(d5[8:10])}' if len(d5) == 10 else d5)
+        ws5.cell(row=r, column=2, value=row.get('category', ''))
+        c = ws5.cell(row=r, column=3, value=row.get('amount', 0)); c.number_format = YEN
+        ws5.cell(row=r, column=4, value=row.get('partner', ''))
+        ws5.cell(row=r, column=5, value=row.get('product', ''))
+        ws5.cell(row=r, column=6, value=row.get('memo', ''))
+        for cc in range(1, 7):
+            cell = ws5.cell(row=r, column=cc); cell.border = B; cell.font = NORM
+    ws5.cell(row=r + 2, column=1, value='※ Google広告は11時の広告費レポート（CSV集計）にも載ります。二重計上に注意。').font = SMALL
+else:
+    ws5['A4'] = '販促費管理アプリにまだ入力がありません。'
+    ws5['A5'] = 'アプリに「計上日・費目・金額」を入力すると、翌朝からこのシートに自動で載ります。'
+    ws5['A4'].font = NORM; ws5['A5'].font = SMALL
+for col, w in zip('ABCDEF', [10, 16, 13, 20, 16, 30]):
+    ws5.column_dimensions[col].width = w
+
 # --- サマリー ---
 ws = wb.create_sheet('サマリー',0)
 ws['A1']=f'売上進捗サマリー（イベント加重・{upTo[5:].replace("-","/")}実績まで）'
