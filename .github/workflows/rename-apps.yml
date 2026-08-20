@@ -1,0 +1,37 @@
+# ============================================================
+#  アプリ名の一括変更（手動）
+# ------------------------------------------------------------
+#  自作アプリの名前に【🤖自動入力】【✍手動・毎日】などの目印を
+#  つけます。チーム作成アプリには触れません。
+# ============================================================
+name: アプリ名変更（手動）
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: '変更せず一覧だけ表示（true/false）'
+        required: false
+        default: 'false'
+
+jobs:
+  rename:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: daily-report-system
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: 名前を変更
+        env:
+          KINTONE_BASE_URL: ${{ secrets.KINTONE_BASE_URL }}
+          KINTONE_USER: ${{ secrets.KINTONE_USER }}
+          KINTONE_PASSWORD: ${{ secrets.KINTONE_PASSWORD }}
+          APP_ENV: production
+        run: |
+          args=""
+          if [ "${{ inputs.dry_run }}" = "true" ]; then args="--dry-run"; fi
+          node scripts/renameApps.js $args
