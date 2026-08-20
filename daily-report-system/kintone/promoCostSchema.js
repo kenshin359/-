@@ -17,8 +17,9 @@ const drop = (code, label, options) => ({
 
 export const FIELDS = {
   cost_date: { type: 'DATE', code: 'cost_date', label: '計上日（発生日）', required: true },
+  // ★Google広告はCSV自動集計（11時の広告費レポート）で管理するため、
+  //   二重計上を防ぐ目的でこのアプリの費目には含めない（案A運用）。
   category: drop('category', '費目', [
-    'Google広告',
     'TikTok広告',
     '案件依頼費',
     'テレビ出演費用',

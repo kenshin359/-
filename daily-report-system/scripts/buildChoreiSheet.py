@@ -189,7 +189,7 @@ if promo and promo.get('rows'):
         ws5.cell(row=r, column=6, value=row.get('memo', ''))
         for cc in range(1, 7):
             cell = ws5.cell(row=r, column=cc); cell.border = B; cell.font = NORM
-    ws5.cell(row=r + 2, column=1, value='※ Google広告は11時の広告費レポート（CSV集計）にも載ります。二重計上に注意。').font = SMALL
+    ws5.cell(row=r + 2, column=1, value='※ Google広告・楽天RPP・Amazon広告などCSV自動集計分はこのアプリには入れません（11時の広告費レポートで管理）。').font = SMALL
 else:
     ws5['A4'] = '販促費管理アプリにまだ入力がありません。'
     ws5['A5'] = 'アプリに「計上日・費目・金額」を入力すると、翌朝からこのシートに自動で載ります。'

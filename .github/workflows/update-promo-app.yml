@@ -1,0 +1,36 @@
+# ============================================================
+#  販促費管理アプリの費目更新（手動）
+# ------------------------------------------------------------
+#  promoCostSchema.js の費目定義をアプリに反映します。
+#  ★「費目」フィールドだけを更新。他は一切変更しません。
+# ============================================================
+name: 販促費アプリ費目更新（手動）
+
+on:
+  workflow_dispatch:
+    inputs:
+      app:
+        description: 'アプリ番号（空なら42）'
+        required: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: daily-report-system
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: 費目を更新
+        env:
+          KINTONE_BASE_URL: ${{ secrets.KINTONE_BASE_URL }}
+          KINTONE_USER: ${{ secrets.KINTONE_USER }}
+          KINTONE_PASSWORD: ${{ secrets.KINTONE_PASSWORD }}
+          APP_ENV: production
+        run: |
+          args=""
+          if [ -n "${{ inputs.app }}" ]; then args="--app=${{ inputs.app }}"; fi
+          node kintone/updatePromoApp.js $args
