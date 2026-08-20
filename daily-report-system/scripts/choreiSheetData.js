@@ -172,6 +172,7 @@ async function fetchPromo(from, monthEnd) {
   const data = await call('GET', `/k/v1/records.json?app=${appId}&query=${q}`);
   const rows = (data.records ?? []).map((rec) => ({
     date: rec.cost_date?.value ?? '',
+    brand: rec.brand?.value ?? '',
     category: rec.category?.value ?? 'その他',
     amount: Number(rec.amount?.value) || 0,
     partner: rec.partner?.value ?? '',

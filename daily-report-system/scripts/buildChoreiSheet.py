@@ -141,8 +141,11 @@ ws5['A1'] = f'販促費（{int(month[5:7])}月・販促費管理アプリより�
 ws5['A1'].font = H
 ws5['A2'] = 'Google広告・TikTok広告・案件依頼費・テレビ出演費用・PRタイムズなど。発生の都度アプリに入力すると翌朝ここに載ります。'
 ws5['A2'].font = SMALL
+rows5 = []
 if promo and promo.get('rows'):
-    rows5 = promo['rows']
+    # 朝礼シートはリベティ分のみ（ブランド未記入の行も含める）
+    rows5 = [r for r in promo['rows'] if r.get('brand', '') in ('', 'リベティ')]
+if rows5:
     # ① 費目別合計
     cats = []
     for row in rows5:
@@ -189,7 +192,7 @@ if promo and promo.get('rows'):
         ws5.cell(row=r, column=6, value=row.get('memo', ''))
         for cc in range(1, 7):
             cell = ws5.cell(row=r, column=cc); cell.border = B; cell.font = NORM
-    ws5.cell(row=r + 2, column=1, value='※ Google広告・楽天RPP・Amazon広告などCSV自動集計分はこのアプリには入れません（11時の広告費レポートで管理）。').font = SMALL
+    ws5.cell(row=r + 2, column=1, value='※ このシートは「広告費記載（全て）」アプリのリベティ分のみ。リベティのRPP/Amazon/Googleの確定実費は11時の広告費レポート（CSV自動集計）が正です。').font = SMALL
 else:
     ws5['A4'] = '販促費管理アプリにまだ入力がありません。'
     ws5['A5'] = 'アプリに「計上日・費目・金額」を入力すると、翌朝からこのシートに自動で載ります。'
