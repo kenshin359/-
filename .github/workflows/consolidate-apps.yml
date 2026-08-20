@@ -1,0 +1,41 @@
+# ============================================================
+#  アプリ統合の実行（手動）
+# ------------------------------------------------------------
+#  ① 名簿: 会社情報(40)を「会社名簿」へ拡張し顧客リスト(8)を移行
+#  ② カレンダー: 「会社カレンダー（統合）」を作成し16/17を移行
+#  ★移行元アプリは読むだけ。一切変更しません。
+# ============================================================
+name: アプリ統合（手動）
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'directory / calendar / both'
+        required: false
+        default: 'both'
+      calendar_app:
+        description: '既存の統合カレンダーに追記する場合はアプリ番号'
+        required: false
+
+jobs:
+  consolidate:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: daily-report-system
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: 統合を実行
+        env:
+          KINTONE_BASE_URL: ${{ secrets.KINTONE_BASE_URL }}
+          KINTONE_USER: ${{ secrets.KINTONE_USER }}
+          KINTONE_PASSWORD: ${{ secrets.KINTONE_PASSWORD }}
+          APP_ENV: production
+        run: |
+          args="--mode=${{ inputs.mode || 'both' }}"
+          if [ -n "${{ inputs.calendar_app }}" ]; then args="$args --calendar-app=${{ inputs.calendar_app }}"; fi
+          node scripts/consolidateApps.js $args
