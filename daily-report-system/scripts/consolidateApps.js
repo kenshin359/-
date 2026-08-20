@@ -133,11 +133,10 @@ async function consolidateDirectory() {
     console.log('  区分に 顧客・社員 を追加');
   }
 
-  // 3) 一覧を整備
-  const vw = await call('GET', `/k/v1/preview/app/views.json?app=${APP}`);
-  const views = vw.views ?? {};
+  // 3) 一覧を整備（旧「連絡先一覧」は「全員一覧」に置き換え。PUTは全置換なので新セットのみ渡す）
+  const views = {};
   const mk = (name, index, fields, filterCond) => {
-    views[name] = { ...(views[name] ?? {}), index, type: 'LIST', name, fields, ...(filterCond ? { filterCond } : {}) , sort: 'name asc' };
+    views[name] = { index, type: 'LIST', name, fields, ...(filterCond ? { filterCond } : {}), sort: 'name asc' };
   };
   mk('全員一覧', 0, ['category', 'name', 'office', 'dept', 'phone', 'email', 'memo']);
   mk('顧客', 1, ['name', 'office', 'dept', 'phone', 'email', 'rank', 'memo'], 'category in ("顧客")');
