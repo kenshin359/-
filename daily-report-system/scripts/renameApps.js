@@ -68,10 +68,19 @@ async function main() {
       console.log(`[dry-run] ${app} → ${name}`);
       continue;
     }
-    await call('PUT', '/k/v1/preview/app/settings.json', { app, name });
-    await call('POST', '/k/v1/preview/app/deploy.json', { apps: [{ app }] });
-    await waitDeploy(app);
-    console.log(`✅ ${app} → ${name}`);
+    try {
+      await call('PUT', '/k/v1/preview/app/settings.json', { app, name });
+      await call('POST', '/k/v1/preview/app/deploy.json', { apps: [{ app }] });
+      await waitDeploy(app);
+      console.log(`✅ ${app} → ${name}`);
+    } catch (e) {
+      const msg = JSON.stringify(e.body ?? e.message);
+      if (msg.includes('GAIA_AP01')) {
+        console.log(`⏭ ${app} は存在しないためスキップ（削除済み）`);
+      } else {
+        throw e;
+      }
+    }
   }
   console.log('完了');
 }
