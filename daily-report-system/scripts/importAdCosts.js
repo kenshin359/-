@@ -8,6 +8,10 @@
 //    npm run ads:import -- data/ads/meta_0730.csv
 //    npm run ads:import -- data/ads/*.csv --dry-run
 //    npm run ads:import -- data/ads/rpp.csv --media="RPP(楽天)"
+//    npm run ads:import -- data/ads/o2_google.csv --brand="O2"
+//
+//  ★--brand で ブランド（リベティ / O2 / ガジェティ）を付けられます。
+//    省略時はアプリの既定値（リベティ）になります。
 //
 //  ★同じ日・同じ媒体を2回取り込んでも二重にはなりません。
 //    その媒体の明細だけを入れ替えます（他の媒体はそのまま残ります）。
@@ -68,10 +72,11 @@ function arg(name) {
 }
 
 /** 明細1行を kintone のテーブル行の形にする */
-function toDetailRow(r) {
+function toDetailRow(r, brand) {
   const num = (v) => (Number.isFinite(v) ? String(Math.round(v)) : '');
   return {
     value: {
+      ...(brand ? { d_brand: { value: brand } } : {}),
       d_media: { value: r.media },
       d_product: { value: r.product },
       d_channel: { value: r.channel === '未分類' ? '未分類' : r.channel },
@@ -93,9 +98,9 @@ async function findRecord(app, dateISO) {
 }
 
 /** 1日ぶんを登録・更新する（同じ媒体の明細だけ入れ替える） */
-async function upsertDay(app, dateISO, media, rows, dryRun) {
+async function upsertDay(app, dateISO, media, rows, dryRun, brand) {
   const existing = await findRecord(app, dateISO);
-  const newRows = rows.map(toDetailRow);
+  const newRows = rows.map((r) => toDetailRow(r, brand));
 
   // 既にある明細のうち、今回の媒体以外は残す
   const kept = (existing?.detail?.value ?? []).filter((row) => row.value?.d_media?.value !== media);
@@ -144,10 +149,11 @@ async function main() {
   const files = process.argv.slice(2).filter((a) => !a.startsWith('--'));
   const dryRun = process.argv.includes('--dry-run');
   const mediaOverride = arg('media');
+  const brandOverride = arg('brand');
   const forceDate = arg('force-date');
 
   if (files.length === 0) {
-    console.log('使い方: npm run ads:import -- <CSVファイル…> [--dry-run] [--media="RPP(楽天)"]');
+    console.log('使い方: npm run ads:import -- <CSVファイル…> [--dry-run] [--media="RPP(楽天)"] [--brand="リベティ"]');
     process.exit(1);
   }
 
@@ -189,7 +195,7 @@ async function main() {
     }
 
     for (const [date, dayRows] of [...byDate.entries()].sort()) {
-      await upsertDay(app, date, parsed.media, dayRows, dryRun);
+      await upsertDay(app, date, parsed.media, dayRows, dryRun, brandOverride);
     }
   }
 

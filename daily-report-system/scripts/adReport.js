@@ -72,6 +72,7 @@ export function flattenRecords(records) {
       const product = v.d_product?.value || '未分類';
       rows.push({
         date,
+        brand: v.d_brand?.value || '未設定',
         media: v.d_media?.value || 'その他',
         product,
         channel: v.d_channel?.value || '未分類',

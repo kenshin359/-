@@ -158,10 +158,11 @@ async function main() {
   console.log('この行を .env に貼り付けてください。');
   if (results.adcost) {
     console.log('');
-    console.log('広告費管理アプリの使い方:');
+    console.log('「広告費記載/全て」アプリの使い方:');
+    console.log('  ・明細に ブランド（リベティ/O2/ガジェティ）× 媒体 × 商品 を記載します');
     console.log('  ・一覧の「昨日」「今月」で総広告費が見られます');
-    console.log('  ・グラフの「今月 商品別の広告費」で商品ごとが見られます');
-    console.log('  ・CSVから取り込む場合: npm run ads:import -- <CSVファイル…>');
+    console.log('  ・グラフの「今月 ブランド別」「今月 ブランド × 媒体」でブランドごとが見られます');
+    console.log('  ・CSVから取り込む場合: npm run ads:import -- <CSVファイル…> --brand="リベティ"');
   }
   console.log('その後 npm run dashboard で、在庫と広告費がダッシュボードに出ます。');
 }

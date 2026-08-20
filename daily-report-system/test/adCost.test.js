@@ -20,7 +20,7 @@ import {
   productGroup,
 } from '../lib/adClassify.js';
 import { classifyRows, summarize, formatAdSummary, withRates } from '../lib/adSummary.js';
-import { productOptions, toOptions, dedupKey, MEDIA_OPTIONS } from '../kintone/adCostSchema.js';
+import { productOptions, toOptions, dedupKey, MEDIA_OPTIONS, BRAND_OPTIONS, FIELDS, APP_NAME } from '../kintone/adCostSchema.js';
 import { VIEWS, REPORTS } from '../kintone/adCostViews.js';
 import { previousDay, previousMonth, flattenRecords } from '../scripts/adReport.js';
 
@@ -188,6 +188,26 @@ test('商品別・媒体別・販売先別の合計が一致する', () => {
   assert.equal(s.byMedia[0].name, 'RPP(楽天)');
 });
 
+test('ブランド別にも集計され、報告文に【ブランド別】が出る', () => {
+  const rows = classifyRows([
+    { brand: 'リベティ', media: 'Meta広告', campaign: 'R  Nアルミ', cost: 3000, clicks: 100 },
+    { brand: 'O2', media: 'Google広告', campaign: 'O2 認知', cost: 1000, clicks: 20 },
+  ]);
+  const s = summarize(rows);
+  assert.equal(s.byBrand.reduce((a, b) => a + b.cost, 0), 4000);
+  // 金額の大きいブランドが先頭
+  assert.equal(s.byBrand[0].name, 'リベティ');
+  const text = formatAdSummary(s, { title: '広告費の内訳' });
+  assert.match(text, /【ブランド別】/);
+  assert.match(text, /リベティ/);
+});
+
+test('ブランドが1つ（または未設定）のときは【ブランド別】を出さない', () => {
+  const s = summarize(classifyRows([{ media: 'Meta広告', campaign: 'R  首振り', cost: 1000, clicks: 10 }]));
+  const text = formatAdSummary(s, { title: 'テスト' });
+  assert.ok(!text.includes('【ブランド別】'));
+});
+
 test('★広告費0でも割り算で壊れない', () => {
   const s = summarize(classifyRows([{ media: 'Meta広告', campaign: 'R  首振り', cost: 0, clicks: 0, impressions: 0, conversions: 0, revenue: 0 }]));
   const r = withRates(s.total);
@@ -225,6 +245,29 @@ test('媒体の選択肢に、社長のご指定の5媒体がすべて入って�
   for (const m of ['Meta広告', 'Amazon広告', 'RPP(楽天)', 'Google広告', 'TikTok広告']) {
     assert.ok(MEDIA_OPTIONS.includes(m), `${m} が選択肢にありません`);
   }
+});
+
+test('媒体の選択肢に「案件依頼」「PRタイムズ」が追加されている', () => {
+  assert.ok(MEDIA_OPTIONS.includes('案件依頼'));
+  assert.ok(MEDIA_OPTIONS.includes('PRタイムズ'));
+});
+
+test('ブランドの選択肢が リベティ / O2 / ガジェティ の3つ', () => {
+  assert.deepEqual(BRAND_OPTIONS, ['リベティ', 'O2', 'ガジェティ']);
+});
+
+test('アプリ名が「広告費記載/全て」', () => {
+  assert.equal(APP_NAME, '広告費記載/全て');
+});
+
+test('明細テーブルの先頭にブランド列があり、媒体より前に来る', () => {
+  const detail = FIELDS.detail.fields;
+  assert.ok(detail.d_brand, 'd_brand フィールドがありません');
+  assert.equal(detail.d_brand.type, 'DROP_DOWN');
+  assert.ok('リベティ' in detail.d_brand.options);
+  // 入力画面でブランド→媒体の順に並ぶ（オブジェクトの定義順）
+  const codes = Object.keys(detail);
+  assert.ok(codes.indexOf('d_brand') < codes.indexOf('d_media'));
 });
 
 test('商品の選択肢が2つの対応表から作られる', () => {
@@ -268,6 +311,13 @@ test('グラフに「今月の総額」「昨日の総額」「商品別」「�
   assert.ok(REPORTS['昨日の総広告費']);
   assert.equal(REPORTS['今月 商品別の広告費'].groups[0].code, 'd_product');
   assert.equal(REPORTS['今月 媒体別の広告費'].groups[0].code, 'd_media');
+});
+
+test('ブランド別・ブランド×媒体 のグラフが追加されている', () => {
+  assert.equal(REPORTS['今月 ブランド別の広告費'].groups[0].code, 'd_brand');
+  const bxm = REPORTS['今月 ブランド × 媒体'];
+  assert.equal(bxm.groups[0].code, 'd_brand');
+  assert.equal(bxm.groups[1].code, 'd_media');
 });
 
 // ── レポート ──────────────────────────────────────
