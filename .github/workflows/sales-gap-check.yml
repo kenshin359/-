@@ -1,0 +1,58 @@
+# ============================================================
+#  売上差額チェック（毎朝11:20 JST）
+# ------------------------------------------------------------
+#  手入力の「売上・転換率報告」と自動集計の「売上明細」を突合し、
+#  差が±1万円を超えた日だけChatworkへ知らせます。
+#  差が無い日は何も送りません。読み取りのみ・書き込みなし。
+# ============================================================
+name: 売上差額チェック（毎朝11:20）
+
+on:
+  schedule:
+    # 日本時間 11:20 = 02:20 UTC（広告費11:02・ニュース11:10の後）
+    - cron: '20 2 * * *'
+  workflow_dispatch:
+    inputs:
+      days:
+        description: '何日ぶんさかのぼるか'
+        required: false
+        default: '3'
+      threshold:
+        description: 'しきい値（円）'
+        required: false
+        default: '10000'
+      dry_run:
+        description: '送信せず結果だけ表示（true/false）'
+        required: false
+        default: 'false'
+
+concurrency:
+  group: sales-gap-check
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: daily-report-system
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: 突合してズレがあれば通知
+        env:
+          KINTONE_BASE_URL: ${{ secrets.KINTONE_BASE_URL }}
+          KINTONE_USER: ${{ secrets.KINTONE_USER }}
+          KINTONE_PASSWORD: ${{ secrets.KINTONE_PASSWORD }}
+          KINTONE_SALES_APP_ID: ${{ secrets.KINTONE_SALES_APP_ID }}
+          KINTONE_SALES_DETAIL_APP_ID: ${{ secrets.KINTONE_SALES_DETAIL_APP_ID }}
+          CHATWORK_API_TOKEN: ${{ secrets.CHATWORK_API_TOKEN }}
+          CHATWORK_CHOREI_ROOM_ID: ${{ secrets.CHATWORK_CHOREI_ROOM_ID }}
+          APP_ENV: production
+          REPORT_TIMEZONE: Asia/Tokyo
+        run: |
+          args="--days=${{ inputs.days || '3' }} --threshold=${{ inputs.threshold || '10000' }}"
+          if [ "${{ inputs.dry_run }}" = "true" ]; then args="$args --dry-run"; fi
+          node scripts/salesGapCheck.js $args
