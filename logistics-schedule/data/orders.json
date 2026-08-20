@@ -1,0 +1,125 @@
+{
+  "_comment": "発注管理アプリのシード。既知のPO（発注番号）をまとめて登録。related_containers で物流スケジュールと紐付く。",
+  "orders": [
+    {
+      "order_no": "LM260507",
+      "line": "多機能PC",
+      "status": "一部入荷",
+      "ship_plan": "2026/7/23〜8/7 出荷",
+      "total_qty": 2411,
+      "related_containers": "TWIU4232923 / IAAU1022523 / WHSU5628824",
+      "remarks": "多機能PC/PCスーツケース。3コンテナ・全て通関済。",
+      "items": [
+        { "it_size": "S", "it_finish": "-", "it_color": "PCスーツケース(S)一式", "it_qty": 1080 },
+        { "it_size": "M", "it_finish": "-", "it_color": "多機能PC(M)一式", "it_qty": 725 },
+        { "it_size": "L", "it_finish": "-", "it_color": "PC多機能(L)一式", "it_qty": 606 }
+      ]
+    },
+    {
+      "order_no": "LM260320",
+      "line": "混載",
+      "status": "一部入荷",
+      "ship_plan": "2026/7/31〜8/17 出荷",
+      "total_qty": 2697,
+      "related_containers": "IAAU2971329 / EITU1030111 / CAAU5731521 / WHSU5830223",
+      "remarks": "アルミ・ジップ混載。IAAU2971329は通関済、ジップ2本・ノーマルアルミMは輸送中(書類待ち)。",
+      "items": [
+        { "it_size": "S", "it_finish": "-", "it_color": "多機能/ノーマルアルミ・ジップ(S)", "it_qty": 1517 },
+        { "it_size": "M", "it_finish": "-", "it_color": "ノーマルアルミ・ジップ(M+)", "it_qty": 1180 }
+      ]
+    },
+    {
+      "order_no": "LM251008",
+      "line": "多機能PC",
+      "status": "入荷完了",
+      "ship_plan": "通関済(2026/8)",
+      "total_qty": 1332,
+      "related_containers": "CAAU8766326 / IAAU1910400",
+      "remarks": "PCスーツケース(L)＋PC(S/M)＋多機能アルミ(S)。末尾326/400・通関対応済み。",
+      "items": [
+        { "it_size": "L", "it_finish": "-", "it_color": "PCスーツケース(L)", "it_qty": 599 },
+        { "it_size": "S", "it_finish": "-", "it_color": "PC(S/M)＋アルミ(S)", "it_qty": 733 }
+      ]
+    },
+    {
+      "order_no": "LM26320",
+      "line": "ノーマルアルミ",
+      "status": "出荷済",
+      "ship_plan": "2026/8/13 出荷",
+      "total_qty": 590,
+      "related_containers": "WHSU5830223",
+      "remarks": "ノーマルアルミ(M)。※PO番号はLM260320の可能性・要確認。輸送中(BL/AN未)。",
+      "items": [
+        { "it_size": "M", "it_finish": "-", "it_color": "ノーマルアルミ シルバー326/ブラック264", "it_qty": 590 }
+      ]
+    },
+    {
+      "order_no": "ABC-HANDYFAN",
+      "line": "ハンディファン",
+      "status": "入荷完了",
+      "ship_plan": "エア8/12・船8/17",
+      "total_qty": 2920,
+      "related_containers": "（エア便） / SDFU5001174",
+      "remarks": "ABCテレビ出演に伴う緊急発注。エア1,000個(8/12関空・通関済)＋船1,920個(F13/GZTLE2608003・荷受人REK CO岡山)。",
+      "items": [
+        { "it_size": "-", "it_finish": "-", "it_color": "ハンディファン(エア便)", "it_qty": 1000 },
+        { "it_size": "-", "it_finish": "-", "it_color": "ハンディファン(F13/船便) white660・gray1260", "it_qty": 1920 }
+      ]
+    },
+    {
+      "order_no": "LM20260808",
+      "line": "多機能PC",
+      "status": "発注済",
+      "ship_plan": "2026/11/10〜2027/1/30 出荷（全13本）",
+      "total_qty": 10750,
+      "related_containers": "未割当（13本予定）",
+      "remarks": "経典PC多機能スーツケース。詳細は物流スケジュールの計画レコード(LM20260808-01〜13)参照。",
+      "items": [
+        { "it_size": "S", "it_finish": "-", "it_color": "多機能PC S", "it_qty": 4400 },
+        { "it_size": "M", "it_finish": "-", "it_color": "多機能PC M", "it_qty": 3750 },
+        { "it_size": "L", "it_finish": "-", "it_color": "多機能PC L", "it_qty": 2600 }
+      ]
+    },
+    {
+      "order_no": "注文-2026-05-12",
+      "order_date": "2026-05-12",
+      "line": "多機能PC",
+      "status": "出荷済",
+      "ship_plan": "2026/8/10〜8/20 出荷",
+      "total_qty": 2350,
+      "related_containers": "出荷スケジュール参照",
+      "remarks": "5/12注文分。多機能PC S1,050/M700/L600。",
+      "items": [
+        { "it_size": "S", "it_finish": "-", "it_color": "多機能PC S", "it_qty": 1050 },
+        { "it_size": "M", "it_finish": "-", "it_color": "多機能PC M", "it_qty": 700 },
+        { "it_size": "L", "it_finish": "-", "it_color": "多機能PC L", "it_qty": 600 }
+      ]
+    },
+    {
+      "order_no": "注文-2026-06-18",
+      "order_date": "2026-06-18",
+      "line": "多機能PC",
+      "status": "生産中",
+      "ship_plan": "2026/9/10〜9/25 出荷",
+      "total_qty": 3500,
+      "related_containers": "出荷スケジュール参照",
+      "remarks": "6/18注文分。多機能PC S/M/L。",
+      "items": [
+        { "it_size": "S", "it_finish": "-", "it_color": "多機能PC S", "it_qty": 2200 },
+        { "it_size": "M", "it_finish": "-", "it_color": "多機能PC M", "it_qty": 700 },
+        { "it_size": "L", "it_finish": "-", "it_color": "多機能PC L", "it_qty": 600 }
+      ]
+    },
+    {
+      "order_no": "注文-2026-07-04",
+      "order_date": "2026-07-04",
+      "line": "混載",
+      "status": "生産中",
+      "ship_plan": "2026/9/20〜10/10 出荷",
+      "total_qty": 3250,
+      "related_containers": "出荷スケジュール参照",
+      "remarks": "7/4注文分。多機能PC S/M＋ノーマルアルミS＋多機能アルミ。出荷スケジュール参照。",
+      "items": []
+    }
+  ]
+}

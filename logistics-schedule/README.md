@@ -42,6 +42,8 @@
 | `npm run import-planned` | 発注（出荷計画）を「計画」ステータスの予定レコードとして登録（`data/planned-*.json`） |
 | `npm run create-inventory-app` | 「在庫」アプリを自動作成（SKU管理・在庫合計は自動計算） |
 | `npm run import-inventory` | 在庫CSV（`data/inventory.csv`）を在庫アプリへ投入（商品IDで upsert） |
+| `npm run create-order-app` | 「発注管理」アプリを作成（発注番号で物流スケジュールと連携） |
+| `npm run import-orders` | 発注データ（`data/orders.json`）を発注管理アプリへ投入 |
 | `npm run stock-news` | 在庫＋入荷予定から「在庫・入荷ニュース」HTMLを自動生成（デイリーニュースへ投稿も可） |
 
 ## セットアップ

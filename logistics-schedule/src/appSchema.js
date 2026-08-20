@@ -109,6 +109,25 @@ export const FIELDS = {
   },
   audit_date: dateField('audit_date', '監査日'),
 
+  // ── 書類（ファイル添付：この1レコードで全書類がわかる）──
+  order_no: text('order_no', '発注番号'), // 発注管理アプリと紐付け（PO番号）
+  file_pl: { type: 'FILE', code: 'file_pl', label: 'パッキングリスト' },
+  file_bl: { type: 'FILE', code: 'file_bl', label: 'B/L' },
+  file_an: { type: 'FILE', code: 'file_an', label: 'アライバルノーティス' },
+  file_invoice: { type: 'FILE', code: 'file_invoice', label: 'インボイス' },
+  file_other: { type: 'FILE', code: 'file_other', label: 'その他書類' },
+  docs_status: {
+    type: 'DROP_DOWN',
+    code: 'docs_status',
+    label: '書類充足',
+    defaultValue: '不足',
+    options: {
+      不足: { label: '不足', index: '0' },
+      一部: { label: '一部', index: '1' },
+      完備: { label: '完備', index: '2' },
+    },
+  },
+
   // ── その他 ──
   ref_no: text('ref_no', 'REF番号'),
   cargo_control_no: text('cargo_control_no', '貨物管理番号'),

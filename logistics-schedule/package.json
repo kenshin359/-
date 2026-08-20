@@ -12,7 +12,9 @@
     "import-planned": "node src/importPlanned.js",
     "create-inventory-app": "node src/createInventoryApp.js",
     "import-inventory": "node src/importInventory.js",
-    "stock-news": "node src/generateStockNews.js"
+    "stock-news": "node src/generateStockNews.js",
+    "create-order-app": "node src/createOrderApp.js",
+    "import-orders": "node src/importOrders.js"
   },
   "dependencies": {
     "xlsx": "^0.18.5"
