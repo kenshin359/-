@@ -1,0 +1,49 @@
+# ============================================================
+#  タスク一括登録（手動）
+# ------------------------------------------------------------
+#  会議のアクションアイテムなどをタスク管理（チーム進捗）アプリへ
+#  まとめて登録します。seed入力（base64）で渡すため、
+#  リポジトリにもログにも中身は残りません。
+#  同名タスクはスキップ（重複防止）。
+# ============================================================
+name: タスク一括登録（手動）
+
+on:
+  workflow_dispatch:
+    inputs:
+      app:
+        description: 'アプリ番号（空ならタスク管理38）'
+        required: false
+      seed:
+        description: 'タスクJSON（base64）'
+        required: true
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: daily-report-system
+    steps:
+      # ★seed入力をログに出さないための下ごしらえ（イベントファイル経由で読む）
+      - name: seedデータをログからマスク
+        working-directory: .
+        run: |
+          seed=$(jq -r '.inputs.seed // empty' "$GITHUB_EVENT_PATH")
+          if [ -n "$seed" ]; then echo "::add-mask::$seed"; fi
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: タスクを登録
+        env:
+          KINTONE_BASE_URL: ${{ secrets.KINTONE_BASE_URL }}
+          KINTONE_USER: ${{ secrets.KINTONE_USER }}
+          KINTONE_PASSWORD: ${{ secrets.KINTONE_PASSWORD }}
+          KINTONE_TASK_APP_ID: ${{ secrets.KINTONE_TASK_APP_ID }}
+          TASKS_B64: ${{ inputs.seed }}
+          APP_ENV: production
+        run: |
+          args=""
+          if [ -n "${{ inputs.app }}" ]; then args="--app=${{ inputs.app }}"; fi
+          node scripts/taskImport.js $args

@@ -1,0 +1,51 @@
+# ============================================================
+#  議事録アプリの作成＋議事録登録（手動）
+# ------------------------------------------------------------
+#  ミーティング議事録をまとめるアプリを作成し、seed入力（base64）で
+#  議事録本文を登録します。リポジトリにもログにも中身は残りません。
+#  ★既存アプリは一切変更しません。
+# ============================================================
+name: 議事録アプリ作成（手動）
+
+on:
+  workflow_dispatch:
+    inputs:
+      app:
+        description: '登録だけやり直す場合はアプリ番号（空なら新規作成から）'
+        required: false
+      seed:
+        description: '議事録JSON（base64）。空ならアプリ作成のみ'
+        required: false
+
+jobs:
+  create:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: daily-report-system
+    steps:
+      # ★seed入力をログに出さないための下ごしらえ（イベントファイル経由で読む）
+      - name: seedデータをログからマスク
+        working-directory: .
+        run: |
+          seed=$(jq -r '.inputs.seed // empty' "$GITHUB_EVENT_PATH")
+          if [ -n "$seed" ]; then echo "::add-mask::$seed"; fi
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: アプリ作成＋議事録登録
+        env:
+          KINTONE_BASE_URL: ${{ secrets.KINTONE_BASE_URL }}
+          KINTONE_USER: ${{ secrets.KINTONE_USER }}
+          KINTONE_PASSWORD: ${{ secrets.KINTONE_PASSWORD }}
+          SEED_RECORDS_B64: ${{ inputs.seed }}
+          APP_ENV: production
+        run: |
+          appid="${{ inputs.app }}"
+          if [ -z "$appid" ]; then
+            node kintone/createBusinessApps.js minutes | tee /tmp/create.log
+            appid=$(grep -o 'appId=[0-9]*' /tmp/create.log | head -1 | cut -d= -f2)
+          fi
+          echo "対象アプリ番号: $appid"
+          node scripts/minutesSeed.js --app=$appid

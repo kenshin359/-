@@ -30,6 +30,7 @@ import * as news from './newsSchema.js';
 import * as contacts from './contactsSchema.js';
 import * as logininfo from './loginInfoSchema.js';
 import * as promocost from './promoCostSchema.js';
+import * as minutes from './minutesSchema.js';
 import { VIEWS as AD_VIEWS, REPORTS as AD_REPORTS } from './adCostViews.js';
 import { VIEWS as INTAKE_VIEWS } from './intakeViews.js';
 import { VIEWS as INV_VIEWS, REPORTS as INV_REPORTS } from './inventoryViews.js';
@@ -141,6 +142,7 @@ async function main() {
   if (which === 'contacts') targets.push(['contacts', contacts]);
   if (which === 'logininfo') targets.push(['logininfo', logininfo]);
   if (which === 'promocost') targets.push(['promocost', promocost]);
+  if (which === 'minutes') targets.push(['minutes', minutes]);
 
   if (isDry) {
     console.log('[dry-run] 作成せず、内容だけ表示します。');
@@ -162,6 +164,7 @@ async function main() {
     contacts: { views: contacts.VIEWS },
     logininfo: { views: logininfo.VIEWS },
     promocost: { views: promocost.VIEWS },
+    minutes: { views: minutes.VIEWS },
   };
 
   const results = {};
