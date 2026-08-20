@@ -1,0 +1,31 @@
+# ============================================================
+#  スペース確認＆リンク集書き込み（手動）
+# ============================================================
+name: スペースにリンク集（手動）
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'list=確認だけ / write=リンク集を書き込む'
+        required: false
+        default: 'list'
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: daily-report-system
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: 実行
+        env:
+          KINTONE_BASE_URL: ${{ secrets.KINTONE_BASE_URL }}
+          KINTONE_USER: ${{ secrets.KINTONE_USER }}
+          KINTONE_PASSWORD: ${{ secrets.KINTONE_PASSWORD }}
+          APP_ENV: production
+        run: node scripts/spaceMenu.js --mode=${{ inputs.mode }}
