@@ -202,7 +202,26 @@ def main():
         ws0.conditional_formatting.add(rng, FormulaRule(
             formula=['$B$12="超過"'], fill=PatternFill('solid', bgColor='EA4335'),
             font=Font(name=F, bold=True, color='FFFFFF'), stopIfTrue=True))
-    ws0.cell(17, 1, '※青字＝手入力の前提値・転記データ。それ以外は数式').font = gray
+    # 色の基準（凡例）
+    lg = ws0.cell(17, 1, '■ 色の基準（判定）')
+    lg.font = Font(name=F, bold=True, size=12)
+    legend = [
+        ('合格', '34A853', f'CPA ¥{UNIT_PRICE * TARGET_RATE:,.0f} 以下（広告比率15%以内＝理想ペース）'),
+        ('注意', 'FBBC04', f'¥{UNIT_PRICE * TARGET_RATE:,.0f} 〜 ¥{UNIT_PRICE * ALLOW_RATE:,.0f}（許容範囲。ただし改善の余地あり）'),
+        ('超過', 'EA4335', f'¥{UNIT_PRICE * ALLOW_RATE:,.0f} 超（広告費の使いすぎ。配分の見直しが必要）'),
+    ]
+    for i, (label, color, desc) in enumerate(legend):
+        rr = 18 + i
+        cell = ws0.cell(rr, 1, label)
+        cell.fill = PatternFill('solid', fgColor=color)
+        cell.font = Font(name=F, bold=True, color='FFFFFF')
+        cell.alignment = Alignment(horizontal='center')
+        cell.border = thin
+        ws0.cell(rr, 2, desc).font = norm
+        ws0.merge_cells(start_row=rr, start_column=2, end_row=rr, end_column=3)
+        ws0.cell(rr, 2).border = thin
+
+    ws0.cell(22, 1, '※青字＝手入力の前提値・転記データ。それ以外は数式').font = gray
 
     wb.save(out)
     print(f'saved {out}')
