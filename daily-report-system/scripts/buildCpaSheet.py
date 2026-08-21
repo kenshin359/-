@@ -88,6 +88,19 @@ def main():
         ws.cell(r, 13,
                 f'=IF(L{r}="","",IF(L{r}<=サマリー!$B$7,"合格",IF(L{r}<=サマリー!$B$8,"注意","超過")))')
         ws.cell(r, 13).alignment = Alignment(horizontal='center')
+        # プレビュー環境でも色が出るよう、実績日には静的な塗りも焼き込む
+        if day <= last:
+            spend = (meta + (ad.get('az', {}).get(day) or 0)
+                     + ad.get('rpp', {}).get(day, 0) + ad.get('google', {}).get(day, 0))
+            qty = units[day]['amazon'] + units[day]['rakuten'] + units[day]['own']
+            if qty:
+                cpa = spend / qty
+                chip = ('34A853' if cpa <= UNIT_PRICE * TARGET_RATE
+                        else 'FBBC04' if cpa <= UNIT_PRICE * ALLOW_RATE else 'EA4335')
+                ws.cell(r, 13).fill = PatternFill('solid', fgColor=chip)
+                ws.cell(r, 13).font = Font(name=F, bold=True, color='FFFFFF')
+                if chip == 'EA4335':
+                    ws.cell(r, 12).font = Font(name=F, bold=True, color='C00000')
         top = max(2, r - 6)
         ws.cell(r, 14, f'=IFERROR(SUM(G{top}:G{r})/SUM(K{top}:K{r}),"")').number_format = YEN
         stripe = PatternFill('solid', fgColor='F3F6F4') if day % 2 == 0 else None
@@ -165,6 +178,19 @@ def main():
         ws0.cell(r, 3, note).font = gray
         for c in (1, 2, 3):
             ws0.cell(r, c).border = thin
+    # 月間平均の判定も静的に塗る（プレビュー対応）
+    tot_spend = sum((ad.get('trav', {}).get(d, 0) + ad.get('cat', {}).get(d, 0)
+                     + (ad.get('az', {}).get(d) or 0) + ad.get('rpp', {}).get(d, 0)
+                     + ad.get('google', {}).get(d, 0)) for d in range(1, last + 1))
+    tot_qty = sum(units[d]['amazon'] + units[d]['rakuten'] + units[d]['own']
+                  for d in range(1, last + 1)) or 1
+    avg = tot_spend / tot_qty
+    chip = ('34A853' if avg <= UNIT_PRICE * TARGET_RATE
+            else 'FBBC04' if avg <= UNIT_PRICE * ALLOW_RATE else 'EA4335')
+    for rr in (11, 12):
+        ws0.cell(rr, 2).fill = PatternFill('solid', fgColor=chip)
+        ws0.cell(rr, 2).font = Font(name=F, bold=True, color='FFFFFF')
+
     # サマリーの判定・平均CPA行も色チップ
     for rng in ('B11:B12',):
         ws0.conditional_formatting.add(rng, FormulaRule(
