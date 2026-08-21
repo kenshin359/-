@@ -20,6 +20,7 @@ import sys
 import calendar
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Border, Side, Alignment
+from openpyxl.formatting.rule import FormulaRule
 from openpyxl.utils import get_column_letter
 
 UNIT_PRICE = 30000
@@ -58,7 +59,7 @@ def main():
     heads = ['日付', 'メタ', 'Amazon広告', 'RPP', 'Google', 'その他',
              '合算広告費', 'Amazon個数', '楽天個数', '自社個数', '合計個数',
              '合算CPA', '判定', '7日移動CPA']
-    widths = [7, 11, 11, 10, 9, 8, 12, 11, 9, 9, 9, 10, 6, 12]
+    widths = [7, 12, 12, 12, 11, 8, 13, 11, 9, 9, 9, 10, 6, 12]
     for c, (h, w) in enumerate(zip(heads, widths), 1):
         cell = ws.cell(1, c, h)
         cell.font = hdrfont
@@ -104,6 +105,15 @@ def main():
     cell.fill = sumfill
     cell.number_format = YEN
     cell.border = thin
+    # 判定に応じて行全体を色分け（🟢=緑 / 🟡=黄 / 🔴=赤）
+    rng = f'A2:N{ndays + 1}'
+    ws.conditional_formatting.add(rng, FormulaRule(
+        formula=['$M2="🟢"'], fill=PatternFill('solid', bgColor='C6EFCE'), stopIfTrue=False))
+    ws.conditional_formatting.add(rng, FormulaRule(
+        formula=['$M2="🟡"'], fill=PatternFill('solid', bgColor='FFEB9C'), stopIfTrue=False))
+    ws.conditional_formatting.add(rng, FormulaRule(
+        formula=['$M2="🔴"'], fill=PatternFill('solid', bgColor='FFC7CE'), stopIfTrue=False))
+
     ws.cell(r + 2, 1, '※メタ=トラベル+カタログ（リベティ分）。個数=売上明細のスーツケース系'
                       '（S/M/L・クラシックアルミ・多機能アルミ・アルミ型式未確認）。'
                       'TDA・TikTok・ガジェティ等の月次手動値は未計上。').font = gray
@@ -140,6 +150,14 @@ def main():
         ws0.cell(r, 3, note).font = gray
         for c in (1, 2, 3):
             ws0.cell(r, c).border = thin
+    # サマリーの判定・平均CPA行も色分け
+    for rng in ('B11:B12',):
+        ws0.conditional_formatting.add(rng, FormulaRule(
+            formula=['$B$12="🟢"'], fill=PatternFill('solid', bgColor='C6EFCE'), stopIfTrue=False))
+        ws0.conditional_formatting.add(rng, FormulaRule(
+            formula=['$B$12="🟡"'], fill=PatternFill('solid', bgColor='FFEB9C'), stopIfTrue=False))
+        ws0.conditional_formatting.add(rng, FormulaRule(
+            formula=['$B$12="🔴"'], fill=PatternFill('solid', bgColor='FFC7CE'), stopIfTrue=False))
     ws0.cell(17, 1, '※青字＝手入力の前提値・転記データ。それ以外は数式').font = gray
 
     wb.save(out)
