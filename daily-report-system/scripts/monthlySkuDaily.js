@@ -121,7 +121,8 @@ async function main() {
       const ch = v.s_channel?.value ?? '不明';
       day[pr] = (day[pr] ?? 0) + Number(v.s_qty?.value ?? 0);
       dayCh[ch] = (dayCh[ch] ?? 0) + Number(v.s_amount?.value ?? 0);
-      dayChU[ch] = (dayChU[ch] ?? 0) + Number(v.s_qty?.value ?? 0);
+      const chU = (dayChU[ch] ??= {});
+      chU[pr] = (chU[pr] ?? 0) + Number(v.s_qty?.value ?? 0);
     }
   }
 
