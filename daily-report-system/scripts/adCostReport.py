@@ -154,6 +154,17 @@ def main():
                 except Exception as e:  # 1ファイル失敗しても続行
                     print(f'  ⚠ {name}: {e}')
 
+    # --dump: 日別×媒体の広告費をログに出して終了（CPA資料づくり用・数字はA-J符号化）
+    if '--dump' in sys.argv:
+        daily = {}
+        for (m, d), v in vals.items():
+            daily.setdefault(m, {})[str(d)] = v
+        daily['google'] = {str(d): v for d, v in google_daily.items()}
+        enc = re.sub(r'\d', lambda x: 'ABCDEFGHIJ'[int(x.group())], json.dumps({'month': month, 'daily': daily}))
+        print('===ADCOST_DAILY_B===')
+        print(enc)
+        return
+
     def msum(media):
         return sum(v for (m, d), v in vals.items() if m == media)
     def mdays(media):

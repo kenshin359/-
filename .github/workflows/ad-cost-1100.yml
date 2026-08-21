@@ -17,6 +17,10 @@ on:
         description: '送信せず本文だけ表示（true/false）'
         required: false
         default: 'false'
+      dump:
+        description: '日別×媒体の広告費をログ出力だけして終了（true/false）'
+        required: false
+        default: 'false'
 
 jobs:
   report:
@@ -41,4 +45,5 @@ jobs:
           pip install --quiet openpyxl
           args=""
           if [ "${{ inputs.dry_run }}" = "true" ]; then args="--dry-run"; fi
+          if [ "${{ inputs.dump }}" = "true" ]; then args="$args --dump"; fi
           python3 scripts/adCostReport.py $args
