@@ -8,7 +8,7 @@ import { readdirSync, readFileSync, existsSync, mkdirSync, writeFileSync } from 
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { kintone, qs } from './client.js';
-import { parsePackingList } from './parsePackingList.js';
+import { parsePackingListAll } from './parsePackingList.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, '..');
@@ -106,16 +106,18 @@ async function main() {
   const parsed = [];
   for (const name of files) {
     try {
-      const pl = parsePackingList(join(PL_DIR, name));
-      if (!pl.container_no) {
-        console.warn(`  ⚠ ${name}: コンテナ番号を検出できずスキップ`);
-        continue;
+      const containers = parsePackingListAll(join(PL_DIR, name)); // 1ファイル複数コンテナ対応
+      for (const pl of containers) {
+        if (!pl.container_no) {
+          console.warn(`  ⚠ ${name}: コンテナ番号を検出できずスキップ`);
+          continue;
+        }
+        parsed.push({ name, pl, bl: blInfo[pl.container_no] });
+        console.log(
+          `  ✓ ${name} → ${pl.container_no} / 出荷 ${pl.shipping_date} / ${pl.items.length}品目 / ${pl.total_qty ?? '?'}個` +
+            (blInfo[pl.container_no] ? '  [BL補完あり]' : '')
+        );
       }
-      parsed.push({ name, pl, bl: blInfo[pl.container_no] });
-      console.log(
-        `  ✓ ${name} → ${pl.container_no} / 出荷 ${pl.shipping_date} / ${pl.items.length}品目 / ${pl.total_qty ?? '?'}個` +
-          (blInfo[pl.container_no] ? '  [BL補完あり]' : '')
-      );
     } catch (e) {
       console.warn(`  ⚠ ${name}: 解析失敗 (${e.message})`);
     }
