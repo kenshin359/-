@@ -50,7 +50,8 @@ jobs:
           KINTONE_BASE_URL: ${{ secrets.KINTONE_BASE_URL }}
           KINTONE_USER: ${{ secrets.KINTONE_USER }}
           KINTONE_PASSWORD: ${{ secrets.KINTONE_PASSWORD }}
-          KINTONE_EXPENSE_APP_ID: ${{ secrets.KINTONE_EXPENSE_APP_ID }}
+          # 経費管理アプリはID49（シークレット未設定でも動くようフォールバック付き）
+          KINTONE_EXPENSE_APP_ID: ${{ secrets.KINTONE_EXPENSE_APP_ID || '49' }}
           APP_ENV: production
         run: |
           args=""

@@ -102,8 +102,9 @@ export const VIEWS = {
   },
 };
 
+// ★kintoneの仕様: REPORTSのキーは name と完全一致させること（GAIA_IN07対策）
 export const REPORTS = {
-  今月_利用者別: {
+  '今月 利用者別の経費': {
     chartType: 'BAR',
     chartMode: 'NORMAL',
     index: 0,
@@ -113,7 +114,7 @@ export const REPORTS = {
     filterCond: 'expense_date = THIS_MONTH()',
     sorts: [{ by: 'TOTAL', order: 'DESC' }],
   },
-  今月_費目別: {
+  '今月 費目別の経費': {
     chartType: 'PIE',
     chartMode: 'NORMAL',
     index: 1,
