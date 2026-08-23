@@ -1,0 +1,30 @@
+# ============================================================
+#  経費管理アプリの作成（手動）
+# ------------------------------------------------------------
+#  法人カード・立替経費を利用者ごとに記録するアプリを新規作成します。
+#  利用者21名のドロップダウン・費目・領収書添付・一覧・グラフ付き。
+#  ★既存アプリは一切変更しません。
+# ============================================================
+name: 経費管理アプリ作成（手動）
+
+on:
+  workflow_dispatch:
+
+jobs:
+  create:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: daily-report-system
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: アプリ作成
+        env:
+          KINTONE_BASE_URL: ${{ secrets.KINTONE_BASE_URL }}
+          KINTONE_USER: ${{ secrets.KINTONE_USER }}
+          KINTONE_PASSWORD: ${{ secrets.KINTONE_PASSWORD }}
+          APP_ENV: production
+        run: node kintone/createBusinessApps.js expense

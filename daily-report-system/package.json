@@ -64,6 +64,8 @@
     "reviews:inbox:send": "node scripts/sendReviewInbox.js",
     "shopify:token": "node scripts/shopifyToken.js",
     "replies:pack": "node scripts/replyPack.js",
-    "replies:pack:send": "node scripts/sendReplyPack.js"
+    "replies:pack:send": "node scripts/sendReplyPack.js",
+    "expense:report": "node scripts/expenseReport.js && python3 scripts/buildExpensePdf.py",
+    "expense:send": "node scripts/sendExpensePdf.js"
   }
 }

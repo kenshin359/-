@@ -50,7 +50,7 @@ export function authHeadersFor(token) {
 //
 // ★重要★ GET に Content-Type を付けると kintone は 400 (CB_IL02 Invalid request)
 //   を返します。実機で確認済みの挙動です。GET では付けないこと。
-async function api(method, apiPath, token, body) {
+export async function api(method, apiPath, token, body) {
   const url = `${baseUrl()}${apiPath}`;
   const headers = { ...authHeadersFor(token) };
   if (method !== 'GET') headers['Content-Type'] = 'application/json';

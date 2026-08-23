@@ -1,0 +1,82 @@
+# ============================================================
+#  経費レポートPDF（毎月22日朝・21日締め）
+# ------------------------------------------------------------
+#  キントーン「経費管理」アプリから締め期間（前月22日〜当月21日）を集計し、
+#  利用者別・費目別・明細のPDFを作ってChatworkへ送ります。
+#  手動実行では期間（暦月 or 開始/終了）を指定できます。
+#  ★キントーンは読むだけ。書き込みは一切しません。
+# ============================================================
+name: 経費レポートPDF（毎月22日）
+
+on:
+  schedule:
+    # 毎月21日 22:41 UTC = 毎月22日 07:41 JST（cron混雑帯を避けた半端な分）
+    - cron: '41 22 21 * *'
+  workflow_dispatch:
+    inputs:
+      month:
+        description: '暦月で集計する場合（YYYY-MM／空なら21日締めサイクル）'
+        required: false
+      start:
+        description: '開始日（YYYY-MM-DD／monthより優先）'
+        required: false
+      end:
+        description: '終了日（YYYY-MM-DD／startとセットで指定）'
+        required: false
+      room:
+        description: '送り先のChatworkルーム名'
+        required: false
+        default: '経理'
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: daily-report-system
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: PDFライブラリを入れる
+        run: pip install --quiet reportlab
+
+      - name: 経費を集計する
+        env:
+          KINTONE_BASE_URL: ${{ secrets.KINTONE_BASE_URL }}
+          KINTONE_USER: ${{ secrets.KINTONE_USER }}
+          KINTONE_PASSWORD: ${{ secrets.KINTONE_PASSWORD }}
+          KINTONE_EXPENSE_APP_ID: ${{ secrets.KINTONE_EXPENSE_APP_ID }}
+          APP_ENV: production
+        run: |
+          args=""
+          if [ -n "${{ inputs.month }}" ]; then args="--month=${{ inputs.month }}"; fi
+          if [ -n "${{ inputs.start }}" ] && [ -n "${{ inputs.end }}" ]; then
+            args="--start=${{ inputs.start }} --end=${{ inputs.end }}"
+          fi
+          node scripts/expenseReport.js $args
+
+      - name: PDFにする
+        run: python3 scripts/buildExpensePdf.py
+
+      - name: PDFを保存する（ダウンロード用）
+        uses: actions/upload-artifact@v4
+        with:
+          name: expense-report
+          path: daily-report-system/out/expense-report.pdf
+          retention-days: 90
+
+      - name: Chatworkへ送る
+        env:
+          CHATWORK_API_TOKEN: ${{ secrets.CHATWORK_API_TOKEN }}
+          APP_ENV: production
+        run: |
+          if [ -z "$CHATWORK_API_TOKEN" ]; then
+            echo "CHATWORK_API_TOKEN が未設定のため送信をスキップします（PDFはArtifactsから取得できます）"
+            exit 0
+          fi
+          node scripts/sendExpensePdf.js "--room=${{ inputs.room || '経理' }}"
