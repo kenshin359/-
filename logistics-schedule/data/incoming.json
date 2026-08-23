@@ -9,7 +9,7 @@
     { "container": "IAAU1910400", "line": "多機能PC/アルミ", "size": "S/M", "qty": 733, "eta": "", "status": "CS入荷待ち", "note": "通関済(LM251008)・入庫日未定" },
     { "container": "ABC-HANDYFAN-AIR", "line": "ハンディファン", "size": "-", "qty": 1000, "eta": "", "status": "完了", "note": "エア便・通関済(8/14)" },
     { "container": "SDFU5001174", "line": "ハンディファン", "size": "-", "qty": 1920, "eta": "", "status": "完了", "note": "船便F13・通関済・荷受人REK" },
-    { "container": "WHSU5830223", "line": "ノーマルアルミ", "size": "M", "qty": 590, "eta": "", "status": "輸送中", "note": "出荷8/13・BL/AN未" },
+    { "container": "WHSU5830223", "line": "ノーマルアルミ", "size": "M", "qty": 590, "eta": "2026-08-23", "status": "通関待ち", "note": "BL GZTLF2608019受領・サレンダー済・本船WAN HAI 102 W426・8/23着" },
     { "container": "EITU1030111", "line": "ジップ", "size": "S/M+S", "qty": 1093, "eta": "", "status": "輸送中", "note": "出荷8/17・BL/AN未" },
     { "container": "CAAU5731521", "line": "ジップ/アルミ", "size": "S/M+S", "qty": 633, "eta": "", "status": "輸送中", "note": "出荷8/17・BL/AN未" }
   ]

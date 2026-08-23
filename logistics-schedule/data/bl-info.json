@@ -42,6 +42,20 @@
     "dray_note": "8/14枠でヘッド手配可能（8/10朝TGL確認・未手配）",
     "remarks": "H B/L: GZTLF2607070（IAAU1022523と同一BL・2本口）/ 本船 INTERASIA RESILIENCE N082 ETA 2026-08-14 大阪 / A/N発行 2026-08-10・サレンダー済 / HBL実測 20GP 381CTN 2,930KGS 28.79CBM / 通関対応済み(TGL報告・本日) / ドレー:8/14枠でヘッド手配可能（未手配）"
   },
+  "WHSU5830223": {
+    "hbl_no": "GZTLF2608019",
+    "mbl_no": "025G757198",
+    "bl_surrendered": "済",
+    "vessel": "WAN HAI 102 W426",
+    "pol": "SHEKOU, CHINA",
+    "pod": "OSAKA, JAPAN",
+    "container_type": "40HQ",
+    "seal_no": "WHA2304264",
+    "arrival_date": "2026-08-23",
+    "total_cartons": 590,
+    "ref_no": "TGL26-1560",
+    "remarks": "H B/L GZTLF2608019 受領・サレンダー済 / M B/L 025G757198 / 荷受人 LIBETEE.INC / 本船 WAN HAI 102 W426 ETA 2026-08-23 大阪 On board 8/19 / A/N 8/22発行 / 40HQ 590CTN 5,010KGS 66.66CBM / CY:南港C-9 三菱倉庫(06-6612-4861) / 必要書類3点揃い(輸送中→着予定8/23)"
+  },
   "WHSU5628824": {
     "hbl_no": "GZTLF2608006",
     "mbl_no": "025G754677",
