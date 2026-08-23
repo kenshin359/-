@@ -18,7 +18,8 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from reportlab.lib.units import mm
-from reportlab.platypus import Spacer
+from reportlab.lib.utils import ImageReader
+from reportlab.platypus import Image, Spacer
 
 import pdf_common as pc
 
@@ -27,6 +28,16 @@ CONTENT_W = pc.CONTENT_W
 
 def yen(n):
     return f'{int(round(n)):,}円'
+
+
+def receipt_image(path, max_w=78 * mm, max_h=110 * mm):
+    """明細画像を縦横比を保って縮小して返す（読めない形式は None）"""
+    try:
+        iw, ih = ImageReader(path).getSize()
+        scale = min(max_w / iw, max_h / ih, 1.0)
+        return Image(path, width=iw * scale, height=ih * scale)
+    except Exception:
+        return None
 
 
 def main():
@@ -102,6 +113,20 @@ def main():
             align={5: 'RIGHT'},
         ))
         story.append(Spacer(1, 3 * mm))
+
+        # 明細画像（レコードに添付された領収書・カード明細のスクショ）
+        for r in items:
+            for f in r.get('images', []):
+                img = receipt_image(f['path'])
+                caption = f'{r["date"]}　{yen(r["amount"])}　{f.get("name", "")}'
+                if img is not None:
+                    story.append(pc.P(caption, 'small'))
+                    story.append(img)
+                    story.append(Spacer(1, 3 * mm))
+                else:
+                    story.append(pc.P(f'{caption}　（この形式はPDFに表示できません。'
+                                      'キントーンのレコードで確認してください）', 'note'))
+        story.append(Spacer(1, 2 * mm))
 
     story.append(Spacer(1, 4 * mm))
     story.append(pc.P('このPDFは毎月自動作成されています。明細の追加・修正はキントーンの'

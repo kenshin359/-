@@ -1,0 +1,30 @@
+# ============================================================
+#  経費管理アプリの定義更新（手動）
+# ------------------------------------------------------------
+#  利用者の追加・費目の変更などを expenseSchema.js からアプリに反映します。
+#  ★フィールド定義のみ更新。レコードには一切触りません。
+# ============================================================
+name: 経費管理アプリ更新（手動）
+
+on:
+  workflow_dispatch:
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: daily-report-system
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: アプリ更新
+        env:
+          KINTONE_BASE_URL: ${{ secrets.KINTONE_BASE_URL }}
+          KINTONE_USER: ${{ secrets.KINTONE_USER }}
+          KINTONE_PASSWORD: ${{ secrets.KINTONE_PASSWORD }}
+          KINTONE_EXPENSE_APP_ID: ${{ secrets.KINTONE_EXPENSE_APP_ID || '49' }}
+          APP_ENV: production
+        run: node kintone/updateExpenseApp.js

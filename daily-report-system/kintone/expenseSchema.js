@@ -50,6 +50,7 @@ export const FIELDS = {
     '現金',
     '銀行振込',
   ], { required: true, defaultValue: '法人カード' }),
+  // 迷ったら「その他」のままでOK（金額と明細画像があれば集計できる運用）
   category: drop('category', '費目', [
     '広告・販促費',
     '交通費',
@@ -60,7 +61,7 @@ export const FIELDS = {
     '外注費',
     '仕入・商品関連',
     'その他',
-  ], { required: true }),
+  ], { required: true, defaultValue: 'その他' }),
   amount: { type: 'NUMBER', code: 'amount', label: '金額（税込・円）', required: true },
   payee: { type: 'SINGLE_LINE_TEXT', code: 'payee', label: '支払先・店名' },
   detail: { type: 'MULTI_LINE_TEXT', code: 'detail', label: '内容・目的' },

@@ -19,7 +19,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { required } from '../lib/env.js';
-import { api, qs } from '../lib/kintone.js';
+import { api, qs, authHeadersFor } from '../lib/kintone.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const OUT_DIR = path.join(path.resolve(__dirname, '..'), 'out');
@@ -72,7 +72,37 @@ async function fetchExpenses(app, start, end) {
 
 const val = (r, code) => r[code]?.value ?? '';
 
-function aggregate(records) {
+/** 領収書・明細の添付ファイルをダウンロードして保存する（PDFに載せる用） */
+async function downloadReceipts(records, destDir) {
+  fs.mkdirSync(destDir, { recursive: true });
+  const baseUrl = required('KINTONE_BASE_URL').replace(/\/$/, '');
+  const headers = { ...authHeadersFor(null) };
+  const saved = {}; // recordId -> [{path, name, contentType}]
+
+  for (const r of records) {
+    const files = r.receipt?.value ?? [];
+    const id = r.$id.value;
+    for (const [i, f] of files.entries()) {
+      try {
+        const res = await fetch(
+          `${baseUrl}/k/v1/file.json?fileKey=${encodeURIComponent(f.fileKey)}`,
+          { headers }
+        );
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const buf = Buffer.from(await res.arrayBuffer());
+        const ext = path.extname(f.name || '') || '.bin';
+        const dest = path.join(destDir, `r${id}_${i}${ext}`);
+        fs.writeFileSync(dest, buf);
+        (saved[id] ??= []).push({ path: dest, name: f.name, contentType: f.contentType });
+      } catch (e) {
+        console.warn(`  ⚠ 添付の取得に失敗（record ${id} / ${f.name}）: ${e.message}`);
+      }
+    }
+  }
+  return saved;
+}
+
+function aggregate(records, receiptsById = {}) {
   const byMember = {};
   const byCategory = {};
   const byMethod = {};
@@ -97,6 +127,7 @@ function aggregate(records) {
       payee: val(r, 'payee'),
       detail: val(r, 'detail'),
       settled: val(r, 'settled'),
+      images: receiptsById[r.$id.value] ?? [],
     });
   }
 
@@ -124,7 +155,12 @@ async function main() {
   const records = await fetchExpenses(app, period.start, period.end);
   console.log(`  レコード: ${records.length}件`);
 
-  const agg = aggregate(records);
+  console.log('  明細画像をダウンロード中 …');
+  const receiptsById = await downloadReceipts(records, path.join(OUT_DIR, 'expense-files'));
+  const nFiles = Object.values(receiptsById).reduce((n, a) => n + a.length, 0);
+  console.log(`  添付: ${nFiles}枚`);
+
+  const agg = aggregate(records, receiptsById);
   console.log(`  合計: ${agg.total.toLocaleString()}円`);
 
   const out = { generatedAt: new Date().toISOString(), period, ...agg };
