@@ -61,6 +61,13 @@ jobs:
           fi
           node scripts/expenseReport.js $args
 
+      - name: 集計結果をログに出す（確認用）
+        run: |
+          echo "===EXPENSE_JSON==="
+          cat out/expense-report.json
+          echo ""
+          echo "===END==="
+
       - name: PDFにする
         run: python3 scripts/buildExpensePdf.py
 
