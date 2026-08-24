@@ -106,9 +106,15 @@ async function main() {
   console.log(`日次レコード: ${records.length}件`);
 
   // ① 日別×商品（媒体合算）と 日別×媒体の売上金額・販売個数
+  // ＋スーツケース系だけの日別売上金額（CPA資料の広告比率用）
+  const SUITCASE = new Set([
+    'スーツケースS', 'スーツケースM', 'スーツケースL',
+    'クラシックアルミ', '多機能アルミ', 'アルミ(型式未確認)',
+  ]);
   const daily = {};
   const dailyCh = {};
   const dailyChUnits = {};
+  const dailyScSales = {};
   for (const rec of records) {
     const d = rec.report_date?.value;
     if (!d) continue;
@@ -123,6 +129,9 @@ async function main() {
       dayCh[ch] = (dayCh[ch] ?? 0) + Number(v.s_amount?.value ?? 0);
       const chU = (dayChU[ch] ??= {});
       chU[pr] = (chU[pr] ?? 0) + Number(v.s_qty?.value ?? 0);
+      if (SUITCASE.has(pr)) {
+        dailyScSales[d] = (dailyScSales[d] ?? 0) + Number(v.s_amount?.value ?? 0);
+      }
     }
   }
 
@@ -148,6 +157,8 @@ async function main() {
   console.log(encodeDigits(JSON.stringify({ month, dailyCh })));
   console.log('===DAILY_CH_UNITS_B===');
   console.log(encodeDigits(JSON.stringify({ month, dailyChUnits })));
+  console.log('===DAILY_SC_SALES_B===');
+  console.log(encodeDigits(JSON.stringify({ month, dailyScSales })));
   console.log('===SKU_B===');
   console.log(encodeDigits(JSON.stringify({ month, sku: Object.fromEntries(sku) })));
 }

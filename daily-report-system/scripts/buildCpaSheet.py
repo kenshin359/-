@@ -7,7 +7,8 @@
 #    {"month": "2026-08",
 #     "units": {"1": {"amazon": 29, "rakuten": 49, "own": 16}, ...},
 #     "ad": {"trav": {"1": 240512, ...}, "cat": {...}, "az": {...},
-#            "rpp": {...}, "google": {...}}}
+#            "rpp": {...}, "google": {...}},
+#     "sales": {"1": 2895000, ...}}   ← スーツケース系の日別売上（税込）
 #  出力: 合算CPA_<month>.xlsx
 #    - サマリー（判定前提・月間平均CPA・判定内訳）
 #    - 日次（媒体別広告費・スーツケース個数・合算CPA・判定・7日移動）
@@ -38,6 +39,7 @@ def main():
     month = data['month']
     units = {int(k): v for k, v in data['units'].items()}
     ad = {m: {int(k): v for k, v in days.items()} for m, days in data['ad'].items()}
+    sales = {int(k): v for k, v in data.get('sales', {}).items()}
     y, m = map(int, month.split('-'))
     ndays = calendar.monthrange(y, m)[1]
     last = max(units.keys()) if units else 0
@@ -58,8 +60,8 @@ def main():
     ws = wb.create_sheet('日次')
     heads = ['日付', 'メタ', 'Amazon広告', 'RPP', 'Google', 'その他',
              '合算広告費', 'Amazon個数', '楽天個数', '自社個数', '合計個数',
-             '合算CPA', '判定', '7日移動CPA']
-    widths = [7, 12, 12, 12, 11, 8, 13, 11, 9, 9, 9, 10, 6, 12]
+             '合算CPA', '判定', '7日移動CPA', 'スーツケース売上', '広告比率']
+    widths = [7, 12, 12, 12, 11, 8, 13, 11, 9, 9, 9, 10, 6, 12, 14, 9]
     for c, (h, w) in enumerate(zip(heads, widths), 1):
         cell = ws.cell(1, c, h)
         cell.font = hdrfont
@@ -103,8 +105,22 @@ def main():
                     ws.cell(r, 12).font = Font(name=F, bold=True, color='C00000')
         top = max(2, r - 6)
         ws.cell(r, 14, f'=IFERROR(SUM(G{top}:G{r})/SUM(K{top}:K{r}),"")').number_format = YEN
+        # スーツケース売上（実額の転記）と 広告比率（広告費÷売上）
+        if day <= last and day in sales:
+            cell = ws.cell(r, 15, sales[day])
+            cell.font = blue
+            cell.number_format = YEN
+        ws.cell(r, 16, f'=IFERROR(G{r}/O{r},"")').number_format = '0.0%'
+        if day <= last and sales.get(day):
+            spend_d = (ad.get('trav', {}).get(day, 0) + ad.get('cat', {}).get(day, 0)
+                       + (ad.get('az', {}).get(day) or 0) + ad.get('rpp', {}).get(day, 0)
+                       + ad.get('google', {}).get(day, 0))
+            ratio = spend_d / sales[day]
+            rcol = ('34A853' if ratio <= TARGET_RATE
+                    else 'BF8F00' if ratio <= ALLOW_RATE else 'C00000')
+            ws.cell(r, 16).font = Font(name=F, bold=ratio > ALLOW_RATE, color=rcol)
         stripe = PatternFill('solid', fgColor='F3F6F4') if day % 2 == 0 else None
-        for c in range(1, 15):
+        for c in range(1, 17):
             cell = ws.cell(r, c)
             cell.border = thin
             if stripe and c != 13:
@@ -122,6 +138,16 @@ def main():
     cell.font = bold
     cell.fill = sumfill
     cell.number_format = YEN
+    cell.border = thin
+    cell = ws.cell(r, 15, f'=SUM(O2:O{ndays + 1})')
+    cell.font = bold
+    cell.fill = sumfill
+    cell.number_format = YEN
+    cell.border = thin
+    cell = ws.cell(r, 16, f'=IFERROR(G{r}/O{r},"")')
+    cell.font = bold
+    cell.fill = sumfill
+    cell.number_format = '0.0%'
     cell.border = thin
     # 判定セル: スプレッドシート風の色チップ（濃色ベタ塗り＋白抜き太字）
     mrng = f'M2:M{ndays + 1}'
@@ -142,8 +168,22 @@ def main():
     ws.conditional_formatting.add(f'L2:L{ndays + 1}', FormulaRule(
         formula=['$M2="超過"'], font=Font(name=F, bold=True, color='C00000'), stopIfTrue=False))
 
+    # 広告比率: 目標15%以下=緑 / 許容20%以下=黄 / 超過=赤（文字色）
+    prng = f'P2:P{ndays + 1}'
+    ws.conditional_formatting.add(prng, FormulaRule(
+        formula=[f'AND($P2<>"",$P2<=サマリー!$B$5)'],
+        font=Font(name=F, color='34A853'), stopIfTrue=True))
+    ws.conditional_formatting.add(prng, FormulaRule(
+        formula=[f'AND($P2<>"",$P2<=サマリー!$B$6)'],
+        font=Font(name=F, color='BF8F00'), stopIfTrue=True))
+    ws.conditional_formatting.add(prng, FormulaRule(
+        formula=[f'$P2<>""'],
+        font=Font(name=F, bold=True, color='C00000'), stopIfTrue=True))
+
     ws.cell(r + 2, 1, '※メタ=トラベル+カタログ（リベティ分）。個数=売上明細のスーツケース系'
                       '（S/M/L・クラシックアルミ・多機能アルミ・アルミ型式未確認）。'
+                      'スーツケース売上=同スーツケース系の税込売上（全チャネル）。'
+                      '広告比率=合算広告費÷スーツケース売上（目標15%・許容20%）。'
                       'TDA・TikTok・ガジェティ等の月次手動値は未計上。').font = gray
 
     # ---------- サマリー ----------
@@ -168,6 +208,8 @@ def main():
         ('合格（≤4,500円）の日数', f'=COUNTIF(日次!M2:M{ndays + 1},"合格")', ''),
         ('注意（〜6,000円）の日数', f'=COUNTIF(日次!M2:M{ndays + 1},"注意")', ''),
         ('超過（6,000円超）の日数', f'=COUNTIF(日次!M2:M{ndays + 1},"超過")', ''),
+        ('スーツケース売上 累計', f'=日次!O{ndays + 2}', '税込・全チャネル'),
+        ('月間 広告比率（広告費÷売上）', '=IFERROR(B9/B16,"")', '目標15%・許容20%'),
     ]
     for i, (label, val, note) in enumerate(rows):
         r = 4 + i
@@ -203,7 +245,7 @@ def main():
             formula=['$B$12="超過"'], fill=PatternFill('solid', bgColor='EA4335'),
             font=Font(name=F, bold=True, color='FFFFFF'), stopIfTrue=True))
     # 色の基準（凡例）
-    lg = ws0.cell(17, 1, '■ 色の基準（判定）')
+    lg = ws0.cell(19, 1, '■ 色の基準（判定）')
     lg.font = Font(name=F, bold=True, size=12)
     legend = [
         ('合格', '34A853', f'CPA ¥{UNIT_PRICE * TARGET_RATE:,.0f} 以下（広告比率15%以内＝理想ペース）'),
@@ -211,7 +253,7 @@ def main():
         ('超過', 'EA4335', f'¥{UNIT_PRICE * ALLOW_RATE:,.0f} 超（広告費の使いすぎ。配分の見直しが必要）'),
     ]
     for i, (label, color, desc) in enumerate(legend):
-        rr = 18 + i
+        rr = 20 + i
         cell = ws0.cell(rr, 1, label)
         cell.fill = PatternFill('solid', fgColor=color)
         cell.font = Font(name=F, bold=True, color='FFFFFF')
@@ -221,7 +263,7 @@ def main():
         ws0.merge_cells(start_row=rr, start_column=2, end_row=rr, end_column=3)
         ws0.cell(rr, 2).border = thin
 
-    ws0.cell(22, 1, '※青字＝手入力の前提値・転記データ。それ以外は数式').font = gray
+    ws0.cell(24, 1, '※青字＝手入力の前提値・転記データ。それ以外は数式').font = gray
 
     wb.save(out)
     print(f'saved {out}')
