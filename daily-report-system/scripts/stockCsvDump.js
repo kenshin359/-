@@ -70,8 +70,13 @@ async function main() {
           console.log(`（${buf.length}バイト: 大きすぎるためスキップ）`);
           continue;
         }
+        // Shift-JIS のCSV（楽天/物流系）は UTF-8 で読むと文字化けするため判定して復号
+        let text = buf.toString('utf-8');
+        if ((text.match(/�/g) || []).length > 5) {
+          text = new TextDecoder('shift_jis').decode(buf);
+        }
         console.log('===CSV_B===');
-        printChunked(enc(buf.toString('utf-8')));
+        printChunked(enc(text));
         console.log('===CSV_END===');
       } catch (e) {
         console.log(`取得失敗: ${e.message}`);
