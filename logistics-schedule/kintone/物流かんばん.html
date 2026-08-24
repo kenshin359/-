@@ -1,0 +1,136 @@
+<title>物流かんばん</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700;900&family=Noto+Sans+JP:wght@400;500;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+:root{
+  --bg:#eef1f6; --surface:#fff; --surface-2:#f5f7fb; --ink:#1a2230; --muted:#5b6678;
+  --line:#dde3ee; --accent:#2b4f92;
+  --s1:#8a94a6; --s1bg:#eef0f4;   /* 生産中 */
+  --s2:#3b82c4; --s2bg:#e4f0fb;   /* 輸送中 */
+  --s3:#c98a1a; --s3bg:#fbf0d8;   /* 通関待ち */
+  --s4:#7a5cc0; --s4bg:#efe9fb;   /* ドレー手配 */
+  --s5:#1f9d63; --s5bg:#d9f3e5;   /* 完了 */
+  --ok:#1f9d63; --no:#c2c9d4;
+  --shadow:0 1px 2px rgba(20,28,44,.05),0 6px 20px rgba(20,28,44,.06);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f1622; --surface:#17202e; --surface-2:#1d2736; --ink:#e9eef7; --muted:#93a1b6;
+  --line:#2a3648; --accent:#7aa5ec;
+  --s1:#9aa4b6; --s1bg:#222b39; --s2:#69a8e0; --s2bg:#16283c; --s3:#e2b158; --s3bg:#392b12;
+  --s4:#a98ce6; --s4bg:#271d3d; --s5:#41c584; --s5bg:#123528; --no:#3a4657;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 26px rgba(0,0,0,.35);
+}}
+:root[data-theme="dark"]{
+  --bg:#0f1622; --surface:#17202e; --surface-2:#1d2736; --ink:#e9eef7; --muted:#93a1b6;
+  --line:#2a3648; --accent:#7aa5ec;
+  --s1:#9aa4b6; --s1bg:#222b39; --s2:#69a8e0; --s2bg:#16283c; --s3:#e2b158; --s3bg:#392b12;
+  --s4:#a98ce6; --s4bg:#271d3d; --s5:#41c584; --s5bg:#123528; --no:#3a4657;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 26px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans JP",system-ui,sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1080px;margin:0 auto;padding:24px 18px 52px}
+.mono{font-family:"IBM Plex Mono",monospace}
+h1{font-family:"Zen Kaku Gothic New",sans-serif;font-weight:900;font-size:clamp(23px,3.4vw,32px);margin:0 0 2px}
+.sub{color:var(--muted);font-size:13px;margin-bottom:18px}
+
+/* 流れの説明 */
+.flow{background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:14px 16px;margin-bottom:22px}
+.flow h2{font-family:"Zen Kaku Gothic New";font-weight:700;font-size:14px;margin:0 0 10px;color:var(--accent)}
+.steps{display:flex;gap:8px;flex-wrap:wrap}
+.step{flex:1 1 150px;min-width:140px;background:var(--surface-2);border-radius:10px;padding:9px 11px;position:relative}
+.step .n{font-family:"IBM Plex Mono";font-size:11px;color:var(--muted);font-weight:600}
+.step .t{font-weight:700;font-size:14px;margin:1px 0 2px}
+.step .d{font-size:11.5px;color:var(--muted);line-height:1.45}
+.step.s1{border-left:4px solid var(--s1)} .step.s2{border-left:4px solid var(--s2)}
+.step.s3{border-left:4px solid var(--s3)} .step.s4{border-left:4px solid var(--s4)} .step.s5{border-left:4px solid var(--s5)}
+
+/* ステージ見出し */
+.stage{margin:18px 0 8px;display:flex;align-items:center;gap:9px}
+.stage .pill{font-family:"Zen Kaku Gothic New";font-weight:700;font-size:14px;padding:3px 13px;border-radius:20px}
+.stage .cnt{font-family:"IBM Plex Mono";font-size:12px;color:var(--muted)}
+.p1{background:var(--s1bg);color:var(--s1)} .p2{background:var(--s2bg);color:var(--s2)}
+.p3{background:var(--s3bg);color:var(--s3)} .p4{background:var(--s4bg);color:var(--s4)} .p5{background:var(--s5bg);color:var(--s5)}
+
+/* カード */
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:13px;box-shadow:var(--shadow);padding:13px 15px;border-left-width:5px;border-left-style:solid}
+.c1{border-left-color:var(--s1)} .c2{border-left-color:var(--s2)} .c3{border-left-color:var(--s3)} .c4{border-left-color:var(--s4)} .c5{border-left-color:var(--s5)}
+.crow1{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.order{font-weight:700;font-size:15px}
+.ship{font-family:"IBM Plex Mono";font-size:12px;color:var(--muted)}
+.cont{font-family:"IBM Plex Mono";font-size:13px;color:var(--muted);margin:1px 0 8px}
+/* 書類3点 */
+.docs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.doc{font-size:11.5px;padding:2px 9px;border-radius:8px;border:1px solid var(--line);display:flex;align-items:center;gap:4px}
+.doc .dot{width:8px;height:8px;border-radius:50%}
+.doc.on{color:var(--ink)} .doc.on .dot{background:var(--ok)}
+.doc.off{color:var(--muted)} .doc.off .dot{background:var(--no)}
+.memo{font-size:12.5px;background:var(--surface-2);border-radius:8px;padding:7px 10px;color:var(--ink)}
+.memo .next{display:inline-block;margin-top:3px;font-size:11px;color:var(--accent);font-weight:700}
+footer{margin-top:26px;font-size:11.5px;color:var(--muted);text-align:center;line-height:1.7}
+@media (max-width:680px){.cards{grid-template-columns:1fr}}
+</style>
+
+<div class="wrap">
+  <h1>物流かんばん</h1>
+  <div class="sub">発注 → 生産 → 輸送 → 通関 → 倉庫入れ の進み具合が一目でわかります（2026/08/22 時点）</div>
+
+  <div class="flow">
+    <h2>📘 物流の流れ（この順番で進みます）</h2>
+    <div class="steps">
+      <div class="step s1"><div class="n">STEP 1</div><div class="t">生産中</div><div class="d">工場で製造中。まだ船に乗っていない。</div></div>
+      <div class="step s2"><div class="n">STEP 2</div><div class="t">輸送中</div><div class="d">船で日本へ移動中。海の上。</div></div>
+      <div class="step s3"><div class="n">STEP 3</div><div class="t">通関待ち</div><div class="d">港に到着。税関の手続き待ち。</div></div>
+      <div class="step s4"><div class="n">STEP 4</div><div class="t">ドレー手配</div><div class="d">通関OK。トラックで倉庫へ運ぶ手配。</div></div>
+      <div class="step s5"><div class="n">STEP 5</div><div class="t">完了</div><div class="d">倉庫に入庫。販売・出荷できる。</div></div>
+    </div>
+  </div>
+
+  <div id="board"></div>
+
+  <footer>
+    書類 3点：<b>PL</b>＝パッキングリスト（何が何個入っているか）／<b>BL</b>＝船荷証券（貨物の権利書）／<b>アライバル</b>＝到着案内。<br>
+    ●＝あり ○＝まだ。3点そろうと通関に進めます。／ 詳細は kintone「物流スケジュール」アプリを参照。
+  </footer>
+</div>
+
+<script>
+const STAGES=[
+ {key:"生産中",p:"p1",c:"c1",items:[
+   {order:"LM20260808",ship:"11/10〜出荷予定",cont:"13本 予定（多機能PC 10,750個）",pl:0,bl:0,an:0,memo:"経典PC。11月〜2027年1月に順次出荷予定。まだ工場で生産中。"},
+ ]},
+ {key:"輸送中",p:"p2",c:"c2",items:[
+   {order:"LM260320",ship:"出荷 8/17",cont:"EITU1030111（ジップ便①）",pl:1,bl:0,an:0,memo:"ジップ多機能PC 1,093個。まだ船で移動中。",next:"BL・アライバル受領"},
+   {order:"LM260320",ship:"出荷 8/17",cont:"CAAU5731521（ジップ便②）",pl:1,bl:0,an:0,memo:"ジップ＋アルミ 633個。まだ船で移動中。",next:"BL・アライバル受領"},
+ ]},
+ {key:"通関待ち",p:"p3",c:"c3",items:[
+   {order:"LM260320",ship:"出荷 8/13",cont:"WHSU5830223（ノーマルアルミM）",pl:1,bl:1,an:1,memo:"8/23 大阪着予定。書類そろい済み。",next:"着後 通関依頼"},
+ ]},
+ {key:"ドレー手配",p:"p4",c:"c4",items:[
+   {order:"LM260507",ship:"出荷 8/7",cont:"WHSU5628824（PC多機能L 606）",pl:1,bl:1,an:1,memo:"通関済。8/21引取→8/22倉庫入れ予定。CY:南港C-9三菱倉庫。",next:"8/22 入庫確認"},
+   {order:"LM260320",ship:"出荷 7/31",cont:"IAAU2971329（アルミS 381）",pl:1,bl:1,an:1,memo:"通関済。8/21引取→8/22倉庫入れ予定。",next:"8/22 入庫確認"},
+   {order:"LM260507",ship:"出荷 7/24",cont:"IAAU1022523（多機能PC M/S 745）",pl:1,bl:1,an:1,memo:"通関済。8/26引取→8/27倉庫入れ予定。",next:"8/27 入庫確認"},
+ ]},
+ {key:"完了",p:"p5",c:"c5",items:[
+   {order:"LM260507",ship:"出荷 7/23",cont:"TWIU4232923（PC S 1,060）",pl:1,bl:1,an:1,memo:"通関完了・大阪着済み。"},
+   {order:"LM251008",ship:"—",cont:"CAAU8766326（PC L 599）",pl:1,bl:0,an:0,memo:"通関完了。BL書類は未受領。"},
+   {order:"LM251008",ship:"—",cont:"IAAU1910400（PC+アルミ 733）",pl:1,bl:0,an:0,memo:"通関完了。BL書類は未受領。"},
+   {order:"ABC緊急",ship:"8/12着",cont:"ハンディファン（エア便 1,000）",pl:1,bl:1,an:1,memo:"ABCテレビ用。関空着・通関済み。"},
+   {order:"ABC緊急",ship:"8/17着",cont:"ハンディファン（船便 1,920）",pl:1,bl:1,an:1,memo:"F13。通関済み。荷受人 REK CO（岡山）。"},
+ ]},
+];
+const doc=(label,on)=>`<span class="doc ${on?'on':'off'}"><span class="dot"></span>${label} ${on?'●':'○'}</span>`;
+document.getElementById("board").innerHTML=STAGES.map((s,i)=>`
+  <div class="stage"><span class="pill ${s.p}">${["①","②","③","④","⑤"][i]} ${s.key}</span><span class="cnt">${s.items.length}件</span></div>
+  <div class="cards">${s.items.map(it=>`
+    <div class="card ${s.c}">
+      <div class="crow1"><span class="order">発注 ${it.order}</span><span class="ship">${it.ship}</span></div>
+      <div class="cont">${it.cont}</div>
+      <div class="docs">${doc("PL",it.pl)}${doc("BL",it.bl)}${doc("アライバル",it.an)}</div>
+      <div class="memo">${it.memo}${it.next?`<span class="next">→ 次にやること：${it.next}</span>`:""}</div>
+    </div>`).join("")}</div>
+`).join("");
+</script>
