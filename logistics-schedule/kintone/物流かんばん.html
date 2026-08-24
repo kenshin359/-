@@ -102,12 +102,11 @@ const STAGES=[
  {key:"生産中",p:"p1",c:"c1",items:[
    {order:"LM20260808",ship:"11/10〜出荷予定",cont:"13本 予定（多機能PC 10,750個）",pl:0,bl:0,an:0,memo:"経典PC。11月〜2027年1月に順次出荷予定。まだ工場で生産中。"},
  ]},
- {key:"輸送中",p:"p2",c:"c2",items:[
-   {order:"LM260320",ship:"出荷 8/17",cont:"EITU1030111（ジップ便①）",pl:1,bl:0,an:0,memo:"ジップ多機能PC 1,093個。まだ船で移動中。",next:"BL・アライバル受領"},
-   {order:"LM260320",ship:"出荷 8/17",cont:"CAAU5731521（ジップ便②）",pl:1,bl:0,an:0,memo:"ジップ＋アルミ 633個。まだ船で移動中。",next:"BL・アライバル受領"},
- ]},
+ {key:"輸送中",p:"p2",c:"c2",items:[]},
  {key:"通関待ち",p:"p3",c:"c3",items:[
-   {order:"LM260320",ship:"出荷 8/13",cont:"WHSU5830223（ノーマルアルミM）",pl:1,bl:1,an:1,memo:"8/23 大阪着予定。書類そろい済み。",next:"着後 通関依頼"},
+   {order:"LM260320",ship:"出荷 8/13",cont:"WHSU5830223（ノーマルアルミM 590）",pl:1,bl:1,an:1,memo:"8/23 大阪着予定。書類そろい済み。",next:"着後 通関依頼"},
+   {order:"LM260320",ship:"出荷 8/17",cont:"EITU1030111（ジップ便① 1,093）",pl:1,bl:1,an:1,memo:"8/25 大阪着予定。BL(GZTLF2608026)・アライバル揃い。",next:"着後 通関依頼"},
+   {order:"LM260320",ship:"出荷 8/17",cont:"CAAU5731521（ジップ便② 633）",pl:1,bl:1,an:1,memo:"8/25 大阪着予定。BL(GZTLF2608026)・アライバル揃い。",next:"着後 通関依頼"},
  ]},
  {key:"ドレー手配",p:"p4",c:"c4",items:[
    {order:"LM260507",ship:"出荷 8/7",cont:"WHSU5628824（PC多機能L 606）",pl:1,bl:1,an:1,memo:"通関済。8/21引取→8/22倉庫入れ予定。CY:南港C-9三菱倉庫。",next:"8/22 入庫確認"},
@@ -125,12 +124,12 @@ const STAGES=[
 const doc=(label,on)=>`<span class="doc ${on?'on':'off'}"><span class="dot"></span>${label} ${on?'●':'○'}</span>`;
 document.getElementById("board").innerHTML=STAGES.map((s,i)=>`
   <div class="stage"><span class="pill ${s.p}">${["①","②","③","④","⑤"][i]} ${s.key}</span><span class="cnt">${s.items.length}件</span></div>
-  <div class="cards">${s.items.map(it=>`
+  ${s.items.length? `<div class="cards">${s.items.map(it=>`
     <div class="card ${s.c}">
       <div class="crow1"><span class="order">発注 ${it.order}</span><span class="ship">${it.ship}</span></div>
       <div class="cont">${it.cont}</div>
       <div class="docs">${doc("PL",it.pl)}${doc("BL",it.bl)}${doc("アライバル",it.an)}</div>
       <div class="memo">${it.memo}${it.next?`<span class="next">→ 次にやること：${it.next}</span>`:""}</div>
-    </div>`).join("")}</div>
+    </div>`).join("")}</div>` : `<div style="color:var(--muted);font-size:13px;padding:2px 2px 4px">現在なし</div>`}
 `).join("");
 </script>
