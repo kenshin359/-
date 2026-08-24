@@ -65,6 +65,12 @@ function toFields(pl, bl) {
   };
   if (b.bl_surrendered) f.bl_surrendered = v(b.bl_surrendered);
   if (b.total_cartons != null) f.total_cartons = v(b.total_cartons);
+  // ステータス・書類充足・メモ・発注No.（あるものだけ送る）
+  if (b.status) f.status = v(b.status);
+  if (b.docs_status) f.docs_status = v(b.docs_status);
+  if (b.memo) f.memo = v(b.memo);
+  if (b.order_no) f.order_no = v(b.order_no);
+  if (b.next_action) f.next_action = v(b.next_action);
   // 空文字のドロップダウンは送らない（既定値／既存値を尊重）
   if (!f.container_type.value) delete f.container_type;
   return f;

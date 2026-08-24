@@ -7,7 +7,7 @@
     {
       "order_no": "LM20260808",
       "seq": 1,
-      "status": "計画",
+      "status": "生産中",
       "container_no": "LM20260808-01",
       "shipping_date": "2026-11-10",
       "po_number": "LM20260808",
@@ -48,7 +48,7 @@
     {
       "order_no": "LM20260808",
       "seq": 2,
-      "status": "計画",
+      "status": "生産中",
       "container_no": "LM20260808-02",
       "shipping_date": "2026-11-15",
       "po_number": "LM20260808",
@@ -96,7 +96,7 @@
     {
       "order_no": "LM20260808",
       "seq": 3,
-      "status": "計画",
+      "status": "生産中",
       "container_no": "LM20260808-03",
       "shipping_date": "2026-11-25",
       "po_number": "LM20260808",
@@ -144,7 +144,7 @@
     {
       "order_no": "LM20260808",
       "seq": 4,
-      "status": "計画",
+      "status": "生産中",
       "container_no": "LM20260808-04",
       "shipping_date": "2026-11-30",
       "po_number": "LM20260808",
@@ -185,7 +185,7 @@
     {
       "order_no": "LM20260808",
       "seq": 5,
-      "status": "計画",
+      "status": "生産中",
       "container_no": "LM20260808-05",
       "shipping_date": "2026-12-05",
       "po_number": "LM20260808",
@@ -233,7 +233,7 @@
     {
       "order_no": "LM20260808",
       "seq": 6,
-      "status": "計画",
+      "status": "生産中",
       "container_no": "LM20260808-06",
       "shipping_date": "2026-12-10",
       "po_number": "LM20260808",
@@ -274,7 +274,7 @@
     {
       "order_no": "LM20260808",
       "seq": 7,
-      "status": "計画",
+      "status": "生産中",
       "container_no": "LM20260808-07",
       "shipping_date": "2026-12-15",
       "po_number": "LM20260808",
@@ -315,7 +315,7 @@
     {
       "order_no": "LM20260808",
       "seq": 8,
-      "status": "計画",
+      "status": "生産中",
       "container_no": "LM20260808-08",
       "shipping_date": "2026-12-25",
       "po_number": "LM20260808",
@@ -356,7 +356,7 @@
     {
       "order_no": "LM20260808",
       "seq": 9,
-      "status": "計画",
+      "status": "生産中",
       "container_no": "LM20260808-09",
       "shipping_date": "2027-01-05",
       "po_number": "LM20260808",
@@ -397,7 +397,7 @@
     {
       "order_no": "LM20260808",
       "seq": 10,
-      "status": "計画",
+      "status": "生産中",
       "container_no": "LM20260808-10",
       "shipping_date": "2027-01-10",
       "po_number": "LM20260808",
@@ -445,7 +445,7 @@
     {
       "order_no": "LM20260808",
       "seq": 11,
-      "status": "計画",
+      "status": "生産中",
       "container_no": "LM20260808-11",
       "shipping_date": "2027-01-15",
       "po_number": "LM20260808",
@@ -479,7 +479,7 @@
     {
       "order_no": "LM20260808",
       "seq": 12,
-      "status": "計画",
+      "status": "生産中",
       "container_no": "LM20260808-12",
       "shipping_date": "2027-01-20",
       "po_number": "LM20260808",
@@ -513,7 +513,7 @@
     {
       "order_no": "LM20260808",
       "seq": 13,
-      "status": "計画",
+      "status": "生産中",
       "container_no": "LM20260808-13",
       "shipping_date": "2027-01-30",
       "po_number": "LM20260808",

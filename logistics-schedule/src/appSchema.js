@@ -5,21 +5,19 @@
 // コンテナ番号を実質キーとして扱い（unique）、同じコンテナは 1 行に集約する。
 
 export const FIELDS = {
-  // ── 進捗ステータス（カンバン／絞り込み用）──
+  // ── 進捗ステータス（5段階・スタッフにも分かる言葉）──
+  //   生産中 → 輸送中 → 通関待ち → ドレー手配 → 完了
   status: {
     type: 'DROP_DOWN',
     code: 'status',
     label: 'ステータス',
-    defaultValue: '出荷済',
+    defaultValue: '生産中',
     options: {
-      計画: { label: '計画', index: '0' }, // 発注済・出荷前（コンテナ未割当）
-      出荷済: { label: '出荷済', index: '1' },
-      船積済: { label: '船積済', index: '2' },
-      入港済: { label: '入港済', index: '3' },
-      通関済: { label: '通関済', index: '4' },
-      ドレー手配済: { label: 'ドレー手配済', index: '5' },
-      入庫済: { label: '入庫済', index: '6' },
-      発送可能: { label: '発送可能', index: '7' },
+      生産中: { label: '生産中', index: '0' }, // 工場で製造・まだ船に乗っていない
+      輸送中: { label: '輸送中', index: '1' }, // 船で日本へ移動中
+      通関待ち: { label: '通関待ち', index: '2' }, // 港に到着・税関手続き待ち
+      ドレー手配: { label: 'ドレー手配', index: '3' }, // 通関OK・トラックで倉庫へ運ぶ手配
+      完了: { label: '完了', index: '4' }, // 倉庫入庫まで完了
     },
   },
 
@@ -128,6 +126,10 @@ export const FIELDS = {
     },
   },
 
+  // ── メモ（誰でも書ける自由記入欄）──
+  memo: { type: 'MULTI_LINE_TEXT', code: 'memo', label: 'メモ' },
+  next_action: text('next_action', '次にやること'),
+
   // ── その他 ──
   ref_no: text('ref_no', 'REF番号'),
   cargo_control_no: text('cargo_control_no', '貨物管理番号'),
@@ -155,20 +157,19 @@ export const FIELDS = {
   },
 };
 
-// 一覧ビューに表示する列（ユーザー要望の並び順）。createApp が設定する。
+// 一覧ビューに表示する列（スタッフにも分かる4ブロック順）。
+//   ①発注No./出荷予定日  ②ステータス  ③書類3点  ④メモ
 export const LIST_FIELDS = [
-  'shipping_date', // パッキングリスト＝出荷日
-  'container_no',
-  'po_number',
-  'hbl_no',
-  'arrival_date', // アライバル
-  'customs_date', // 通関予定日
-  'dray_status', // ドレー手配状況
-  'warehousing_date', // 入庫日
-  'shippable_date', // 発送可能日
-  'status',
-  'check_status', // チェック
-  'auditor', // 監査役
+  'order_no', // ① 発注No.
+  'shipping_date', // ① 出荷予定日
+  'container_no', // 参考：コンテナ番号
+  'status', // ② 生産中/輸送中/通関待ち/ドレー手配/完了
+  'arrival_date', // 参考：到着(予定)
+  'docs_status', // ③ 書類充足（不足/一部/完備）
+  'file_pl', // ③ パッキングリスト
+  'file_bl', // ③ B/L
+  'file_an', // ③ アライバル
+  'memo', // ④ メモ
 ];
 
 function text(code, label) {

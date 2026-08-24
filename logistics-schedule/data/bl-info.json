@@ -12,7 +12,11 @@
     "total_cartons": 1060,
     "ref_no": "TGL26-1458",
     "cargo_control_no": "13DF721611071691",
-    "remarks": "H B/L: GZTLF2607053 / A/N PRINT DATE 2026-08-04 / OCEANチャージ 76,400円(FREIGHT PREPAID) / 本船 TS HAKATA 2613N ETA 2026-08-05 大阪 / 通関対応済み(8/14 TGL報告)"
+    "remarks": "H B/L: GZTLF2607053 / A/N PRINT DATE 2026-08-04 / OCEANチャージ 76,400円(FREIGHT PREPAID) / 本船 TS HAKATA 2613N ETA 2026-08-05 大阪 / 通関対応済み(8/14 TGL報告)",
+    "status": "完了",
+    "docs_status": "完備",
+    "order_no": "LM260507",
+    "memo": "通関完了。大阪着済み。"
   },
   "IAAU1022523": {
     "hbl_no": "GZTLF2607070",
@@ -26,7 +30,12 @@
     "total_cartons": 745,
     "ref_no": "TGL26-1490",
     "dray_note": "8/14枠でヘッド手配可能（8/10朝TGL確認・未手配）",
-    "remarks": "H B/L: GZTLF2607070（IAAU2971329と同一BL・2本口）/ 本船 INTERASIA RESILIENCE N082 ETA 2026-08-14 大阪 / A/N発行 2026-08-10・サレンダー済 / HBL実測 40HQ 745CTN 5,440KGS 68.94CBM ※A/N本文のコンテナ種別(20DR)は誤記、40HQが正 / 通関対応済み(TGL報告・本日) / ドレー:8/14枠でヘッド手配可能（未手配）"
+    "remarks": "H B/L: GZTLF2607070（IAAU2971329と同一BL・2本口）/ 本船 INTERASIA RESILIENCE N082 ETA 2026-08-14 大阪 / A/N発行 2026-08-10・サレンダー済 / HBL実測 40HQ 745CTN 5,440KGS 68.94CBM ※A/N本文のコンテナ種別(20DR)は誤記、40HQが正 / 通関対応済み(TGL報告・本日) / ドレー:8/14枠でヘッド手配可能（未手配）",
+    "status": "ドレー手配",
+    "docs_status": "完備",
+    "order_no": "LM260507",
+    "memo": "通関済。8/26トラック引取→8/27倉庫入れ予定。",
+    "next_action": "8/27 入庫確認"
   },
   "IAAU2971329": {
     "hbl_no": "GZTLF2607070",
@@ -40,7 +49,12 @@
     "total_cartons": 381,
     "ref_no": "TGL26-1490",
     "dray_note": "8/14枠でヘッド手配可能（8/10朝TGL確認・未手配）",
-    "remarks": "H B/L: GZTLF2607070（IAAU1022523と同一BL・2本口）/ 本船 INTERASIA RESILIENCE N082 ETA 2026-08-14 大阪 / A/N発行 2026-08-10・サレンダー済 / HBL実測 20GP 381CTN 2,930KGS 28.79CBM / 通関対応済み(TGL報告・本日) / ドレー:8/14枠でヘッド手配可能（未手配）"
+    "remarks": "H B/L: GZTLF2607070（IAAU1022523と同一BL・2本口）/ 本船 INTERASIA RESILIENCE N082 ETA 2026-08-14 大阪 / A/N発行 2026-08-10・サレンダー済 / HBL実測 20GP 381CTN 2,930KGS 28.79CBM / 通関対応済み(TGL報告・本日) / ドレー:8/14枠でヘッド手配可能（未手配）",
+    "status": "ドレー手配",
+    "docs_status": "完備",
+    "order_no": "LM260320",
+    "memo": "通関済。8/21トラック引取→8/22倉庫入れ予定。",
+    "next_action": "8/22 入庫確認"
   },
   "WHSU5830223": {
     "hbl_no": "GZTLF2608019",
@@ -54,7 +68,12 @@
     "arrival_date": "2026-08-23",
     "total_cartons": 590,
     "ref_no": "TGL26-1560",
-    "remarks": "H B/L GZTLF2608019 受領・サレンダー済 / M B/L 025G757198 / 荷受人 LIBETEE.INC / 本船 WAN HAI 102 W426 ETA 2026-08-23 大阪 On board 8/19 / A/N 8/22発行 / 40HQ 590CTN 5,010KGS 66.66CBM / CY:南港C-9 三菱倉庫(06-6612-4861) / 必要書類3点揃い(輸送中→着予定8/23)"
+    "remarks": "H B/L GZTLF2608019 受領・サレンダー済 / M B/L 025G757198 / 荷受人 LIBETEE.INC / 本船 WAN HAI 102 W426 ETA 2026-08-23 大阪 On board 8/19 / A/N 8/22発行 / 40HQ 590CTN 5,010KGS 66.66CBM / CY:南港C-9 三菱倉庫(06-6612-4861) / 必要書類3点揃い(輸送中→着予定8/23)",
+    "status": "通関待ち",
+    "docs_status": "完備",
+    "order_no": "LM260320",
+    "memo": "8/23大阪着予定。BL・アライバル揃い。着後に通関。",
+    "next_action": "着後 通関依頼"
   },
   "WHSU5628824": {
     "hbl_no": "GZTLF2608006",
@@ -68,6 +87,37 @@
     "arrival_date": "2026-08-16",
     "total_cartons": 606,
     "ref_no": "TGL26-1498",
-    "remarks": "H B/L: GZTLF2608006(HBL受領・サレンダー済/8/14) / M B/L 025G754677 / 荷受人 LIBETEE.INC / 本船 INTERASIA TENACITY N022 ETA 2026-08-16 大阪 On board 8/13 / 40HQ 606CTN 5,211.6KGS 69.084CBM / 必要書類3点(PL/BL/AN)揃い / 通関対応済み(TGL報告・本日) / CY:南港C-9 三菱倉庫(06-6612-4861) / フリータイム:入港日翌日から6日間 / OCEANチャージ 82,025円(FREIGHT PREPAID)"
+    "remarks": "H B/L: GZTLF2608006(HBL受領・サレンダー済/8/14) / M B/L 025G754677 / 荷受人 LIBETEE.INC / 本船 INTERASIA TENACITY N022 ETA 2026-08-16 大阪 On board 8/13 / 40HQ 606CTN 5,211.6KGS 69.084CBM / 必要書類3点(PL/BL/AN)揃い / 通関対応済み(TGL報告・本日) / CY:南港C-9 三菱倉庫(06-6612-4861) / フリータイム:入港日翌日から6日間 / OCEANチャージ 82,025円(FREIGHT PREPAID)",
+    "status": "ドレー手配",
+    "docs_status": "完備",
+    "order_no": "LM260507",
+    "memo": "通関済。8/21引取→8/22入庫予定。CY:南港C-9三菱倉庫。",
+    "next_action": "8/22 入庫確認"
+  },
+  "EITU1030111": {
+    "status": "輸送中",
+    "docs_status": "不足",
+    "order_no": "LM260320",
+    "memo": "ジップ便NO.1。まだ船で移動中。BL・アライバル待ち。",
+    "next_action": "BL・アライバル受領"
+  },
+  "CAAU5731521": {
+    "status": "輸送中",
+    "docs_status": "不足",
+    "order_no": "LM260320",
+    "memo": "ジップ便NO.2。まだ船で移動中。BL・アライバル待ち。",
+    "next_action": "BL・アライバル受領"
+  },
+  "CAAU8766326": {
+    "status": "完了",
+    "docs_status": "一部",
+    "order_no": "LM251008",
+    "memo": "通関完了。BL書類は未受領。"
+  },
+  "IAAU1910400": {
+    "status": "完了",
+    "docs_status": "一部",
+    "order_no": "LM251008",
+    "memo": "通関完了。BL書類は未受領。"
   }
 }
