@@ -1,0 +1,36 @@
+# ============================================================
+#  在庫CSV取り出し（手動）
+# ------------------------------------------------------------
+#  在庫報告アプリ（35）の最新日の添付CSVの中身をログに出します。
+#  在庫Excelの作成用。画像は対象外。★読むだけ・書き込みなし。
+# ============================================================
+name: 在庫CSV取り出し（手動）
+
+on:
+  workflow_dispatch:
+    inputs:
+      days:
+        description: '何日ぶんさかのぼるか'
+        required: false
+        default: '10'
+
+jobs:
+  dump:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: daily-report-system
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: CSVを取り出してログに出す
+        env:
+          KINTONE_BASE_URL: ${{ secrets.KINTONE_BASE_URL }}
+          KINTONE_USER: ${{ secrets.KINTONE_USER }}
+          KINTONE_PASSWORD: ${{ secrets.KINTONE_PASSWORD }}
+          KINTONE_STOCK_REPORT_APP_ID: ${{ secrets.KINTONE_STOCK_REPORT_APP_ID }}
+          APP_ENV: production
+          REPORT_TIMEZONE: Asia/Tokyo
+        run: node scripts/stockCsvDump.js --days=${{ inputs.days || '10' }}
