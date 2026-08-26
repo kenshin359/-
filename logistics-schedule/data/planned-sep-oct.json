@@ -1,0 +1,111 @@
+{
+  "_comment": "2026年9〜10月 出荷予定の生産スケジュール（計画レコード）。コンテナ未割当のため container_no は仮キー。積載目安 S1,100/M750/L650=1コンテナ（LM20260808計画・実績と整合）。status=生産中/輸送中。注文-2026-07-04は混載・品番内訳未確定のため1本=概算集約レコード。",
+  "as_of": "2026-08-26",
+  "total_qty": 8050,
+  "container_estimate": 10,
+  "records": [
+    {
+      "order_no": "LM260512",
+      "seq": 1,
+      "status": "生産中",
+      "container_no": "LM260512-M-01",
+      "shipping_date": "2026-08-31",
+      "po_number": "LM260512",
+      "size": "M",
+      "total_qty": 700,
+      "container_estimate": 1,
+      "remarks": "5/12注文の残り / 多機能PC Mサイズ / 8月末〜9月初 工場出荷予定 / 1コンテナ想定",
+      "items": [
+        { "item_name": "多機能PCスーツケース", "item_color": "", "item_spec": "M", "item_qty": 700 }
+      ]
+    },
+    {
+      "order_no": "LM260512",
+      "seq": 2,
+      "status": "生産中",
+      "container_no": "LM260512-L-01",
+      "shipping_date": "2026-09-10",
+      "po_number": "LM260512",
+      "size": "L",
+      "total_qty": 600,
+      "container_estimate": 1,
+      "remarks": "5/12注文の残り / 多機能PC Lサイズ / 9/10 工場出荷予定 / 1コンテナ想定 / ※Sサイズ1,050個はTSSU5227711で出荷済(9/6大阪着予定)",
+      "items": [
+        { "item_name": "多機能PCスーツケース", "item_color": "", "item_spec": "L", "item_qty": 600 }
+      ]
+    },
+    {
+      "order_no": "注文-2026-06-18",
+      "seq": 3,
+      "status": "生産中",
+      "container_no": "ORD0618-S-01",
+      "shipping_date": "2026-09-10",
+      "po_number": "注文-2026-06-18",
+      "size": "S",
+      "total_qty": 1100,
+      "container_estimate": 1,
+      "remarks": "6/18注文 / 多機能PC Sサイズ / 9/10〜9/25 出荷予定 / 1コンテナ想定(S 1,100)",
+      "items": [
+        { "item_name": "多機能PCスーツケース", "item_color": "", "item_spec": "S", "item_qty": 1100 }
+      ]
+    },
+    {
+      "order_no": "注文-2026-06-18",
+      "seq": 4,
+      "status": "生産中",
+      "container_no": "ORD0618-S-02",
+      "shipping_date": "2026-09-15",
+      "po_number": "注文-2026-06-18",
+      "size": "S",
+      "total_qty": 1100,
+      "container_estimate": 1,
+      "remarks": "6/18注文 / 多機能PC Sサイズ / 9/10〜9/25 出荷予定 / 1コンテナ想定(S 1,100)",
+      "items": [
+        { "item_name": "多機能PCスーツケース", "item_color": "", "item_spec": "S", "item_qty": 1100 }
+      ]
+    },
+    {
+      "order_no": "注文-2026-06-18",
+      "seq": 5,
+      "status": "生産中",
+      "container_no": "ORD0618-M-01",
+      "shipping_date": "2026-09-20",
+      "po_number": "注文-2026-06-18",
+      "size": "M",
+      "total_qty": 700,
+      "container_estimate": 1,
+      "remarks": "6/18注文 / 多機能PC Mサイズ / 9/10〜9/25 出荷予定 / 1コンテナ想定",
+      "items": [
+        { "item_name": "多機能PCスーツケース", "item_color": "", "item_spec": "M", "item_qty": 700 }
+      ]
+    },
+    {
+      "order_no": "注文-2026-06-18",
+      "seq": 6,
+      "status": "生産中",
+      "container_no": "ORD0618-L-01",
+      "shipping_date": "2026-09-25",
+      "po_number": "注文-2026-06-18",
+      "size": "L",
+      "total_qty": 600,
+      "container_estimate": 1,
+      "remarks": "6/18注文 / 多機能PC Lサイズ / 9/10〜9/25 出荷予定 / 1コンテナ想定",
+      "items": [
+        { "item_name": "多機能PCスーツケース", "item_color": "", "item_spec": "L", "item_qty": 600 }
+      ]
+    },
+    {
+      "order_no": "注文-2026-07-04",
+      "seq": 7,
+      "status": "生産中",
+      "container_no": "ORD0704-MIX",
+      "shipping_date": "2026-09-20",
+      "po_number": "注文-2026-07-04",
+      "size": "混載",
+      "total_qty": 3250,
+      "container_estimate": 4,
+      "remarks": "7/4注文 / 混載(多機能PC S/M＋ノーマルアルミS＋多機能アルミ) / 9/20〜10/10 出荷予定 / 約4コンテナ(概算) / ※品番別(S/M/L・アルミ)内訳が未確定のため要更新",
+      "items": []
+    }
+  ]
+}
