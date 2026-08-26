@@ -72,8 +72,8 @@
     "status": "通関待ち",
     "docs_status": "完備",
     "order_no": "LM260320",
-    "memo": "8/23大阪着予定。BL・アライバル揃い。着後に通関。",
-    "next_action": "着後 通関依頼"
+    "memo": "8/23大阪着済み。BL・アライバル揃い。着後に通関。",
+    "next_action": "通関依頼→ドレー手配"
   },
   "WHSU5628824": {
     "hbl_no": "GZTLF2608006",
@@ -98,8 +98,8 @@
     "status": "通関待ち",
     "docs_status": "完備",
     "order_no": "LM260320",
-    "memo": "8/25 大阪着予定。BL・アライバル揃い。着後に通関。",
-    "next_action": "着後 通関依頼",
+    "memo": "8/25 大阪着済み。BL・アライバル揃い。着後に通関。",
+    "next_action": "通関依頼→ドレー手配",
     "hbl_no": "GZTLF2608026",
     "mbl_no": "EGLV149607007648",
     "bl_surrendered": "済",
@@ -117,8 +117,8 @@
     "status": "通関待ち",
     "docs_status": "完備",
     "order_no": "LM260320",
-    "memo": "8/25 大阪着予定。BL・アライバル揃い。着後に通関。",
-    "next_action": "着後 通関依頼",
+    "memo": "8/25 大阪着済み。BL・アライバル揃い。着後に通関。",
+    "next_action": "通関依頼→ドレー手配",
     "hbl_no": "GZTLF2608026",
     "mbl_no": "EGLV149607007648",
     "bl_surrendered": "済",
@@ -149,7 +149,9 @@
     "docs_status": "一部",
     "order_no": "LM260512",
     "container_type": "40GP",
-    "memo": "5/12注文分(多機能PC S)。8/25出荷・輸送中。BL・アライバル待ち。",
-    "next_action": "BL・アライバル受領"
+    "arrival_date": "2026-09-06",
+    "total_cartons": 1077,
+    "memo": "5/12注文分。PC多機能S 1,050+ノーマルアルミS 27=1,077個。8/25出荷・9/6大阪着予定。BL・アライバル待ち。",
+    "next_action": "BL・アライバル受領→9/6着後通関"
   }
 }
