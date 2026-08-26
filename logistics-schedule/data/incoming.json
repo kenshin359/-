@@ -91,6 +91,15 @@
       "eta": "2026-08-25",
       "status": "通関待ち",
       "note": "BL GZTLF2608026受領・サレンダー済・本船EVER COMPOSE 2088-109N・8/25着"
+    },
+    {
+      "container": "TSSU5227711",
+      "line": "多機能PC",
+      "size": "S",
+      "qty": 1077,
+      "eta": "",
+      "status": "輸送中",
+      "note": "5/12注文(LM260512)・8/25出荷・BL/AN未"
     }
   ]
 }

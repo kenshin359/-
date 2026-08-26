@@ -143,5 +143,13 @@
     "docs_status": "一部",
     "order_no": "LM251008",
     "memo": "通関完了。BL書類は未受領。"
+  },
+  "TSSU5227711": {
+    "status": "輸送中",
+    "docs_status": "一部",
+    "order_no": "LM260512",
+    "container_type": "40GP",
+    "memo": "5/12注文分(多機能PC S)。8/25出荷・輸送中。BL・アライバル待ち。",
+    "next_action": "BL・アライバル受領"
   }
 }
