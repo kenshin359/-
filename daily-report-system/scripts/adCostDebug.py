@@ -9,7 +9,7 @@
 #  ★キントーンは読むだけ。数字は 0-9→A-J 置換（可逆）。
 #  ★キャンペーン名などの文字列は出力しません（公開リポジトリのため）。
 # ============================================================
-import base64, csv, io, json, os, re, sys, unicodedata, urllib.parse, urllib.request
+import base64, csv, hashlib, io, json, os, re, sys, unicodedata, urllib.parse, urllib.request
 from datetime import datetime, timedelta, timezone
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -86,6 +86,8 @@ def main():
         offset += 100
 
     vals = {}  # adCostReport.py と同じ「最初の値を採用」の再現
+    # 採用ファイルの対象日キャンペーン別合計（名前はハッシュ化して比較のみに使う）
+    camp_by_media = {}
     for rec in records:
         rdate = rec.get('report_date', {}).get('value', '?')
         for field in ('file_ads', 'file_sales', 'file_other'):
@@ -123,7 +125,11 @@ def main():
                 # （名称そのものは公開リポジトリに出さない）
                 ni = next((j for j, c in enumerate(hdr)
                            if 'キャンペーン名' in c or '広告セット名' in c), None)
+                # キャンペーン名の列（広告セット単位のCSVにも通常含まれる）
+                ci = next((j for j, c in enumerate(hdr) if c.strip() == 'キャンペーン名'), None)
+                say(f'    キャンペーン名列={ci if ci is not None else "なし"} 全列数={len(hdr)}')
                 classes = {}
+                camp = {}
                 day_sum = {}
                 tcnt = 0
                 for r in rows[rows.index(hdr) + 1:]:
@@ -148,6 +154,9 @@ def main():
                         c = classes.setdefault(cls, [0, 0.0])
                         c[0] += 1
                         c[1] += yen_num(r[i])
+                        if ci is not None and len(r) > ci:
+                            h = hashlib.md5(z2h(str(r[ci])).strip().encode()).hexdigest()[:6]
+                            camp[h] = camp.get(h, 0) + yen_num(r[i])
                 say(f'    このファイルの日別合計（当月分のみ）:')
                 for d in sorted(day_sum):
                     if d[0:2] == tuple(int(x) for x in month.split('-')):
@@ -159,10 +168,24 @@ def main():
                 say(f'    対象日{target_day}の行数={tcnt}')
                 for cls, (cnt, amt) in sorted(classes.items()):
                     say(f'    対象日の内訳[{cls}]: {cnt}行 {int(amt)}円')
+                if tcnt and camp and media not in camp_by_media:
+                    camp_by_media[media] = camp
 
     say('=== 採用結果（対象日） ===')
     for media in ('trav', 'cat'):
         say(f'{media} day{target_day} = {vals.get((media, target_day), "なし")}')
+
+    # トラベル/カタログ両ファイルに同じキャンペーンが入っていないか（二重計上検出）
+    say('=== キャンペーン重複チェック（名前はハッシュ比較のみ） ===')
+    t, c = camp_by_media.get('trav', {}), camp_by_media.get('cat', {})
+    say(f'trav側キャンペーン数={len(t)} cat側キャンペーン数={len(c)}')
+    shared = set(t) & set(c)
+    say(f'両方に含まれるキャンペーン数={len(shared)}')
+    for h in sorted(shared):
+        say(f'  {h}: trav側={int(t[h])}円 cat側={int(c[h])}円')
+    if shared:
+        say(f'重複ぶんの合計: trav側={int(sum(t[h] for h in shared))}円'
+            f' cat側={int(sum(c[h] for h in shared))}円')
 
     out_path = os.path.join(ROOT, 'state', 'adcost-debug.txt')
     os.makedirs(os.path.dirname(out_path), exist_ok=True)
