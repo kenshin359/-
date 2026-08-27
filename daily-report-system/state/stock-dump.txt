@@ -1,0 +1,83 @@
+最新日: CACG-AI-CH / レコード 3件
+===FILE=== name=BCDGIHACAGJC.csv memo=FBA在庫 type=csv
+===CSV_B===
+"出品者SKU","FNSKU","ASIN","商品名","コンディション","価格","出品者出荷在庫","出品者出荷在庫(出荷可)","Amazon出荷在庫","Amazon出荷在庫(配送センター内)","Amazon出荷在庫(出荷可)","Amazon出荷在庫(販売不可)","Amazon出荷在庫(引当済み)","Amazon出荷在庫(合計)","容積","Amazon納品数(準備中)","Amazon納品数(発送済み)","Amazon納品数(受領中)","afn-researching-qty","afn-reserved-future-supply","afn-future-supply-buyable","afn-fc-transfer-quantity","afn-onhand-buyable-quantity","ストア"
+"BAB","BAFIQCTTBT","BAFIQCTTBT","[リベティ] ヒルナンデス出演 スーツケース 日本企画 キャリーケース 機内持ち込み S/M/Lサイズ フロントオープン 多機能スーツケース TSAロック 静音キャスター USB充電 キャスターロック ドリンクホルダー 旅行 出張 Sサイズ エナメルシルバー","新品","CJIAA.AA","いいえ",,"はい","A","A","A","A","A","GEJHE.AF","A","A","A","A","A","A","A","A",
+"BADa","BAFCLMDLBN","BAFCLMDLBN","[リベティ] ヒルナンデス出演 スーツケース 日本企画 キャリーケース 機内持ち込み S/M/Lサイズ フロントオープン 多機能スーツケース TSAロック 静音キャスター USB充電 キャスターロック ドリンクホルダー 旅行 出張 Sサイズ エナメルスカイブルー","新品","CJIAA.AA","いいえ",,"はい","A","A","A","A","A","GJEGC.GD","A","A","A","A","A","A","A","A",
+"BAF","BAFIQESMJJ","BAFIQESMJJ","[リベティ] ヒルナンデス出演 スーツケース 日本企画 キャリーケース 機内持ち込み S/M/Lサイズ フロントオープン 多機能スーツケース TSAロック 静音キャスター USB充電 キャスターロック ドリンクホルダー 旅行 出張 libetee Sサイズ エナメルホワイト","新品","CJIAA.AA","いいえ",,"はい","HJ","HH","A","C","HJ","GJEGC.GD","A","A","A","A","A","A","A","HH",
+"BAG","BAFIQGNHYB","BAFIQGNHYB","[リベティ] ヒルナンデス出演 スーツケース 日本企画 キャリーケース 機内持ち込み S/M/Lサイズ フロントオープン 多機能スーツケース TSAロック 静音キャスター USB充電 キャスターロック ドリンクホルダー 旅行 出張 Sサイズ マットブラック","新品","CJIAA.AA","いいえ",,"はい","BAB","JH","A","E","BAB","GEJHE.AF","A","A","A","A","A","A","A","JH",
+"BAH","BAFIQITEIN","BAFIQITEIN","[リベティ] ヒルナンデス出演 スーツケース 日本企画 キャリーケース 機内持ち込み S/M/Lサイズ フロントオープン 多機能スーツケース TSAロック 静音キャスター USB充電 キャスターロック ドリンクホルダー 旅行 出張 Sサイズ マットシルバー","新品","CJIAA.AA","いいえ",,"はい","DD","CJ","A","C","DD","GJEGC.GD","A","A","A","C","A","A","A","CJ",
+"BAI","BAFIQCGGTN","BAFIQCGGTN","[リベティ] ヒルナンデス出演 スーツケース 日本企画 キャリーケース 機内持ち込み S/M/Lサイズ フロントオープン 多機能スーツケース TSAロック 静音キャスター USB充電 キャスターロック ドリンクホルダー 旅行 出張 Sサイズ マットホワイト","新品","CJIAA.AA","いいえ",,"はい","BH","BF","A","C","BH","GJEGC.GD","A","A","A","A","A","A","A","BF",
+"BAJ","BAFIQGDDQS","BAFIQGDDQS","[リベティ] ヒルナンデス出演 スーツケース 日本企画 キャリーケース 機内持ち込み S/M/Lサイズ フロントオープン 多機能スーツケース TSAロック 静音キャスター USB充電 キャスターロック ドリンクホルダー 旅行 出張 Sサイズ エナメルピンク","新品","CJIAA.AA","いいえ",,"はい","A","A","A","A","A","GEJHE.AF","A","A","A","A","A","A","A","A",
+"BBA","BAFCFCSWGK","BAFCFCSWGK","[リベティ] ヒルナンデス出演 スーツケース 日本企画 キャリーケース 機内持ち込み S/M/Lサイズ フロントオープン 多機能スーツケース TSAロック 静音キャスター USB充電 キャスターロック ドリンクホルダー 旅行 出張 Sサイズ マットグレー","新品","CJIAA.AA","いいえ",,"はい","EB","EA","A","B","EB","GIHAB.CJ","A","A","A","A","A","A","A","EA",
+"BBB","BAFIQHDCLH","BAFIQHDCLH","[リベティ] ヒルナンデス出演 スーツケース 日本企画 キャリーケース 機内持ち込み S/M/Lサイズ フロントオープン 多機能スーツケース TSAロック 静音キャスター USB充電 キャスターロック ドリンクホルダー 旅行 出張 Sサイズ エナメルカーキ","新品","CJIAA.AA","いいえ",,"はい","B","A","B","A","B","GJEGC.GD","A","A","A","A","A","A","A","A",
+"CAB","BAFGJHGDHC","BAFGJHGDHC","[リベティ] ヒルナンデス出演 スーツケース 日本企画 キャリーケース 機内持ち込み S/M/Lサイズ フロントオープン 多機能スーツケース TSAロック 静音キャスター USB充電 キャスターロック ドリンクホルダー 旅行 出張 Mサイズ エナメルシルバー","新品","DGIAA.AA","いいえ",,"はい","BC","J","A","D","BD","GFFCA.AH","A","A","B","A","A","A","A","J",
+"CAG","BAFIQHPXIM","BAFIQHPXIM","[リベティ] ヒルナンデス出演 スーツケース 日本企画 キャリーケース 機内持ち込み S/M/Lサイズ フロントオープン 多機能スーツケース TSAロック 静音キャスター USB充電 キャスターロック ドリンクホルダー 旅行 出張 Mサイズ マットブラック","新品","DGIAA.AA","はい","A","いいえ","A","A","A","A","A","GHIJD.AI","A","A","A","A","A","A","A","A",
+"CBA","BAFGJGJXGS","BAFGJGJXGS","[リベティ] ヒルナンデス出演 スーツケース 日本企画 キャリーケース 機内持ち込み S/M/Lサイズ フロントオープン 多機能スーツケース TSAロック 静音キャスター USB充電 キャスターロック ドリンクホルダー 旅行 出張 Mサイズ マットグレー","新品","DGIAA.AA","はい","A","いいえ","A","A","A","A","A","GFFCA.AH","A","A","A","A","A","A","A","A",
+"CBB","BAHGCCQFYB","BAHGCCQFYB","[リベティ] ヒルナンデス出演 スーツケース 日本企画 キャリーケース 機内持ち込み S/M/Lサイズ フロントオープン 多機能スーツケース TSAロック 静音キャスター USB充電 キャスターロック ドリンクホルダー 旅行 出張 Mサイズ エナメルカーキ","新品","DGIAA.AA","いいえ",,"はい","CA","BI","A","B","CA","GFFCA.AH","A","A","A","B","A","A","A","BI",
+"DAB","BAGLXJBJBI","BAGLXJBJBI","[リベティ] ヒルナンデス出演 スーツケース 日本企画 キャリーケース 機内持ち込み S/M/Lサイズ フロントオープン 多機能スーツケース TSAロック 静音キャスター USB充電 キャスターロック ドリンクホルダー 旅行 出張 Lサイズ エナメルシルバー","新品","EEIAA.AA","いいえ",,"はい","HG","HG","A","A","HG","BBIFHE.JJ","A","A","A","A","A","A","A","HG",
+"DAG","BAGLWMYMSC","BAGLWMYMSC","[リベティ] ヒルナンデス出演 スーツケース 日本企画 キャリーケース 機内持ち込み S/M/Lサイズ フロントオープン 多機能スーツケース TSAロック 静音キャスター USB充電 キャスターロック ドリンクホルダー 旅行 出張 Lサイズ マットブラック","新品","EEIAA.AA","はい","A","いいえ","B","A","A","A","B","GHIJD.AI","A","A","A","B","A","A","A","A",
+"DAH","BAGFCDTIVQ","BAGFCDTIVQ","[リベティ] ヒルナンデス出演 スーツケース 日本企画 キャリーケース 機内持ち込み S/M/Lサイズ フロントオープン 多機能スーツケース TSAロック 静音キャスター USB充電 キャスターロック ドリンクホルダー 旅行 出張 Lサイズ マットシルバー","新品","EEIAA.AA","はい","A","いいえ","B","A","B","A","B","BBIFHE.JJ","A","A","A","A","A","A","A","A",
+"DAI","BAGNGLLCFQ","BAGNGLLCFQ","[リベティ] ヒルナンデス出演 スーツケース 日本企画 キャリーケース 機内持ち込み S/M/Lサイズ フロントオープン 多機能スーツケース TSAロック 静音キャスター USB充電 キャスターロック ドリンクホルダー 旅行 出張 Lサイズ マットホワイト","新品","EEIAA.AA","いいえ",,"はい","DC","DB","A","B","DC","BBFEJJ.JG","A","A","A","A","A","A","A","DB",
+"FFDKAB","BAFFJNFHDH","BAFFJNFHDH","Libetee 爆風ハンディファン 携帯扇風機 首振り 卓上 扇風機 風量BAA段階 静音 手持ち 折りたたみ ミニ扇風機 小型 軽量 USB充電式 ストラップ付 ブラック","新品","CHIA.AA","はい","CEF","いいえ","D","B","C","A","D","GIH.EE","A","A","A","A","A","A","A","B",
+"FFDKAC","BAFFINXGXC","BAFFINXGXC","Libetee 爆風ハンディファン 携帯扇風機 首振り 卓上 扇風機 風量BAA段階 静音 手持ち 折りたたみ ミニ扇風機 小型 軽量 USB充電式 ストラップ付 ホワイト","新品","CHIA.AA","はい","BIH","いいえ","C","C","A","A","C","GJB.AE","A","A","A","A","A","A","A","C",
+"MPDAAB","BAGBBQFMLL","BAGBBQFMLL","ツヤリスTSUYARIS ドライヤー美容師監修・日本最軽量クラス 旅行用 速乾 大風量 秒速FFm/s NTC温度制御 PSE認証済み 軽量 コンパクト トラベル 旅行 出張 サウナ ジム 国内専用 ギフト BF億マイナスイオン リベティlibetee ホワイト","新品","IJIA.AA","いいえ",,"はい","F","F","A","A","F","DDGC.BD","A","A","A","A","A","A","A","F",
+"MPDAAC","BAGCCWRCCV","BAGCCWRCCV","ツヤリスTSUYARIS ドライヤー美容師監修・日本最軽量クラス 旅行用 速乾 大風量 秒速FFm/s NTC温度制御 PSE認証済み 軽量 コンパクト トラベル 旅行 出張 サウナ ジム 国内専用 ギフト BF億マイナスイオン リベティlibetee グレー","新品","IJIA.AA","いいえ",,"はい","ED","DI","A","A","ED","DEEA.D","A","A","A","A","A","A","F","ED",
+"MPDAAD","BAGCDBHQEC","BAGCDBHQEC","ツヤリスTSUYARIS ドライヤー美容師監修・日本最軽量クラス 旅行用 速乾 大風量 秒速FFm/s NTC温度制御 PSE認証済み 軽量 コンパクト トラベル 旅行 出張 サウナ ジム 国内専用 ギフト BF億マイナスイオン リベティlibetee オリーブ","新品","IJIA.AA","いいえ",,"はい","CA","CA","A","A","CA","DDHH.AF","A","A","A","A","A","A","A","CA",
+"MPDAAE","BAGBHRHFNC","BAGBHRHFNC","ツヤリスTSUYARIS ドライヤー美容師監修・日本最軽量クラス 旅行用 速乾 大風量 秒速FFm/s NTC温度制御 PSE認証済み 軽量 コンパクト トラベル 旅行 出張 サウナ ジム 国内専用 ギフト BF億マイナスイオン リベティlibetee ブラック","新品","IJIA.AA","いいえ",,"はい","BG","BG","A","A","BG","DDJB.HJ","A","A","A","A","A","A","A","BG",
+"N_arumiAB","BAGNIJFLIL","BAGNIJFLIL","[リベティ] クラシックアルミニウムスーツケース 日本企画 スーツケース 二重ロック アルミニウム 静音キャスター Sサイズ キャリーケース 軽量 機内持ち込み アルミ 大型 耐衝撃 出張 ビジネス 旅行 シルバー S","新品","ECIAA.AA","いいえ",,"はい","BCC","BCC","A","A","BCC","HBHBI.I","A","A","A","A","A","A","A","BCC",
+"N_arumiAC","BAGPVLXPLC","BAGPVLXPLC","[リベティ] クラシックアルミニウムスーツケース 日本企画 スーツケース 二重ロック アルミニウム 静音キャスター Sサイズ キャリーケース 軽量 機内持ち込み アルミ 大型 耐衝撃 出張 ビジネス 旅行 ブラック Sサイズ","新品","ECIAA.AA","いいえ",,"はい","DD","DD","A","A","DD","HBHBI.I","A","A","A","A","A","A","A","DD",
+"ST-FCAAB","BAGBBCKEBI","BAGBBCKEBI","[Libetee]電動洗顔ブラシ【毛穴汚れ/黒ずみ/角栓ケア】クレンジング 小鼻 いちご鼻 温感 摩擦レス シリコン製 敏感肌 IPXH防水 G段階調節 男女兼用 洗顔器 スキンケア 磁気充電 プレゼント ギフト リベティ ベージュ","新品","DHIA.AA","いいえ",,"はい","BA","BA","A","A","BA","BAAI.HJ","A","A","A","A","A","A","A","BA",
+"ST-FCAAC","BAGBXVIXQF","BAGBXVIXQF","[Libetee]電動洗顔ブラシ【毛穴汚れ/黒ずみ/角栓ケア】クレンジング 小鼻 いちご鼻 温感 摩擦レス シリコン製 敏感肌 IPXH防水 G段階調節 男女兼用 洗顔器 スキンケア 磁気充電 プレゼント ギフト リベティオリーブ","新品","DHIA.AA","いいえ",,"はい","F","F","A","A","F","HGI.II","A","A","A","A","A","A","A","F",
+"ST-FCAAD","BAGBYDNWCC","BAGBYDNWCC","[Libetee]電動洗顔ブラシ【毛穴汚れ/黒ずみ/角栓ケア】クレンジング 小鼻 いちご鼻 温感 摩擦レス シリコン製 敏感肌 IPXH防水 G段階調節 男女兼用 洗顔器 スキンケア 磁気充電 プレゼント ギフト リベティ ブルー","新品","DHIA.AA","いいえ",,"はい","D","D","A","A","D","IJJ.DC","A","A","A","A","A","A","A","D",
+"ST-FCAAE","BAGBYHQGHJ","BAGBYHQGHJ","[Libetee]電動洗顔ブラシ【毛穴汚れ/黒ずみ/角栓ケア】クレンジング 小鼻 いちご鼻 温感 摩擦レス シリコン製 敏感肌 IPXH防水 G段階調節 男女兼用 洗顔器 スキンケア 磁気充電 プレゼント ギフト リベティ ピンク","新品","DHIA.AA","いいえ",,"はい","F","F","A","A","F","BAAB.JB","A","A","A","A","A","A","A","F",
+"ST-FCAAF","BAGBYGBDSV","BAGBYGBDSV","[Libetee]電動洗顔ブラシ【毛穴汚れ/黒ずみ/角栓ケア】クレンジング 小鼻 いちご鼻 温感 摩擦レス シリコン製 敏感肌 IPXH防水 G段階調節 男女兼用 洗顔器 スキンケア 磁気充電 プレゼント ギフト リベティ パープル","新品","DHIA.AA","いいえ",,"はい","F","F","A","A","F","JAA.I","A","A","A","A","A","A","A","F",
+"ST-FCAAG","BAGBY
+GINEH","BAGBYGINEH","[Libetee]電動洗顔ブラシ【毛穴汚れ/黒ずみ/角栓ケア】クレンジング 小鼻 いちご鼻 温感 摩擦レス シリコン製 敏感肌 IPXH防水 G段階調節 男女兼用 洗顔器 スキンケア 磁気充電 プレゼント ギフト リベティ グレー","新品","DHIA.AA","はい","EIC","いいえ","A","A","A","A","A","BAAC.E","A","A","A","A","A","A","A","A",
+"Stickered.MSKU.BHHDBJCCEIHDF","XAABCJFQDJ","BAGIIVZXEV","[リベティ] アウトドア特化 スーツケース 大容量BAFL 軽量Gkg 頑丈設計 静音サスペンションキャスター搭載 ギア収納・板収納対応 整理しやすい構造 スキー スノーボード キャンプ 釣り 遠征 スポーツ対応 男女兼用 キャリーケース （マットブラック）","新品","DJIAA.AA","はい","BE","いいえ","A","A","A","A","A",,"A","A","A","A","A","A","A","A",
+"XAFAAB","BAFFIXTLMF","BAFFIXTLMF","Libetee 爆風ハンディファン 携帯扇風機 スケルトン デザイン 風量BAA段階 静音 手持ち 折りたたみ ミニ扇風機 小型 軽量 USB充電式 ストラップ付 ホワイト","新品","CJIA.AA","いいえ",,"はい","EC","DJ","B","C","EC","BAAG","A","A","A","A","A","A","A","DJ",
+"XAFAAC","BAFFJQLFKR","BAFFJQLFKR","Libetee 爆風ハンディファン 携帯扇風機 スケルトン デザイン 風量BAA段階 静音 手持ち 折りたたみ ミニ扇風機 小型 軽量 USB充電式 ストラップ付 ブラック","新品","CJIA.AA","いいえ",,"はい","CD","CD","A","A","CD","BAAG","A","A","A","A","A","A","A","CD",
+"aCAH","XAABAQFREH","BAFCFFIBCD","[リベティ] ヒルナンデス出演 スーツケース 日本企画 キャリーケース 機内持ち込み S/M/Lサイズ フロントオープン 多機能スーツケース TSAロック 静音キャスター USB充電 キャスターロック ドリンクホルダー 旅行 出張 Mサイズ マットシルバー","新品","DGIAA.AA","いいえ",,"はい","BEJ","BEG","B","C","BEJ","GHIJD.AI","A","A","A","A","A","A","A","BEG",
+"aCAI","BAFCFFCQNM","BAFCFFCQNM","[リベティ] ヒルナンデス出演 スーツケース 日本企画 キャリーケース 機内持ち込み S/M/Lサイズ フロントオープン 多機能スーツケース TSAロック 静音キャスター USB充電 キャスターロック ドリンクホルダー 旅行 出張 Mサイズ マットホワイト","新品","DGIAA.AA","いいえ",,"はい","IE","ID","A","B","IE","BABGEJ.GB","A","A","A","A","A","A","A","ID",
+"arumiAB","BAFZTTTSVJ","BAFZTTTSVJ","[リベティ] 多機能 アルミ スーツケース日本企画 キャリーケース 機内持ち込み Sサイズ フロントオープン 多機能スーツケース アルミニウム TSAロック 静音キャスター USB充電 キャスターロック ドリンクホルダー 旅行 出張 シルバー","新品","FIIAA.AA","いいえ",,"はい","DC","DB","A","B","DC","IDHIC.I","A","A","A","A","A","A","A","DB",
+"arumiAC","BAFZTRHZYB","BAFZTRHZYB","[リベティ] 多機能 アルミ スーツケース日本企画 キャリーケース 機内持ち込み Sサイズ フロントオープン 多機能スーツケース アルミニウム TSAロック 静音キャスター USB充電 キャスターロック ドリンクホルダー 旅行 出張 ブラック","新品","FIIAA.AA","いいえ",,"はい","A","A","A","A","A","HCHDF.HJ","A","A","A","A","A","A","A","A",
+"outdoorskAAC","XAABCJFSOL","BAGIDNLVMD","[リベティ] アウトドア特化 スーツケース 大容量BAFL 軽量Gkg 頑丈設計 静音サスペンションキャスター搭載 ギア収納・板収納対応 整理しやすい構造 スキー スノーボード キャンプ 釣り 遠征 スポーツ対応 男女兼用 キャリーケース （マットシルバー）","新品","DJIAA.AA","いいえ",,"はい","BB","BB","A","A","BB",,"A","A","A","A","A","A","A","BB",
+
+===CSV_END===
+===FILE=== name=スクリーンショット CACG-AI-CH BFBCCI.png memo= type=skip
+===FILE=== name=スクリーンショット CACG-AI-CH BFBCEB.png memo= type=skip
+===FILE=== name=スクリーンショット CACG-AI-CH BFBCEG.png memo= type=skip
+===FILE=== name=CZAFAAB_FFcddedH-DDBc-ECbe-IdBJ-IaADCbGJECBE.csv memo=CS在庫 type=csv
+===CSV_B===
+セット,商品ID,商品名,検索名称,品質区分,品質区分名,入荷予定数,在庫数(引当数を含む),引当数,出荷予定数,出荷可能数,販売可能数,在庫数合計,検索名称２,大分類,中分類,小分類,出庫禁止数,発注数,在庫発注点(下限),在庫発注点(上限),最終入荷日,最終出荷日
+"","BAB","エナメルシルバー　S","","B","良品","D","C","A","A","C","F","BBBHH","","","","","A","A","A","A","CACGAICG","CACGAICA"
+"","BAF","エナメルホワイト　S","","B","良品","A","BHG","A","A","BHG","BHG","BBBHH","","","","","A","A","A","A","CACGAHAB","CACGAICG"
+"","BAG","マットブラック　S","","B","良品","A","DHH","A","A","DHH","DHH","BBBHH","","","","","A","A","A","A","CACGAIAH","CACGAICG"
+"","BAH","マットシルバー 　S","","B","良品","A","DA","A","A","DA","DA","BBBHH","","","","","A","A","A","A","CACGAIBJ","CACGAICG"
+"","BAI","マットホワイト　S","","B","良品","A","E","A","A","E","E","BBBHH","","","","","A","A","A","A","CACGAECD","CACGAICG"
+"","BBA","マットグレー　S","","B","良品","A","BBD","A","A","BBD","BBD","BBBHH","","","","","A","A","A","A","CACGADAG","CACGAICG"
+"","BBB","エナメルカーキ　S","","B","良品","BH","D","A","A","D","CA","BBBHH","","","","","A","A","A","A","CACGAHCE","CACGAIAF"
+"","CAB","エナメルシルバー　M","","B","良品","CBD","C","A","A","C","CBF","BBBHH","","","","","A","A","A","A","CACGAHBI","CACGAIAE"
+"","CAG","マットブラック　M","","B","良品","DAJ","A","A","A","A","DAJ","BBBHH","","","","","A","A","A","A","CACGAHBI","CACGAICG"
+"","CAH","マットシルバー　M","","B","良品","G","B","A","A","B","H","BBBHH","","","","","A","A","A","A","CACGAIBJ","CACGAICG"
+"","CAI","マットホワイトM","","B","良品","A","E","A","A","E","E","BBBHH","","","","","A","A","A","A","CACGAHBI","CACGAICG"
+"","CBA","マットグレー　M","","B","良品","BJE","H","A","A","H","CAB","BBBHH","","","","","A","A","A","A","CACGAHBI","CACGAICG"
+"","CBB","エナメルカーキ　Ｍ","","B","良品","D","E","A","A","E","H","BBBHH","","","","","A","A","A","A","CACGAHBI","CACGAICG"
+"","DAB","エナメルシルバー　Ｌ","","B","良品","A","BGH","A","A","BGH","BGH","BBBHH","","","","","A","A","A","A","CACGAHBI","CACGAICG"
+"","DAG","マットブラック　Ｌ","","B","良品","A","CJC","A","A","CJC","CJC","BBBHH","","","","","A","A","A","A","CACGAFAF","CACGAICA"
+"","DAH","マットシルバー Ｌ","","B","良品","A","DBG","A","A","DBG","DBG","BBBHH","","","","","A","A","A","A","CACGAHBI","CACGAIBI"
+"","DAI","マットホワイト　Ｌ","","B","良品","A","FE","A","A","FE","FE","BBBHH","","","","","A","A","A","A","CACGAHBI","CACGAICG"
+"","DBA","マットグレー　Ｌ","","B","良品","A","EA","A","A","EA","EA","BBBHH","","","","","A","A","A","A","CACGAGBB","CACGAICG"
+"","EFJFAFGEDEFEC","MSFAAB　パープル","","B","良品","A","GEA","A","A","GEA","GEA","BBBHH","","","","","A","A","A","A","CACGAGAF","CACGAHBA"
+"","EFJFAFGEDEFFJ","MSFAAC　ブルー","","B","良品","A","FHC","A","A","FHC","FHC","BBBHH","","","","","A","A","A","A","CACGAGAF","CACGAHBA"
+"","EFJFAFGEDEFGG","MSFAAD　ホワイト","","B","良品","A","BEJH","A","A","BEJH","BEJH","BBBHH","","","","","A","A","A","A","CACGAGAF","CACGAHBA"
+"","EFJFAFGEDEFHD","MSFAAE　グレー","","B","良品","A","BFAA","A","A","BFAA","BFAA","BBBHH","","","","","A","A","A","A","CACGAGAF","CACGAHBA"
+"","FDB-G","ミニハンディファン　グリーン","","B","良品","A","BIIA","A","A","BIIA","BIIA","BBBHH","","","","","A","A","A","A","CACGAGAF","CACGAGAJ"
+"","FDB-W","ミニハンディファン　ホワイト","","B","良品","A","CIIA","A","A","CIIA","CIIA","BBBHH","","","","","A","A","A","A","CACGAGAF","CACGAGAJ"
+"","N_arumiAB","アルミニウムスーツケース　シルバー　S","","B","良品","GC","DGJ","A","A","DGJ","EDB","BBBHH","","","","","A","A","A","A","CACGADAF","CACGAICF"
+"","N_arumiAC","アルミニウムスーツケース　ブラック　S","","B","良品","FB","F","A","A","F","FG","BBBHH","","","","","A","A","A","A","CACGAHAH","CACGAIAF"
+"","arumiAB","アルミ　EAｌ シルバー","","B","良品","CGI","B","A","A","B","CGJ","BBBHH","","","","","A","A","A","A","CACGADAF","CACGAICB"
+"","mobilebatteryAAB","モバイルバッテリー","","B","良品","A","DF","A","A","DF","DF","BBBHH","","","","","A","A","A","A","CACGAGAJ","CACGAHCB"
+"","outdoorskAAB","スキースーツケース　マットブラック","","B","良品","A","HA","A","A","HA","HA","BBBHH","","","","","A","A","A","A","CACGABBJ","CACGAIBI"
+"","outdoorskAAC","スキースーツケース　マットシルバー","","B","良品","A","BDG","A","A","BDG","BDG","BBBHH","","","","","A","A","A","A","CACGABBJ","CACGAHBD"
+===CSV_END===
