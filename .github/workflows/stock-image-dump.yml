@@ -1,0 +1,71 @@
+# ============================================================
+#  在庫画像取り出し（手動）
+# ------------------------------------------------------------
+#  在庫報告アプリ（35）の最新日の添付画像（事務所在庫スクショ）を
+#  縮小してbase64でログに出し、CSVダンプは state/ にコミットします。
+#  在庫Excelの作成用。★読むだけ・キントーンへの書き込みなし。
+#  画像ログは取得後に削除する運用です。
+# ============================================================
+name: 在庫画像取り出し（手動）
+
+on:
+  workflow_dispatch:
+    inputs:
+      index:
+        description: '何枚目の画像を出すか（0はじまり・空で全部）'
+        required: false
+        default: ''
+
+permissions:
+  contents: write
+
+concurrency:
+  group: stock-image-dump
+  cancel-in-progress: false
+
+jobs:
+  dump:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: daily-report-system
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: 画像圧縮に使う部品を入れる
+        run: pip install --quiet pillow
+      - name: CSVダンプをstateにコミット
+        env:
+          KINTONE_BASE_URL: ${{ secrets.KINTONE_BASE_URL }}
+          KINTONE_USER: ${{ secrets.KINTONE_USER }}
+          KINTONE_PASSWORD: ${{ secrets.KINTONE_PASSWORD }}
+          KINTONE_STOCK_REPORT_APP_ID: ${{ secrets.KINTONE_STOCK_REPORT_APP_ID }}
+          APP_ENV: production
+          REPORT_TIMEZONE: Asia/Tokyo
+        run: |
+          node scripts/stockCsvDump.js --days=5 > state/stock-dump.txt
+          if [ -n "$(git status --porcelain -- state/stock-dump.txt)" ]; then
+            git config user.name  "libetee-bot"
+            git config user.email "libetee-bot@users.noreply.github.com"
+            git add state/stock-dump.txt
+            git commit -m "在庫CSVダンプを更新（自動）"
+            git pull --rebase
+            git push
+          fi
+      - name: 画像をログに出す
+        env:
+          KINTONE_BASE_URL: ${{ secrets.KINTONE_BASE_URL }}
+          KINTONE_USER: ${{ secrets.KINTONE_USER }}
+          KINTONE_PASSWORD: ${{ secrets.KINTONE_PASSWORD }}
+          KINTONE_STOCK_REPORT_APP_ID: ${{ secrets.KINTONE_STOCK_REPORT_APP_ID }}
+        run: |
+          if [ -n "${{ inputs.index }}" ]; then
+            python3 scripts/stockImageDump.py --index=${{ inputs.index }}
+          else
+            python3 scripts/stockImageDump.py
+          fi

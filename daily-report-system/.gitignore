@@ -29,6 +29,7 @@ state/*
 # 広告費デバッグの入出力（数字はActionsログと同じA-J符号化のみ・名称は含まない）
 !state/adcost-debug-request.json
 !state/adcost-debug.txt
+!state/stock-dump.txt
 
 # ★重要★ 売上・広告の実データ
 # このリポジトリは公開設定のため、実際の売上CSVを絶対に置かないこと。
