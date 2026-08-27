@@ -68,6 +68,7 @@
     このファイルの日別合計（当月分のみ）:
       CACG-AI-CG: BGIEDI ←採用
     対象日CGの行数=GE
+    対象日の内訳[その他]: GE行 BGIEDI円
 --- file media=cat 記録日=CACG-AI-CH 名前日=CG field=file_ads bytes=?
     列: レポート開始日 | レポート終了日 | キャンペーン名 | キャンペーンの配信 | 結果 | 結果インジケーター | 結果の単価 | 広告セットの予算
     行: 日付=CACG-AI-CG 金額=BBEDI 先頭列空=N 列数=BG
@@ -91,6 +92,7 @@
     このファイルの日別合計（当月分のみ）:
       CACG-AI-CG: GADFE ←採用
     対象日CGの行数=BI
+    対象日の内訳[その他]: BI行 GADFE円
 --- file media=trav 記録日=CACG-AI-CG 名前日=CF field=file_ads bytes=?
     列: キャンペーン名 | キャンペーンの配信 | 結果 | 結果インジケーター | 結果の単価 | 広告セットの予算 | 広告セットの予算タイプ | 消化金額 (JPY)
     このファイルの日別合計（当月分のみ）:
