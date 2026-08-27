@@ -119,6 +119,11 @@ def main():
                         vals[(media, day)] = total
                     continue
                 # 日付列がある場合: 対象日の行を1行ずつ出す
+                # 名前列（キャンペーン名/広告セット名）をキーワードだけで分類する
+                # （名称そのものは公開リポジトリに出さない）
+                ni = next((j for j, c in enumerate(hdr)
+                           if 'キャンペーン名' in c or '広告セット名' in c), None)
+                classes = {}
                 day_sum = {}
                 tcnt = 0
                 for r in rows[rows.index(hdr) + 1:]:
@@ -136,6 +141,13 @@ def main():
                         tcnt += 1
                         first_empty = 'Y' if not str(r[0]).strip() else 'N'
                         say(f'    行: 日付={r[di]} 金額={int(yen_num(r[i]))} 先頭列空={first_empty} 列数={len(r)}')
+                        nm = z2h(str(r[ni])) if ni is not None and len(r) > ni else ''
+                        cls = ('カタログ' if 'カタログ' in nm else
+                               'トラベル' if 'トラベル' in nm else
+                               '空欄' if not nm.strip() else 'その他')
+                        c = classes.setdefault(cls, [0, 0.0])
+                        c[0] += 1
+                        c[1] += yen_num(r[i])
                 say(f'    このファイルの日別合計（当月分のみ）:')
                 for d in sorted(day_sum):
                     if d[0:2] == tuple(int(x) for x in month.split('-')):
@@ -145,6 +157,8 @@ def main():
                             adopted = ' ←採用'
                         say(f'      {d[0]}-{d[1]:02d}-{d[2]:02d}: {int(day_sum[d])}{adopted}')
                 say(f'    対象日{target_day}の行数={tcnt}')
+                for cls, (cnt, amt) in sorted(classes.items()):
+                    say(f'    対象日の内訳[{cls}]: {cnt}行 {int(amt)}円')
 
     say('=== 採用結果（対象日） ===')
     for media in ('trav', 'cat'):
