@@ -1,0 +1,348 @@
+=== Meta広告費デバッグ CACG-AI-CG（upto=CG） ===
+--- file media=trav 記録日=CACG-AI-CH 名前日=CG field=file_ads bytes=?
+    列: 広告セット名 | 広告セットの配信 | 結果 | 結果インジケーター | 結果の単価 | 広告セットの予算 | 広告セットの予算タイプ | 消化金額 (JPY)
+    行: 日付=CACG-AI-CG 金額=A 先頭列空=N 列数=EB
+    行: 日付=CACG-AI-CG 金額=FBDI 先頭列空=N 列数=EB
+    行: 日付=CACG-AI-CG 金額=A 先頭列空=N 列数=EB
+    行: 日付=CACG-AI-CG 金額=FAAI 先頭列空=N 列数=EB
+    行: 日付=CACG-AI-CG 金額=A 先頭列空=N 列数=EB
+    行: 日付=CACG-AI-CG 金額=A 先頭列空=N 列数=EB
+    行: 日付=CACG-AI-CG 金額=A 先頭列空=N 列数=EB
+    行: 日付=CACG-AI-CG 金額=BAAEA 先頭列空=N 列数=EB
+    行: 日付=CACG-AI-CG 金額=BADGE 先頭列空=N 列数=EB
+    行: 日付=CACG-AI-CG 金額=A 先頭列空=N 列数=EB
+    行: 日付=CACG-AI-CG 金額=A 先頭列空=N 列数=EB
+    行: 日付=CACG-AI-CG 金額=A 先頭列空=N 列数=EB
+    行: 日付=CACG-AI-CG 金額=A 先頭列空=N 列数=EB
+    行: 日付=CACG-AI-CG 金額=FABI 先頭列空=N 列数=EB
+    行: 日付=CACG-AI-CG 金額=CFAD 先頭列空=N 列数=EB
+    行: 日付=CACG-AI-CG 金額=CGAF 先頭列空=N 列数=EB
+    行: 日付=CACG-AI-CG 金額=BAFJ 先頭列空=N 列数=EB
+    行: 日付=CACG-AI-CG 金額=A 先頭列空=N 列数=EB
+    行: 日付=CACG-AI-CG 金額=A 先頭列空=N 列数=EB
+    行: 日付=CACG-AI-CG 金額=A 先頭列空=N 列数=EB
+    行: 日付=CACG-AI-CG 金額=A 先頭列空=N 列数=EB
+    行: 日付=CACG-AI-CG 金額=A 先頭列空=N 列数=EB
+    行: 日付=CACG-AI-CG 金額=DBC 先頭列空=N 列数=EB
+    行: 日付=CACG-AI-CG 金額=A 先頭列空=N 列数=EB
+    行: 日付=CACG-AI-CG 金額=A 先頭列空=N 列数=EB
+    行: 日付=CACG-AI-CG 金額=GJHEF 先頭列空=N 列数=EB
+    行: 日付=CACG-AI-CG 金額=A 先頭列空=N 列数=EB
+    行: 日付=CACG-AI-CG 金額=A 先頭列空=N 列数=EB
+    行: 日付=CACG-AI-CG 金額=A 先頭列空=N 列数=EB
+    行: 日付=CACG-AI-CG 金額=A 先頭列空=N 列数=EB
+    行: 日付=CACG-AI-CG 金額=A 先頭列空=N 列数=EB
+    行: 日付=CACG-AI-CG 金額=A 先頭列空=N 列数=EB
+    行: 日付=CACG-AI-CG 金額=BAFF 先頭列空=N 列数=EB
+    行: 日付=CACG-AI-CG 金額=DIGG 先頭列空=N 列数=EB
+    行: 日付=CACG-AI-CG 金額=BAHD 先頭列空=N 列数=EB
+    行: 日付=CACG-AI-CG 金額=DBA 先頭列空=N 列数=EB
+    行: 日付=CACG-AI-CG 金額=DAI 先頭列空=N 列数=EB
+    行: 日付=CACG-AI-CG 金額=DCJ 先頭列空=N 列数=EB
+    行: 日付=CACG-AI-CG 金額=HIHJ 先頭列空=N 列数=EB
+    行: 日付=CACG-AI-CG 金額=DDF 先頭列空=N 列数=EB
+    行: 日付=CACG-AI-CG 金額=A 先頭列空=N 列数=EB
+    行: 日付=CACG-AI-CG 金額=JADH 先頭列空=N 列数=EB
+    行: 日付=CACG-AI-CG 金額=EHB 先頭列空=N 列数=EB
+    行: 日付=CACG-AI-CG 金額=JGA 先頭列空=N 列数=EB
+    行: 日付=CACG-AI-CG 金額=FIJ 先頭列空=N 列数=EB
+    行: 日付=CACG-AI-CG 金額=FDC 先頭列空=N 列数=EB
+    行: 日付=CACG-AI-CG 金額=FBF 先頭列空=N 列数=EB
+    行: 日付=CACG-AI-CG 金額=FEC 先頭列空=N 列数=EB
+    行: 日付=CACG-AI-CG 金額=FGI 先頭列空=N 列数=EB
+    行: 日付=CACG-AI-CG 金額=EEA 先頭列空=N 列数=EB
+    行: 日付=CACG-AI-CG 金額=A 先頭列空=N 列数=EB
+    行: 日付=CACG-AI-CG 金額=A 先頭列空=N 列数=EB
+    行: 日付=CACG-AI-CG 金額=FHG 先頭列空=N 列数=EB
+    行: 日付=CACG-AI-CG 金額=BAJFG 先頭列空=N 列数=EB
+    行: 日付=CACG-AI-CG 金額=FCGG 先頭列空=N 列数=EB
+    行: 日付=CACG-AI-CG 金額=FEHC 先頭列空=N 列数=EB
+    行: 日付=CACG-AI-CG 金額=FDI 先頭列空=N 列数=EB
+    行: 日付=CACG-AI-CG 金額=EHG 先頭列空=N 列数=EB
+    行: 日付=CACG-AI-CG 金額=EJA 先頭列空=N 列数=EB
+    行: 日付=CACG-AI-CG 金額=FCH 先頭列空=N 列数=EB
+    行: 日付=CACG-AI-CG 金額=GAE 先頭列空=N 列数=EB
+    行: 日付=CACG-AI-CG 金額=HCB 先頭列空=N 列数=EB
+    行: 日付=CACG-AI-CG 金額=BBHH 先頭列空=N 列数=EB
+    行: 日付=CACG-AI-CG 金額=BADE 先頭列空=N 列数=EB
+    このファイルの日別合計（当月分のみ）:
+      CACG-AI-CG: BGIEDI ←採用
+    対象日CGの行数=GE
+--- file media=cat 記録日=CACG-AI-CH 名前日=CG field=file_ads bytes=?
+    列: レポート開始日 | レポート終了日 | キャンペーン名 | キャンペーンの配信 | 結果 | 結果インジケーター | 結果の単価 | 広告セットの予算
+    行: 日付=CACG-AI-CG 金額=BBEDI 先頭列空=N 列数=BG
+    行: 日付=CACG-AI-CG 金額=DJCD 先頭列空=N 列数=BG
+    行: 日付=CACG-AI-CG 金額=HJGC 先頭列空=N 列数=BG
+    行: 日付=CACG-AI-CG 金額=BFEA 先頭列空=N 列数=BG
+    行: 日付=CACG-AI-CG 金額=BAAE 先頭列空=N 列数=BG
+    行: 日付=CACG-AI-CG 金額=EAJB 先頭列空=N 列数=BG
+    行: 日付=CACG-AI-CG 金額=BBAE 先頭列空=N 列数=BG
+    行: 日付=CACG-AI-CG 金額=BEEEF 先頭列空=N 列数=BG
+    行: 日付=CACG-AI-CG 金額=FEAC 先頭列空=N 列数=BG
+    行: 日付=CACG-AI-CG 金額=BAJB 先頭列空=N 列数=BG
+    行: 日付=CACG-AI-CG 金額=BDCI 先頭列空=N 列数=BG
+    行: 日付=CACG-AI-CG 金額=BAHH 先頭列空=N 列数=BG
+    行: 日付=CACG-AI-CG 金額=DCHD 先頭列空=N 列数=BG
+    行: 日付=CACG-AI-CG 金額=FGF 先頭列空=N 列数=BG
+    行: 日付=CACG-AI-CG 金額=GBC 先頭列空=N 列数=BG
+    行: 日付=CACG-AI-CG 金額=EJA 先頭列空=N 列数=BG
+    行: 日付=CACG-AI-CG 金額=EHH 先頭列空=N 列数=BG
+    行: 日付=CACG-AI-CG 金額=FDC 先頭列空=N 列数=BG
+    このファイルの日別合計（当月分のみ）:
+      CACG-AI-CG: GADFE ←採用
+    対象日CGの行数=BI
+--- file media=trav 記録日=CACG-AI-CG 名前日=CF field=file_ads bytes=?
+    列: キャンペーン名 | キャンペーンの配信 | 結果 | 結果インジケーター | 結果の単価 | 広告セットの予算 | 広告セットの予算タイプ | 消化金額 (JPY)
+    このファイルの日別合計（当月分のみ）:
+      CACG-AI-CF: BGABEJ ←採用
+    対象日CGの行数=A
+--- file media=cat 記録日=CACG-AI-CF 名前日=CE field=file_ads bytes=?
+    列: レポート開始日 | レポート終了日 | キャンペーン名 | キャンペーンの配信 | 結果 | 結果インジケーター | 結果の単価 | 広告セットの予算
+    このファイルの日別合計（当月分のみ）:
+      CACG-AI-CE: EHGDB ←採用
+    対象日CGの行数=A
+--- file media=trav 記録日=CACG-AI-CF 名前日=CE field=file_ads bytes=?
+    列: 広告セット名 | 広告セットの配信 | 結果 | 結果インジケーター | 結果の単価 | 広告セットの予算 | 広告セットの予算タイプ | 消化金額 (JPY)
+    このファイルの日別合計（当月分のみ）:
+      CACG-AI-CE: BBAEJI ←採用
+    対象日CGの行数=A
+--- file media=cat 記録日=CACG-AI-CE 名前日=CB field=file_ads bytes=?
+    列: レポート開始日 | レポート終了日 | キャンペーン名 | キャンペーンの配信 | 結果 | 結果インジケーター | 結果の単価 | 広告セットの予算
+    このファイルの日別合計（当月分のみ）:
+      CACG-AI-CB: FDEBF ←採用
+    対象日CGの行数=A
+--- file media=cat 記録日=CACG-AI-CE 名前日=CC field=file_ads bytes=?
+    列: レポート開始日 | レポート終了日 | キャンペーン名 | キャンペーンの配信 | 結果 | 結果インジケーター | 結果の単価 | 広告セットの予算
+    このファイルの日別合計（当月分のみ）:
+      CACG-AI-CC: FBEIF ←採用
+    対象日CGの行数=A
+--- file media=cat 記録日=CACG-AI-CE 名前日=CD field=file_ads bytes=?
+    列: レポート開始日 | レポート終了日 | キャンペーン名 | キャンペーンの配信 | 結果 | 結果インジケーター | 結果の単価 | 広告セットの予算
+    このファイルの日別合計（当月分のみ）:
+      CACG-AI-CD: FGJBC ←採用
+    対象日CGの行数=A
+--- file media=trav 記録日=CACG-AI-CD 名前日=CB field=file_ads bytes=?
+    列: キャンペーン名 | キャンペーンの配信 | 結果 | 結果インジケーター | 結果の単価 | 広告セットの予算 | 広告セットの予算タイプ | 消化金額 (JPY)
+    このファイルの日別合計（当月分のみ）:
+      CACG-AI-CB: BDCEEH ←採用
+    対象日CGの行数=A
+--- file media=trav 記録日=CACG-AI-CD 名前日=CC field=file_ads bytes=?
+    列: キャンペーン名 | キャンペーンの配信 | 結果 | 結果インジケーター | 結果の単価 | 広告セットの予算 | 広告セットの予算タイプ | 消化金額 (JPY)
+    このファイルの日別合計（当月分のみ）:
+      CACG-AI-CC: BAGBIB ←採用
+    対象日CGの行数=A
+--- file media=trav 記録日=CACG-AI-CD 名前日=CD field=file_ads bytes=?
+    列: キャンペーン名 | キャンペーンの配信 | 結果 | 結果インジケーター | 結果の単価 | 広告セットの予算 | 広告セットの予算タイプ | 消化金額 (JPY)
+    このファイルの日別合計（当月分のみ）:
+      CACG-AI-CD: BBFGCJ ←採用
+    対象日CGの行数=A
+--- file media=trav 記録日=CACG-AI-CB 名前日=CA field=file_ads bytes=?
+    列: キャンペーン名 | キャンペーンの配信 | 結果 | 結果インジケーター | 結果の単価 | 広告セットの予算 | 広告セットの予算タイプ | 消化金額 (JPY)
+    このファイルの日別合計（当月分のみ）:
+      CACG-AI-CA: BDHHBJ ←採用
+    対象日CGの行数=A
+--- file media=cat 記録日=CACG-AI-CB 名前日=CA field=file_ads bytes=?
+    列: レポート開始日 | レポート終了日 | キャンペーン名 | キャンペーンの配信 | 結果 | 結果インジケーター | 結果の単価 | 広告セットの予算
+    このファイルの日別合計（当月分のみ）:
+      CACG-AI-CA: GDCJB ←採用
+    対象日CGの行数=A
+--- file media=trav 記録日=CACG-AI-CA 名前日=BJ field=file_ads bytes=?
+    列: レポート開始日 | レポート終了日 | キャンペーン名 | キャンペーンの配信 | 結果 | 結果インジケーター | 結果の単価 | 広告セットの予算
+    このファイルの日別合計（当月分のみ）:
+      CACG-AI-BJ: HJCI ←採用
+    対象日CGの行数=A
+--- file media=cat 記録日=CACG-AI-CA 名前日=BJ field=file_ads bytes=?
+    列: レポート開始日 | レポート終了日 | キャンペーン名 | キャンペーンの配信 | 結果 | 結果インジケーター | 結果の単価 | 広告セットの予算
+    このファイルの日別合計（当月分のみ）:
+      CACG-AI-BJ: GFIEE ←採用
+    対象日CGの行数=A
+--- file media=cat 記録日=CACG-AI-BJ 名前日=BI field=file_ads bytes=?
+    列: レポート開始日 | レポート終了日 | キャンペーン名 | キャンペーンの配信 | 結果 | 結果インジケーター | 結果の単価 | 広告セットの予算
+    このファイルの日別合計（当月分のみ）:
+      CACG-AI-BI: GFACB ←採用
+    対象日CGの行数=A
+--- file media=trav 記録日=CACG-AI-BJ 名前日=BI field=file_ads bytes=?
+    列: レポート開始日 | レポート終了日 | キャンペーン名 | キャンペーンの配信 | 結果 | 結果インジケーター | 結果の単価 | 広告セットの予算
+    このファイルの日別合計（当月分のみ）:
+      CACG-AI-BI: BBCDGH ←採用
+    対象日CGの行数=A
+--- file media=cat 記録日=CACG-AI-BI 名前日=E field=file_ads bytes=?
+    列: レポート開始日 | レポート終了日 | キャンペーン名 | キャンペーンの配信 | 結果 | 結果インジケーター | 結果の単価 | 広告セットの予算
+    このファイルの日別合計（当月分のみ）:
+      CACG-AI-AE: IFBDE ←採用
+    対象日CGの行数=A
+--- file media=cat 記録日=CACG-AI-BI 名前日=D field=file_ads bytes=?
+    列: レポート開始日 | レポート終了日 | キャンペーン名 | キャンペーンの配信 | 結果 | 結果インジケーター | 結果の単価 | 広告セットの予算
+    このファイルの日別合計（当月分のみ）:
+      CACG-AI-AD: BAIFFB ←採用
+    対象日CGの行数=A
+--- file media=cat 記録日=CACG-AI-BI 名前日=C field=file_ads bytes=?
+    列: レポート開始日 | レポート終了日 | キャンペーン名 | キャンペーンの配信 | 結果 | 結果インジケーター | 結果の単価 | 広告セットの予算
+    このファイルの日別合計（当月分のみ）:
+      CACG-AI-AC: BGECJA ←採用
+    対象日CGの行数=A
+--- file media=cat 記録日=CACG-AI-BI 名前日=B field=file_ads bytes=?
+    列: レポート開始日 | レポート終了日 | キャンペーン名 | キャンペーンの配信 | 結果 | 結果インジケーター | 結果の単価 | 広告セットの予算
+    このファイルの日別合計（当月分のみ）:
+      CACG-AI-AB: BFJGCC ←採用
+    対象日CGの行数=A
+--- file media=cat 記録日=CACG-AI-BI 名前日=BH field=file_ads bytes=?
+    列: レポート開始日 | レポート終了日 | キャンペーン名 | キャンペーンの配信 | 結果 | 結果インジケーター | 結果の単価 | 広告セットの予算
+    このファイルの日別合計（当月分のみ）:
+      CACG-AI-AC: BGECJA
+    対象日CGの行数=A
+--- file media=trav 記録日=CACG-AI-BI 名前日=BH field=file_ads bytes=?
+    列: レポート開始日 | レポート終了日 | キャンペーン名 | キャンペーンの配信 | 結果 | 結果インジケーター | 結果の単価 | 広告セットの予算
+    このファイルの日別合計（当月分のみ）:
+      CACG-AI-BH: BDGJGH ←採用
+    対象日CGの行数=A
+--- file media=cat 記録日=CACG-AI-BH 名前日=BC field=file_ads bytes=?
+    列: レポート開始日 | レポート終了日 | キャンペーン名 | キャンペーンの配信 | 結果 | 結果インジケーター | 結果の単価 | 広告セットの予算
+    このファイルの日別合計（当月分のみ）:
+      CACG-AI-BC: HAJFH ←採用
+    対象日CGの行数=A
+--- file media=cat 記録日=CACG-AI-BH 名前日=BD field=file_ads bytes=?
+    列: レポート開始日 | レポート終了日 | キャンペーン名 | キャンペーンの配信 | 結果 | 結果インジケーター | 結果の単価 | 広告セットの予算
+    このファイルの日別合計（当月分のみ）:
+      CACG-AI-BD: HDGAD ←採用
+    対象日CGの行数=A
+--- file media=cat 記録日=CACG-AI-BH 名前日=BE field=file_ads bytes=?
+    列: レポート開始日 | レポート終了日 | キャンペーン名 | キャンペーンの配信 | 結果 | 結果インジケーター | 結果の単価 | 広告セットの予算
+    このファイルの日別合計（当月分のみ）:
+      CACG-AI-BE: HBHHC ←採用
+    対象日CGの行数=A
+--- file media=cat 記録日=CACG-AI-BH 名前日=BF field=file_ads bytes=?
+    列: レポート開始日 | レポート終了日 | キャンペーン名 | キャンペーンの配信 | 結果 | 結果インジケーター | 結果の単価 | 広告セットの予算
+    このファイルの日別合計（当月分のみ）:
+      CACG-AI-BF: HAGCF ←採用
+    対象日CGの行数=A
+--- file media=cat 記録日=CACG-AI-BH 名前日=BG field=file_ads bytes=?
+    列: レポート開始日 | レポート終了日 | キャンペーン名 | キャンペーンの配信 | 結果 | 結果インジケーター | 結果の単価 | 広告セットの予算
+    このファイルの日別合計（当月分のみ）:
+      CACG-AI-BG: HFABH ←採用
+    対象日CGの行数=A
+--- file media=trav 記録日=CACG-AI-BH 名前日=BC field=file_ads bytes=?
+    列: レポート開始日 | レポート終了日 | キャンペーン名 | キャンペーンの配信 | 結果 | 結果インジケーター | 結果の単価 | 広告セットの予算
+    このファイルの日別合計（当月分のみ）:
+      CACG-AI-BC: BDIDJJ ←採用
+    対象日CGの行数=A
+--- file media=trav 記録日=CACG-AI-BH 名前日=BG field=file_ads bytes=?
+    列: レポート開始日 | レポート終了日 | キャンペーン名 | キャンペーンの配信 | 結果 | 結果インジケーター | 結果の単価 | 広告セットの予算
+    このファイルの日別合計（当月分のみ）:
+      CACG-AI-BG: BEFJFA ←採用
+    対象日CGの行数=A
+--- file media=trav 記録日=CACG-AI-BH 名前日=BD field=file_ads bytes=?
+    列: レポート開始日 | レポート終了日 | キャンペーン名 | キャンペーンの配信 | 結果 | 結果インジケーター | 結果の単価 | 広告セットの予算
+    このファイルの日別合計（当月分のみ）:
+      CACG-AI-BD: BGBAFI ←採用
+    対象日CGの行数=A
+--- file media=trav 記録日=CACG-AI-BH 名前日=BE field=file_ads bytes=?
+    列: レポート開始日 | レポート終了日 | キャンペーン名 | キャンペーンの配信 | 結果 | 結果インジケーター | 結果の単価 | 広告セットの予算
+    このファイルの日別合計（当月分のみ）:
+      CACG-AI-BE: BFCCCI ←採用
+    対象日CGの行数=A
+--- file media=trav 記録日=CACG-AI-BH 名前日=BF field=file_ads bytes=?
+    列: レポート開始日 | レポート終了日 | キャンペーン名 | キャンペーンの配信 | 結果 | 結果インジケーター | 結果の単価 | 広告セットの予算
+    このファイルの日別合計（当月分のみ）:
+      CACG-AI-BF: BCHICJ ←採用
+    対象日CGの行数=A
+--- file media=trav 記録日=CACG-AI-BC 名前日=BA field=file_ads bytes=?
+    列: レポート開始日 | レポート終了日 | キャンペーン名 | キャンペーンの配信 | 結果 | 結果インジケーター | 結果の単価 | 広告セットの予算
+    このファイルの日別合計（当月分のみ）:
+      CACG-AI-BA: CHCCGC ←採用
+    対象日CGの行数=A
+--- file media=trav 記録日=CACG-AI-BC 名前日=BB field=file_ads bytes=?
+    列: レポート開始日 | レポート終了日 | キャンペーン名 | キャンペーンの配信 | 結果 | 結果インジケーター | 結果の単価 | 広告セットの予算
+    このファイルの日別合計（当月分のみ）:
+      CACG-AI-BB: CEDBIE ←採用
+    対象日CGの行数=A
+--- file media=cat 記録日=CACG-AI-BC 名前日=BA field=file_ads bytes=?
+    列: レポート開始日 | レポート終了日 | キャンペーン名 | キャンペーンの配信 | 結果 | 結果インジケーター | 結果の単価 | 広告セットの予算
+    このファイルの日別合計（当月分のみ）:
+      CACG-AI-BA: BAJDCD ←採用
+    対象日CGの行数=A
+--- file media=cat 記録日=CACG-AI-BC 名前日=BB field=file_ads bytes=?
+    列: レポート開始日 | レポート終了日 | キャンペーン名 | キャンペーンの配信 | 結果 | 結果インジケーター | 結果の単価 | 広告セットの予算
+    このファイルの日別合計（当月分のみ）:
+      CACG-AI-BB: IIHIH ←採用
+    対象日CGの行数=A
+--- file media=cat 記録日=CACG-AI-BA 名前日=H field=file_ads bytes=?
+    列: レポート開始日 | レポート終了日 | キャンペーン名 | キャンペーンの配信 | 結果 | 結果インジケーター | 結果の単価 | 広告セットの予算
+    このファイルの日別合計（当月分のみ）:
+      CACG-AI-AH: BABBCJ ←採用
+    対象日CGの行数=A
+--- file media=cat 記録日=CACG-AI-BA 名前日=I field=file_ads bytes=?
+    列: レポート開始日 | レポート終了日 | キャンペーン名 | キャンペーンの配信 | 結果 | 結果インジケーター | 結果の単価 | 広告セットの予算
+    このファイルの日別合計（当月分のみ）:
+      CACG-AI-AI: HFIHD ←採用
+    対象日CGの行数=A
+--- file media=trav 記録日=CACG-AI-BA 名前日=J field=file_ads bytes=?
+    列: レポート開始日 | レポート終了日 | キャンペーン名 | キャンペーンの配信 | 結果 | 結果インジケーター | 結果の単価 | 広告セットの予算
+    このファイルの日別合計（当月分のみ）:
+      CACG-AI-AJ: CGJCIH ←採用
+    対象日CGの行数=A
+--- file media=trav 記録日=CACG-AI-BA 名前日=I field=file_ads bytes=?
+    列: レポート開始日 | レポート終了日 | キャンペーン名 | キャンペーンの配信 | 結果 | 結果インジケーター | 結果の単価 | 広告セットの予算
+    このファイルの日別合計（当月分のみ）:
+      CACG-AI-AI: CGGFCG ←採用
+    対象日CGの行数=A
+--- file media=cat 記録日=CACG-AI-BA 名前日=J field=file_ads bytes=?
+    列: レポート開始日 | レポート終了日 | キャンペーン名 | キャンペーンの配信 | 結果 | 結果インジケーター | 結果の単価 | 広告セットの予算
+    このファイルの日別合計（当月分のみ）:
+      CACG-AI-AJ: IHJFA ←採用
+    対象日CGの行数=A
+--- file media=trav 記録日=CACG-AI-BA 名前日=H field=file_ads bytes=?
+    列: レポート開始日 | レポート終了日 | キャンペーン名 | キャンペーンの配信 | 結果 | 結果インジケーター | 結果の単価 | 広告セットの予算
+    このファイルの日別合計（当月分のみ）:
+      CACG-AI-AH: CEBBAE ←採用
+    対象日CGの行数=A
+--- file media=cat 記録日=CACG-AI-AH 名前日=G field=file_ads bytes=?
+    列: レポート開始日 | レポート終了日 | キャンペーン名 | キャンペーンの配信 | 結果 | 結果インジケーター | 結果の単価 | 広告セットの予算
+    このファイルの日別合計（当月分のみ）:
+      CACG-AI-AG: BBHCJE ←採用
+    対象日CGの行数=A
+--- file media=trav 記録日=CACG-AI-AH 名前日=G field=file_ads bytes=?
+    列: レポート開始日 | レポート終了日 | キャンペーン名 | キャンペーンの配信 | 結果 | 結果インジケーター | 結果の単価 | 広告セットの予算
+    このファイルの日別合計（当月分のみ）:
+      CACG-AI-AG: EJGHE ←採用
+    対象日CGの行数=A
+--- file media=trav 記録日=CACG-AI-AG 名前日=F field=file_ads bytes=?
+    列: レポート開始日 | レポート終了日 | キャンペーン名 | キャンペーンの配信 | 結果 | 結果インジケーター | 結果の単価 | 広告セットの予算
+    このファイルの日別合計（当月分のみ）:
+      CACG-AI-AF: DFHBFC ←採用
+    対象日CGの行数=A
+--- file media=trav 記録日=CACG-AI-AB 名前日=D field=file_ads bytes=?
+    列: レポート開始日 | レポート終了日 | キャンペーン名 | キャンペーンの配信 | 結果 | 結果インジケーター | 結果の単価 | 広告セットの予算
+    このファイルの日別合計（当月分のみ）:
+      CACG-AI-AD: BCCCAA ←採用
+    対象日CGの行数=A
+--- file media=trav 記録日=CACG-AI-AB 名前日=B field=file_ads bytes=?
+    列: レポート開始日 | レポート終了日 | キャンペーン名 | キャンペーンの配信 | 結果 | 結果インジケーター | 結果の単価 | 広告セットの予算
+    このファイルの日別合計（当月分のみ）:
+      CACG-AI-AB: IAIJA ←採用
+    対象日CGの行数=A
+--- file media=trav 記録日=CACG-AI-AB 名前日=E field=file_ads bytes=?
+    列: レポート開始日 | レポート終了日 | キャンペーン名 | キャンペーンの配信 | 結果 | 結果インジケーター | 結果の単価 | 広告セットの予算
+    このファイルの日別合計（当月分のみ）:
+      CACG-AI-AE: BJIEJG ←採用
+    対象日CGの行数=A
+--- file media=trav 記録日=CACG-AI-AB 名前日=C field=file_ads bytes=?
+    列: レポート開始日 | レポート終了日 | キャンペーン名 | キャンペーンの配信 | 結果 | 結果インジケーター | 結果の単価 | 広告セットの予算
+    このファイルの日別合計（当月分のみ）:
+      CACG-AI-AC: BEBHJA ←採用
+    対象日CGの行数=A
+--- file media=cat 記録日=CACG-AI-AB 名前日=B field=file_ads bytes=?
+    → adCostReportではスキップ扱い（名前日Bは取込済みor未来）
+    消化金額列なし
+--- file media=cat 記録日=CACG-AI-AB 名前日=D field=file_ads bytes=?
+    → adCostReportではスキップ扱い（名前日Dは取込済みor未来）
+    消化金額列なし
+--- file media=cat 記録日=CACG-AI-AB 名前日=C field=file_ads bytes=?
+    → adCostReportではスキップ扱い（名前日Cは取込済みor未来）
+    消化金額列なし
+--- file media=cat 記録日=CACG-AI-AB 名前日=E field=file_ads bytes=?
+    → adCostReportではスキップ扱い（名前日Eは取込済みor未来）
+    消化金額列なし
+=== 採用結果（対象日） ===
+trav dayCG = BGIEDI
+cat dayCG = GADFE
