@@ -215,6 +215,20 @@
       "related_containers": "出荷スケジュール参照",
       "remarks": "7/4注文分。多機能PC S/M＋ノーマルアルミS＋多機能アルミ。出荷スケジュール参照。",
       "items": []
+    },
+    {
+      "order_no": "サザンモデル",
+      "line": "サザンモデル",
+      "status": "生産中",
+      "ship_plan": "2026/11頭〜12末 大阪着予定",
+      "total_qty": 2500,
+      "related_containers": "未割当（3本予定）",
+      "remarks": "サザンモデル。生産2,550個・うちM 50個は中国保管→出荷2,500個。詳細は planned-southern.json（S1,100/M750/L650）。",
+      "items": [
+        { "it_size": "S", "it_finish": "-", "it_color": "黒300/灰200/銀200/白200/ターコイズ200", "it_qty": 1100 },
+        { "it_size": "M", "it_finish": "-", "it_color": "黒200/灰200/銀200/白200（生産800・50中国保管）", "it_qty": 750 },
+        { "it_size": "L", "it_finish": "-", "it_color": "黒250/銀200/灰200", "it_qty": 650 }
+      ]
     }
   ]
 }

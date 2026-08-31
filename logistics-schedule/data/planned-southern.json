@@ -1,0 +1,71 @@
+{
+  "_comment": "サザンモデル。11月頭〜12月末 大阪着予定。M800個のうち50個は中国保管のため出荷は750個。出荷合計2,500個(生産2,550個)。container_no は仮キー。積載目安 S/M/L=1コンテナずつ→約3本。",
+  "order_no": "サザンモデル",
+  "as_of": "2026-08-31",
+  "arrival_window": "2026-11-01〜2026-12-31",
+  "produced_qty": 2550,
+  "ship_qty": 2500,
+  "china_hold_qty": 50,
+  "container_estimate": 3,
+  "records": [
+    {
+      "order_no": "サザンモデル",
+      "seq": 1,
+      "status": "生産中",
+      "container_no": "SOUTHERN-S-01",
+      "shipping_date": "",
+      "arrival_window": "2026-11-01〜2026-12-31",
+      "po_number": "サザンモデル",
+      "size": "S",
+      "total_qty": 1100,
+      "container_estimate": 1,
+      "remarks": "サザンモデル S / 11月頭〜12月末 大阪着予定 / 1コンテナ想定",
+      "items": [
+        { "item_name": "サザンモデル", "item_color": "マットブラック", "item_spec": "S", "item_qty": 300 },
+        { "item_name": "サザンモデル", "item_color": "マットグレー", "item_spec": "S", "item_qty": 200 },
+        { "item_name": "サザンモデル", "item_color": "マットシルバー", "item_spec": "S", "item_qty": 200 },
+        { "item_name": "サザンモデル", "item_color": "マットホワイト", "item_spec": "S", "item_qty": 200 },
+        { "item_name": "サザンモデル", "item_color": "ターコイズ", "item_spec": "S", "item_qty": 200 }
+      ]
+    },
+    {
+      "order_no": "サザンモデル",
+      "seq": 2,
+      "status": "生産中",
+      "container_no": "SOUTHERN-M-01",
+      "shipping_date": "",
+      "arrival_window": "2026-11-01〜2026-12-31",
+      "po_number": "サザンモデル",
+      "size": "M",
+      "total_qty": 750,
+      "produced_qty": 800,
+      "china_hold_qty": 50,
+      "container_estimate": 1,
+      "remarks": "サザンモデル M / 生産800個・うち50個は中国保管 → 出荷750個 / 11月頭〜12月末 大阪着予定 / 1コンテナ想定",
+      "items": [
+        { "item_name": "サザンモデル", "item_color": "マットブラック", "item_spec": "M", "item_qty": 200 },
+        { "item_name": "サザンモデル", "item_color": "マットグレー", "item_spec": "M", "item_qty": 200 },
+        { "item_name": "サザンモデル", "item_color": "マットシルバー", "item_spec": "M", "item_qty": 200 },
+        { "item_name": "サザンモデル", "item_color": "マットホワイト", "item_spec": "M", "item_qty": 200 }
+      ]
+    },
+    {
+      "order_no": "サザンモデル",
+      "seq": 3,
+      "status": "生産中",
+      "container_no": "SOUTHERN-L-01",
+      "shipping_date": "",
+      "arrival_window": "2026-11-01〜2026-12-31",
+      "po_number": "サザンモデル",
+      "size": "L",
+      "total_qty": 650,
+      "container_estimate": 1,
+      "remarks": "サザンモデル L / 11月頭〜12月末 大阪着予定 / 1コンテナ想定",
+      "items": [
+        { "item_name": "サザンモデル", "item_color": "マットブラック", "item_spec": "L", "item_qty": 250 },
+        { "item_name": "サザンモデル", "item_color": "マットシルバー", "item_spec": "L", "item_qty": 200 },
+        { "item_name": "サザンモデル", "item_color": "マットグレー", "item_spec": "L", "item_qty": 200 }
+      ]
+    }
+  ]
+}
