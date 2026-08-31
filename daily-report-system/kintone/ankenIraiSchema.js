@@ -46,7 +46,9 @@ export const PATTERN_OPTIONS = [
   'その他',
 ];
 
-export const SIZE_OPTIONS = ['S（2〜4泊 / 40L）', 'M（3〜7泊 / 65L）', 'L（7〜10泊 / 84L）', '該当なし'];
+// サイズの宿泊目安・容量は商品ごとに異なるため、ここでは S / M / L だけを持つ
+// （具体値は prompts/influencer/README.md のサイズ表を参照）
+export const SIZE_OPTIONS = ['S', 'M', 'L', '該当なし'];
 
 export const STORY_OPTIONS = ['①投稿直後（商品リンク）', '②投稿直後（クーポン）', '③指定期間中'];
 
