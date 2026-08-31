@@ -86,7 +86,8 @@ daily-report-system/
 ├── prompts/                      Claude プロンプト
 │   ├── daily-report-system-prompt.md
 │   ├── daily-report-user-template.md
-│   └── urgent-summary-prompt.md
+│   ├── urgent-summary-prompt.md
+│   └── influencer/               インフルエンサー様への送付文ひな形（制作指示文ほか）★
 ├── n8n/                          n8n インポート用 JSON
 │   ├── workflow-0-setup.json             ⓪初期設定: AI経営日報アプリを自動作成（1回だけ）★
 │   ├── workflow-1-daily-report.json      ①定時: Schedule→Kintone→Claude→保存→通知→ログ
@@ -108,6 +109,7 @@ daily-report-system/
 │   ├── error-handling.md         エラー対応マニュアル
 │   ├── kintone-staff-report-app.md   Kintone設定書①
 │   ├── kintone-ai-report-app.md      Kintone設定書②
+│   ├── influencer-workflow.md    インフルエンサー案件の進行フロー（8ステップ）★
 │   └── line-setup.md             LINE設定書
 └── test/
     └── format.test.js            ユニットテスト（ネットワーク不要）

@@ -54,6 +54,7 @@
     "stock:check": "node scripts/stockCheck.js",
     "sales:import": "node scripts/salesImport.js",
     "kintone:sync-options": "node kintone/syncSalesOptions.js",
+    "kintone:anken-flow": "node kintone/updateAnkenIraiFlow.js",
     "shopify:import": "node scripts/shopifyImport.js",
     "amazon:import": "node scripts/amazonImport.js",
     "rakuten:import": "node scripts/rakutenImport.js",
