@@ -21,6 +21,10 @@ on:
         description: '日別×媒体の広告費をログ出力だけして終了（true/false）'
         required: false
         default: 'false'
+      month:
+        description: '対象月（YYYY-MM・空なら当月）'
+        required: false
+        default: ''
 
 jobs:
   report:
@@ -46,4 +50,5 @@ jobs:
           args=""
           if [ "${{ inputs.dry_run }}" = "true" ]; then args="--dry-run"; fi
           if [ "${{ inputs.dump }}" = "true" ]; then args="$args --dump"; fi
+          if [ -n "${{ inputs.month }}" ]; then args="$args --month=${{ inputs.month }}"; fi
           python3 scripts/adCostReport.py $args

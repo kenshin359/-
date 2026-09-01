@@ -34,8 +34,8 @@ def yen_num(s):
 def z2h(s):
     return unicodedata.normalize('NFKC', s)
 
-def day_from_name(name):
-    m = re.search(r'8[.:：月\s]?\s*([0-3]?\d)', z2h(name))
+def day_from_name(name, m_num=8):
+    m = re.search(rf'{m_num}[.:：月\s]?\s*([0-3]?\d)', z2h(name))
     return int(m.group(1)) if m else None
 
 def read_text(raw):
@@ -86,8 +86,20 @@ def daily_col(text, colname):
 
 def main():
     now = datetime.now(JST)
-    month = now.strftime('%Y-%m')
-    upto = (now - timedelta(days=1)).day  # 前日まで
+    # --month=YYYY-MM で過去月を指定できる（月替わり後に前月分を出す用）
+    marg = next((a for a in sys.argv if a.startswith('--month=')), None)
+    if marg:
+        month = marg.split('=', 1)[1]
+        y, m = map(int, month.split('-'))
+        if month == now.strftime('%Y-%m'):
+            upto = (now - timedelta(days=1)).day
+        else:
+            import calendar
+            upto = calendar.monthrange(y, m)[1]  # 過去月は月末まで
+    else:
+        month = now.strftime('%Y-%m')
+        upto = (now - timedelta(days=1)).day  # 前日まで
+    m_num = int(month.split('-')[1])
 
     # 当月レコードを全件取得（1回100件ずつ・最大10ページ）
     records = []
@@ -122,7 +134,7 @@ def main():
                         continue
                     if not name.endswith('.csv'):
                         continue
-                    day = day_from_name(name)
+                    day = day_from_name(name, m_num)
                     media = None
                     colname = None
                     if 'トラベル' in nk:
@@ -197,13 +209,13 @@ def main():
         got = set(mdays(media))
         miss = [d for d in range(1, upto + 1) if d not in got]
         if miss:
-            missing.append(f'{label}: {"、".join(f"8/{d}" for d in miss[:6])}{" ほか" if len(miss) > 6 else ""}')
+            missing.append(f'{label}: {"、".join(f"{m_num}/{d}" for d in miss[:6])}{" ほか" if len(miss) > 6 else ""}')
     gmiss = [d for d in range(1, upto + 1) if d not in google_daily]
     if gmiss:
-        missing.append(f'Google: {"、".join(f"8/{d}" for d in gmiss[:6])}{" ほか" if len(gmiss) > 6 else ""}')
+        missing.append(f'Google: {"、".join(f"{m_num}/{d}" for d in gmiss[:6])}{" ほか" if len(gmiss) > 6 else ""}')
 
     L = []
-    L.append(f'[info][title]💰 広告費レポート【8/1-8/{upto}】（自動集計）[/title]')
+    L.append(f'[info][title]💰 広告費レポート【{m_num}/1-{m_num}/{upto}】（自動集計）[/title]')
     L.append(f'▪️Google広告▶️{y(google)}')
     L.append('')
     L.append(f'▪️Amazon広告▶️{y(az)}')
