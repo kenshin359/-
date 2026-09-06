@@ -70,11 +70,11 @@
     "ref_no": "TGL26-1560",
     "products": "ノーマルアルミ(M) シルバー326＋ブラック264",
     "remarks": "H B/L GZTLF2608019 受領・サレンダー済(SUR 8/19) / M B/L 025G757198 / 荷受人 LIBETEE.INC / 本船 WAN HAI 102 W426 ETA 2026-08-23 大阪 On board 8/19 / A/N 8/22発行 / 40HQ 590個 5,010KGS 66.66CBM / CY:南港C-9 三菱倉庫(06-6612-4861) / 必要書類3点揃い / PO LM26320",
-    "status": "通関待ち",
+    "status": "完了",
     "docs_status": "完備",
     "order_no": "LM260320",
-    "memo": "8/23大阪着済み。BL・アライバル揃い。着後に通関。",
-    "next_action": "通関依頼→ドレー手配"
+    "memo": "8/23着・通関完了。 8/23大阪着済み。BL・アライバル揃い。着後に通関。",
+    "next_action": "入庫手配"
   },
   "WHSU5628824": {
     "hbl_no": "GZTLF2608006",
@@ -96,11 +96,11 @@
     "next_action": "8/22 入庫確認"
   },
   "EITU1030111": {
-    "status": "通関待ち",
+    "status": "完了",
     "docs_status": "完備",
     "order_no": "LM260320",
-    "memo": "8/25 大阪着済み。BL・アライバル揃い。着後に通関。",
-    "next_action": "通関依頼→ドレー手配",
+    "memo": "8/25着・通関完了。 8/25 大阪着済み。BL・アライバル揃い。着後に通関。",
+    "next_action": "入庫手配",
     "hbl_no": "GZTLF2608026",
     "mbl_no": "EGLV149607007648",
     "bl_surrendered": "済",
@@ -116,11 +116,11 @@
     "remarks": "H B/L GZTLF2608026(2本口)受領・サレンダー済(SUR 8/22) / M B/L EGLV149607007648 / 本船 EVER COMPOSE 2088-109N ETA 2026-08-25 大阪 On board 8/22 / 40GP 1093個 5,565KGS 66.55CBM / CY:辰巳商会 北港C-11(06-6612-3152) / ジップ便NO.1(LM260320-NO.1)"
   },
   "CAAU5731521": {
-    "status": "通関待ち",
+    "status": "完了",
     "docs_status": "完備",
     "order_no": "LM260320",
-    "memo": "8/25 大阪着済み。BL・アライバル揃い。着後に通関。",
-    "next_action": "通関依頼→ドレー手配",
+    "memo": "8/25着・通関完了。 8/25 大阪着済み。BL・アライバル揃い。着後に通関。",
+    "next_action": "入庫手配",
     "hbl_no": "GZTLF2608026",
     "mbl_no": "EGLV149607007648",
     "bl_surrendered": "済",
