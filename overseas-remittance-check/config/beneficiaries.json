@@ -1,0 +1,34 @@
+{
+  "_comment": "受取人（仕入先）マスタ。銀行口座情報が変わったと連絡が来ても、ここは絶対に『メール本文だけ』で書き換えないこと。必ず登録済みの電話番号にこちらから架電して確認し、verification 欄を更新してから変更する（BEC=ビジネスメール詐欺対策）。",
+  "beneficiaries": [
+    {
+      "id": "HUGH_TRADING_HK",
+      "name": "HUGH TRADING LIMITED",
+      "name_aliases": [],
+      "country": "HONG KONG",
+      "country_code": "HK",
+      "address": "FLAT 1019B, 10/F, LIVEN HOUSE, NO.61-63 KING YIP STREEK KWUN TONG, KOWLOON, HONG KONG",
+      "address_note": "先方提出資料の原文表記は 'KING YIP STREEK'。実在の街路名は 'King Yip Street'（観塘・京業街）。先方書類の誤記をそのまま踏襲している。着金の可否には影響しないが、次回取引時に先方へ訂正確認すること。",
+      "account_number": "79969931316469",
+      "bic": "DHBKHKHH",
+      "bic_11": "DHBKHKHHXXX",
+      "bank_name": "DBS BANK (HONG KONG) LIMITED",
+      "bank_address": "11TH FLOOR, THE CENTER, 99 QUEEN'S ROAD CENTRAL, CENTRAL, HONG KONG",
+      "bank_country_code": "HK",
+      "clearing_sort_code": "016",
+      "clearing_branch_code": "478",
+      "contact_phone": "18620073517",
+      "contact_phone_note": "中国本土の携帯番号（186 始まり／11桁）。香港法人だが担当者連絡先は中国本土。コールバック検証の際はこの番号を使う。",
+      "currency": "USD",
+      "payment_terms": "T/T BASE",
+      "source_document": "HUGH_TRADING_LIMITED_DBS_Bank.xlsx",
+      "verification": {
+        "verified": false,
+        "verified_at": null,
+        "verified_by": null,
+        "method": null,
+        "_comment": "初回登録時、または口座情報の変更時は、登録済み電話番号への発信で本人確認を行い、実施日・実施者・方法を記録すること。未検証のままでは高額送金を実行しない。"
+      }
+    }
+  ]
+}

@@ -1,0 +1,85 @@
+{
+  "_comment": "BIC(SWIFT)コードと銀行名・所在国の対応表。BICの綴りが1文字違うだけで別bankに着金しうるため、目視ではなくここで機械照合する。新しい送金先を使うときは、必ずSWIFT公式(swift.com/bsl)または銀行窓口で確認した値を追記すること。",
+  "bics": {
+    "DHBKHKHH": {
+      "bank_name": "DBS BANK (HONG KONG) LIMITED",
+      "country_code": "HK",
+      "city": "HONG KONG",
+      "note": "旧 Dao Heng Bank。頭4文字が DHBK なのはその名残。シンガポール本体の DBS Bank Ltd (DBSSSGSG) とは別法人なので取り違えないこと。"
+    },
+    "DBSSSGSG": {
+      "bank_name": "DBS BANK LTD",
+      "country_code": "SG",
+      "city": "SINGAPORE",
+      "note": "シンガポール本体。香港口座への送金でこちらを指定するのは誤り。"
+    },
+    "HASEHKHH": {
+      "bank_name": "HANG SENG BANK LIMITED",
+      "country_code": "HK",
+      "city": "HONG KONG"
+    },
+    "HSBCHKHH": {
+      "bank_name": "THE HONGKONG AND SHANGHAI BANKING CORPORATION LIMITED",
+      "country_code": "HK",
+      "city": "HONG KONG"
+    },
+    "BKCHHKHH": {
+      "bank_name": "BANK OF CHINA (HONG KONG) LIMITED",
+      "country_code": "HK",
+      "city": "HONG KONG"
+    },
+    "SCBLHKHH": {
+      "bank_name": "STANDARD CHARTERED BANK (HONG KONG) LIMITED",
+      "country_code": "HK",
+      "city": "HONG KONG"
+    },
+    "ICBKCNBJ": {
+      "bank_name": "INDUSTRIAL AND COMMERCIAL BANK OF CHINA",
+      "country_code": "CN",
+      "city": "BEIJING"
+    },
+    "BKCHCNBJ": {
+      "bank_name": "BANK OF CHINA",
+      "country_code": "CN",
+      "city": "BEIJING"
+    },
+    "PCBCCNBJ": {
+      "bank_name": "CHINA CONSTRUCTION BANK",
+      "country_code": "CN",
+      "city": "BEIJING"
+    },
+    "ABOCCNBJ": {
+      "bank_name": "AGRICULTURAL BANK OF CHINA",
+      "country_code": "CN",
+      "city": "BEIJING"
+    },
+    "COMMCNSH": {
+      "bank_name": "BANK OF COMMUNICATIONS",
+      "country_code": "CN",
+      "city": "SHANGHAI"
+    },
+    "SZDBCNBS": {
+      "bank_name": "PING AN BANK CO LTD",
+      "country_code": "CN",
+      "city": "SHENZHEN"
+    },
+    "HYAKJPJT": {
+      "bank_name": "THE HYAKUJUSHI BANK, LTD.",
+      "country_code": "JP",
+      "city": "TAKAMATSU",
+      "note": "今回の仕向（送金元）銀行。"
+    }
+  },
+  "iban_countries": [
+    "AD","AE","AL","AT","AZ","BA","BE","BG","BH","BR","BY","CH","CR","CY","CZ","DE","DK","DO","EE","EG",
+    "ES","FI","FO","FR","GB","GE","GI","GL","GR","GT","HR","HU","IE","IL","IQ","IS","IT","JO","KW","KZ",
+    "LB","LC","LI","LT","LU","LV","LY","MC","MD","ME","MK","MR","MT","MU","NL","NO","PK","PL","PS","PT",
+    "QA","RO","RS","SA","SC","SE","SI","SK","SM","ST","SV","TL","TN","TR","UA","VA","VG","XK"
+  ],
+  "account_format_rules": {
+    "HK": { "digits_only": true, "min_len": 9, "max_len": 15,
+            "note": "香港の口座番号は数字のみ。DBS香港の法人口座は概ね12〜15桁。ハイフンやスペースが混じっていたら入力ミスを疑う。" },
+    "CN": { "digits_only": true, "min_len": 16, "max_len": 21,
+            "note": "中国本土の口座番号は概ね16〜21桁。CNAPS(联行号)12桁の併記を求められることが多い。" }
+  }
+}

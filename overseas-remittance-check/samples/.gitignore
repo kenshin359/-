@@ -1,0 +1,5 @@
+# 申込書PDFやINVOICEは口座番号を含む取引書類なので、リポジトリには入れない。
+# ローカルに置けば tests/test_extract.py が動く。
+*.pdf
+*.xlsx
+*.xls

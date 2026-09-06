@@ -1,0 +1,35 @@
+{
+  "_comment": "国・地域のスクリーニング用。申込書に印字された『北朝鮮・イラン規制に該当しません／ロシア・ウクライナ・ベラルーシに関連する取引に該当しません』という表明に、実際の入力内容が矛盾していないかを機械的に突き合わせるためのもの。個人・団体名の制裁リスト照合は本ツールの範囲外で、銀行側のフィルタと外務省・財務省の告示で別途確認すること。",
+  "prohibited": {
+    "_comment": "外為法上、支払等が原則禁止または資産凍結措置の対象。ヒットしたら送金を止める。",
+    "keywords": [
+      "NORTH KOREA", "DPRK", "PYONGYANG", "北朝鮮", "朝鮮民主主義人民共和国",
+      "IRAN", "TEHRAN", "イラン", "テヘラン",
+      "SYRIA", "DAMASCUS", "シリア",
+      "CUBA", "キューバ",
+      "CRIMEA", "SEVASTOPOL", "クリミア",
+      "DONETSK", "LUHANSK", "ドネツク", "ルハンスク", "ルガンスク",
+      "KHERSON", "ZAPORIZHZHIA", "ヘルソン", "ザポリージャ"
+    ]
+  },
+  "restricted": {
+    "_comment": "全面禁止ではないが、個別の許可・確認や銀行への申告が必要になりうる。ヒットしたら要確認として止める。",
+    "keywords": [
+      "RUSSIA", "RUSSIAN", "MOSCOW", "ST PETERSBURG", "ロシア", "モスクワ",
+      "BELARUS", "MINSK", "ベラルーシ", "ミンスク",
+      "UKRAINE", "KYIV", "KIEV", "ウクライナ", "キーウ",
+      "MYANMAR", "BURMA", "YANGON", "ミャンマー",
+      "AFGHANISTAN", "KABUL", "アフガニスタン",
+      "SUDAN", "スーダン",
+      "VENEZUELA", "ベネズエラ"
+    ]
+  },
+  "high_risk_jurisdictions": {
+    "_comment": "FATFの『強化された監視の対象となる国・地域』等に挙がることが多く、銀行から追加資料を求められやすい国。取引自体は可能。実際の最新リストはFATF公表分を都度確認すること。",
+    "country_codes": ["SY", "IR", "KP", "MM", "AF", "YE", "SS", "HT", "MZ", "CD", "MC", "VU", "NG", "BF", "CM", "VN", "BG", "AO", "CI"]
+  },
+  "offshore_payment_jurisdictions": {
+    "_comment": "商品の原産地・船積地と受取人の所在国がずれる『第三国決済（オフショア決済）』が起きやすい地域。違法ではないが、銀行のAML照会と税務調査で説明を求められる典型パターンなので、契約書・INVOICE上で受取人を明示しておく必要がある。",
+    "country_codes": ["HK", "SG", "AE", "VG", "KY", "SC", "PA", "BZ", "MU", "WS"]
+  }
+}

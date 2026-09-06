@@ -1,0 +1,112 @@
+{
+  "_source": "remittance_china_20260901.pdf（百十四銀行 仕向送金申込書兼告知書 / 帳票ID OMT0107 / 印刷日時 2026-09-01 09:39:01）",
+  "_note": "PDFから読み取った値をそのまま格納している。null は申込書上で空欄だった項目。空欄と『未確認』を区別するため、勝手に埋めないこと。",
+
+  "reference_no": "OMT20260901100481",
+  "status": "承認待ち",
+  "branch": { "code": "478", "name": "OMOTO" },
+  "customer_no": "4780351071",
+  "application_date": null,
+  "value_date": "2026-09-03",
+  "printed_at": "2026-09-01T09:39:01",
+
+  "remittance_type": "海外向電信送金 (OVERSEAS TRANSFER)",
+  "settlement_method": "直物",
+  "contract_no": null,
+  "fx_contract_no": null,
+
+  "debit": {
+    "method": "口座引落し (CHARGE MY ACCOUNT)",
+    "account_type": "円貨口座",
+    "deposit_type": "普通",
+    "account_number": "0351071"
+  },
+
+  "amount": { "currency": "USD", "value": 238537.00 },
+  "yen_equivalent": null,
+  "fee_handling": "手数料別",
+  "payment_instruction": "通知払 (ADVISE & PAY)",
+  "foreign_bank_charges": "DEBTOR",
+
+  "applicant": {
+    "name": "REK, CO., LTD.",
+    "address": "2-7-20 CHUO SOJA CITY OKAYAMA JAPAN",
+    "tel": "0862397800"
+  },
+  "debtor": {
+    "name": "REK, CO., LTD.",
+    "country": "JAPAN",
+    "lei": null,
+    "street": "2-7-20 CHUO",
+    "post_code": "7191131",
+    "town": "SOJA CITY",
+    "country_sub_division": "OKAYAMA"
+  },
+  "ultimate_debtor": null,
+
+  "creditor": {
+    "name": "HUGH TRADING LIMITED",
+    "country": "HONG KONG",
+    "lei": null,
+    "street": "FLAT 1019B, 10/F, LIVEN HOUSE, NO.61-63 KING YIP STREEK KWUN TONG,",
+    "town": "KOWLOON,",
+    "country_of_residence": null
+  },
+  "ultimate_creditor": null,
+
+  "creditor_account": "79969931316469",
+  "creditor_agent": {
+    "bic": "DHBKHKHH",
+    "clearing_system_id": null,
+    "member_id": null,
+    "name": "DBS BANK (HONG KONG) LIMITED",
+    "country": "HONG KONG",
+    "street": "QUEEN'S ROAD",
+    "building_number": "99",
+    "building_name": "THE CENTER",
+    "floor": "FLOOR 11",
+    "town": "CENTRAL",
+    "country_sub_division": "HONG KONG ISLAND"
+  },
+  "intermediary_agent": null,
+
+  "purpose": {
+    "category": "輸入",
+    "purpose_code": null,
+    "imf_code": null,
+    "details": "SUITCASE",
+    "origin": "CHINA",
+    "port_of_loading": "CHINA SHENZHEN",
+    "port_of_destination": null
+  },
+
+  "fefta_license": "不要 (NOT NECESSARY)",
+  "debtor_reference_no": null,
+  "end_to_end_identification": null,
+  "remittance_information": null,
+  "purpose_of_payment_code": null,
+  "instruction_for_debtor_agent": null,
+
+  "declarations": {
+    "not_north_korea_iran": true,
+    "not_north_korea_payment_ban": true,
+    "not_russia_ukraine_belarus": true,
+    "consent": true,
+    "attachment": "あり"
+  },
+
+  "invoice": {
+    "_comment": "INVOICE(PI)が未提出のため全て null。null のままだと金額照合が実行できず BLOCK になる。必ず現物のINVOICEを見て埋めること。",
+    "number": null,
+    "date": null,
+    "currency": null,
+    "total": null,
+    "beneficiary_name": null,
+    "beneficiary_account": null,
+    "products": [],
+    "incoterms": null,
+    "port_of_destination": null
+  },
+
+  "expected_beneficiary_id": "HUGH_TRADING_HK"
+}
