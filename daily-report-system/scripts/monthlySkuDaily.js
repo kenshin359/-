@@ -115,6 +115,7 @@ async function main() {
   const dailyCh = {};
   const dailyChUnits = {};
   const dailyScSales = {};
+  const catMonth = {}; // 商品カテゴリ別の月間 個数q・売上a（媒体合算）
   for (const rec of records) {
     const d = rec.report_date?.value;
     if (!d) continue;
@@ -132,6 +133,9 @@ async function main() {
       if (SUITCASE.has(pr)) {
         dailyScSales[d] = (dailyScSales[d] ?? 0) + Number(v.s_amount?.value ?? 0);
       }
+      const cm = (catMonth[pr] ??= { q: 0, a: 0 });
+      cm.q += Number(v.s_qty?.value ?? 0);
+      cm.a += Number(v.s_amount?.value ?? 0);
     }
   }
 
@@ -159,6 +163,8 @@ async function main() {
   console.log(encodeDigits(JSON.stringify({ month, dailyChUnits })));
   console.log('===DAILY_SC_SALES_B===');
   console.log(encodeDigits(JSON.stringify({ month, dailyScSales })));
+  console.log('===CAT_MONTH_B===');
+  console.log(encodeDigits(JSON.stringify({ month, catMonth })));
   console.log('===SKU_B===');
   console.log(encodeDigits(JSON.stringify({ month, sku: Object.fromEntries(sku) })));
 }
