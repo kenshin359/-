@@ -125,3 +125,18 @@ PDF読み取りのテストは `samples/remittance.pdf` を置いたときだけ
 
 `config/products.json` に書いた法令の記載は社内の一次スクリーニング用の目安であり、法的助言ではない。
 確定させるには所管部署・税関の事前教示制度・専門家への確認が要る。
+
+## 環境上の注意：ファイル名と LibreOffice
+
+`LANG` が未設定（POSIXロケール）の環境では、日本語のファイル名を外部コマンドに渡した時点で
+`?` に化ける。LibreOffice はその存在しないファイルを開こうとして延々と待つため、
+「なぜか終わらない」という形で止まる。数式の再計算をかけるときは、
+一度ASCII名にコピーしてから実行し、あとで戻すのが確実。
+
+```bash
+cp 送金チェック_OMT20260901100481.xlsx /tmp/recalc_target.xlsx
+python3 <recalc.pyのパス> /tmp/recalc_target.xlsx 600
+cp /tmp/recalc_target.xlsx 送金チェック_OMT20260901100481.xlsx
+```
+
+`build_check_sheet.py` は、出力ファイル名に非ASCII文字が含まれる場合にその旨を警告する。

@@ -488,6 +488,20 @@ def build_products(wb, products):
     return ws
 
 
+def _ascii_path(path):
+    """ファイル名がASCIIのみか。
+
+    LANG未設定（POSIXロケール）の環境では、日本語のファイル名を外部コマンドに
+    渡した時点で ? に化ける。LibreOffice はその存在しないファイルを開こうとして
+    延々と待つので、原因が分かりにくい形で止まる。
+    """
+    try:
+        str(path).encode("ascii")
+        return True
+    except UnicodeEncodeError:
+        return False
+
+
 def main():
     ap = argparse.ArgumentParser(description="送金チェック結果をExcelにまとめる")
     ap.add_argument("transaction")
@@ -522,6 +536,11 @@ def main():
 
     wb.save(args.output)
     print(f"作成: {args.output}")
+    if not _ascii_path(args.output):
+        print("  注意: ファイル名に非ASCII文字が含まれる。"
+              "ロケールがPOSIXの環境では、LibreOffice等の外部コマンドに渡す際に"
+              "ファイル名が化けて開けないことがある。"
+              "recalc をかけるときは一度ASCII名にコピーすること。")
     print(f"  シート: {', '.join(wb.sheetnames)}")
     print(f"  指摘: 🔴{sum(1 for f in findings if f.severity == vr.BLOCK)}件"
           f" / 🟡{sum(1 for f in findings if f.severity == vr.WARN)}件"
