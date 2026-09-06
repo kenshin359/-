@@ -35,8 +35,8 @@
       "size": "L",
       "qty": 599,
       "eta": "",
-      "status": "CS入荷待ち",
-      "note": "通関済(LM251008)・入庫日未定"
+      "status": "完了",
+      "note": "倉庫入荷済み。通関完了(LM251008)・1/16出荷・BL未受領"
     },
     {
       "container": "IAAU1910400",
@@ -44,8 +44,8 @@
       "size": "S/M",
       "qty": 733,
       "eta": "",
-      "status": "CS入荷待ち",
-      "note": "通関済(LM251008)・入庫日未定"
+      "status": "完了",
+      "note": "倉庫入荷済み。通関完了(LM251008)・1/16出荷・BL未受領"
     },
     {
       "container": "ABC-HANDYFAN-AIR",

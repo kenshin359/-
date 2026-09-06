@@ -139,13 +139,15 @@
     "status": "完了",
     "docs_status": "一部",
     "order_no": "LM251008",
-    "memo": "通関完了。BL書類は未受領。"
+    "memo": "通関完了・倉庫入荷済み。BL書類は未受領。",
+    "next_action": "完了（倉庫入荷済み）"
   },
   "IAAU1910400": {
     "status": "完了",
     "docs_status": "一部",
     "order_no": "LM251008",
-    "memo": "通関完了。BL書類は未受領。"
+    "memo": "通関完了・倉庫入荷済み。BL書類は未受領。",
+    "next_action": "完了（倉庫入荷済み）"
   },
   "TSSU5227711": {
     "hbl_no": "GZTLF2608056",
