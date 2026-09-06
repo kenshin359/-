@@ -220,7 +220,7 @@ def compare(pdf_data, tx):
     mismatches, matched = [], []
     for label, from_pdf, from_json, normalizer in pairs:
         if normalizer(from_pdf) == normalizer(from_json):
-            matched.append((label, from_pdf))
+            matched.append((label, from_pdf, from_json))
         else:
             mismatches.append((label, from_pdf, from_json))
     return matched, mismatches
@@ -270,8 +270,8 @@ def main():
     print("=" * 74)
     print(f"  転記チェック（PDF ⇔ {args.check}）")
     print("=" * 74)
-    for label, value in matched:
-        print(f"  ✅ {label:16s} {value if value is not None else '(空欄)'}")
+    for label, from_pdf, _ in matched:
+        print(f"  ✅ {label:16s} {from_pdf if from_pdf is not None else '(空欄)'}")
     for label, from_pdf, from_json in mismatches:
         print(f"  ❌ {label:16s} PDF={from_pdf!r} / JSON={from_json!r}")
     print("-" * 74)
