@@ -528,6 +528,9 @@ def main():
 
     wb = Workbook()
     wb.remove(wb.active)
+    # openpyxlは数式を文字列で書くだけで計算結果を持たせない。
+    # このフラグがないと、開いた側が再計算するまで数式セルが空に見えることがある。
+    wb.calculation.fullCalcOnLoad = True
     build_summary(wb, tx, findings)
     build_reconciliation(wb, tx, pdf_data)
     build_findings(wb, findings)
