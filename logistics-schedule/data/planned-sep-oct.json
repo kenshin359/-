@@ -7,31 +7,33 @@
     {
       "order_no": "LM260512",
       "seq": 1,
-      "status": "生産中",
-      "container_no": "LM260512-M-01",
-      "shipping_date": "2026-08-31",
+      "status": "輸送中",
+      "container_no": "WHSU5516465",
+      "shipping_date": "2026-08-27",
       "po_number": "LM260512",
       "size": "M",
-      "total_qty": 700,
+      "total_qty": 722,
       "container_estimate": 1,
-      "remarks": "5/12注文の残り / 多機能PC Mサイズ / 8月末〜9月初 工場出荷予定 / 1コンテナ想定",
+      "remarks": "5/12注文のM分 / 8/27出荷済 / PC多機能M 700+ノーマルアルミM 22=722個 / HBL GZTLF2608061サレンダー済(9/3) / 40HQ",
       "items": [
-        { "item_name": "多機能PCスーツケース", "item_color": "", "item_spec": "M", "item_qty": 700 }
+        { "item_name": "多機能PCスーツケース", "item_color": "", "item_spec": "M", "item_qty": 700 },
+        { "item_name": "ノーマルアルミ", "item_color": "シルバー", "item_spec": "M", "item_qty": 22 }
       ]
     },
     {
       "order_no": "LM260512",
       "seq": 2,
-      "status": "生産中",
-      "container_no": "LM260512-L-01",
-      "shipping_date": "2026-09-10",
+      "status": "輸送中",
+      "container_no": "CAAU8818353",
+      "shipping_date": "2026-09-03",
       "po_number": "LM260512",
       "size": "L",
-      "total_qty": 600,
+      "total_qty": 607,
       "container_estimate": 1,
-      "remarks": "5/12注文の残り / 多機能PC Lサイズ / 9/10 工場出荷予定 / 1コンテナ想定 / ※Sサイズ1,050個はTSSU5227711で出荷済(9/6大阪着予定)",
+      "remarks": "5/12注文のL分 / 9/3出荷済 / PC多機能L 28インチ(エナメル銀208/マット黒399)=607個 / BL・AN待ち / ※LM260512は3本(S/M/L)すべて出荷済",
       "items": [
-        { "item_name": "多機能PCスーツケース", "item_color": "", "item_spec": "L", "item_qty": 600 }
+        { "item_name": "多機能PCスーツケース", "item_color": "エナメルシルバー", "item_spec": "L", "item_qty": 208 },
+        { "item_name": "多機能PCスーツケース", "item_color": "マットブラック", "item_spec": "L", "item_qty": 399 }
       ]
     },
     {
