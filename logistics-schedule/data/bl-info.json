@@ -73,8 +73,8 @@
     "status": "完了",
     "docs_status": "完備",
     "order_no": "LM260320",
-    "memo": "8/23着・通関完了。 8/23大阪着済み。BL・アライバル揃い。着後に通関。",
-    "next_action": "入庫手配"
+    "memo": "8/23着・通関完了・入庫済み。",
+    "next_action": "完了（入庫済み）"
   },
   "WHSU5628824": {
     "hbl_no": "GZTLF2608006",
@@ -99,8 +99,8 @@
     "status": "完了",
     "docs_status": "完備",
     "order_no": "LM260320",
-    "memo": "8/25着・通関完了。 8/25 大阪着済み。BL・アライバル揃い。着後に通関。",
-    "next_action": "入庫手配",
+    "memo": "8/25着・通関完了・入庫済み。",
+    "next_action": "完了（入庫済み）",
     "hbl_no": "GZTLF2608026",
     "mbl_no": "EGLV149607007648",
     "bl_surrendered": "済",
@@ -119,8 +119,8 @@
     "status": "完了",
     "docs_status": "完備",
     "order_no": "LM260320",
-    "memo": "8/25着・通関完了。 8/25 大阪着済み。BL・アライバル揃い。着後に通関。",
-    "next_action": "入庫手配",
+    "memo": "8/25着・通関完了・入庫済み。",
+    "next_action": "完了（入庫済み）",
     "hbl_no": "GZTLF2608026",
     "mbl_no": "EGLV149607007648",
     "bl_surrendered": "済",
