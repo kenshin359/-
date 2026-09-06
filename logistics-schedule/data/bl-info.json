@@ -160,19 +160,22 @@
   },
   "WHSU5516465": {
     "hbl_no": "GZTLF2608061",
+    "mbl_no": "025G775216",
     "bl_surrendered": "済",
     "vessel": "WAN HAI 102 W427",
     "pol": "SHEKOU, CHINA",
     "pod": "OSAKA, JAPAN",
     "container_type": "40HQ",
     "seal_no": "WHA2375110",
+    "arrival_date": "2026-09-07",
     "total_cartons": 722,
+    "ref_no": "TGL26-1659",
     "status": "輸送中",
-    "docs_status": "一部",
+    "docs_status": "完備",
     "order_no": "LM260512",
     "products": "PC多機能M(エナメル銀100/マット銀200/灰100/白100/黒200)＋ノーマルアルミM 22",
-    "memo": "5/12注文のM分。PC多機能M 700+ノーマルアルミM 22=722個。8/27出荷。HBL GZTLF2608061サレンダー済(9/3)。段ボール箱S/M/L各50は備品。アライバル待ち。",
-    "next_action": "アライバル受領→着後通関"
+    "memo": "5/12注文のM分。PC多機能M 700+ノーマルアルミM 22=722個。8/27出荷。書類3点完備(HBL GZTLF2608061サレンダー済9/3・AN 9/4発行)。本船WAN HAI 102 W427 ETA9/7大阪。CY:南港C-9三菱倉庫。フリータイム入港翌日から6日間。段ボール箱S/M/L各50は備品。",
+    "next_action": "9/7着後 通関依頼"
   },
   "CAAU8818353": {
     "bl_surrendered": "",
