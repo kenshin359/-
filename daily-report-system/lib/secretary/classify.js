@@ -67,6 +67,15 @@ function deadlineUrgency(deadline, dateISO) {
   return 0;
 }
 
+/** タスク文にメンバー名簿の名前が出てくれば、その人が相手（一番長い一致を採用） */
+export function staffInText(text, rules) {
+  let hit = null;
+  for (const name of rules.staff ?? []) {
+    if (text.includes(String(name)) && (!hit || name.length > hit.length)) hit = name;
+  }
+  return hit;
+}
+
 /** 誰に振れそうかを辞書から引く（一番具体的＝長い一致を採用） */
 export function delegateTarget(text, rules) {
   let hit = null;
@@ -100,9 +109,10 @@ export function enrich(task, rules, profile, dateISO) {
     minutes = Math.max(5, Math.round(base / 5) * 5);
   }
 
+  const named = task.assignee ?? staffInText(task.title ?? '', rules);
   const impact = levelOf(text, rules.impact);
   const urgency = Math.max(task.urgencyMark ?? 0, levelOf(text, rules.urgency), deadlineUrgency(task.deadline, dateISO));
-  const unblocks = category === 'DELEGATE' || Boolean(task.assignee) || keywordScore(text, rules.unblock).score > 0;
+  const unblocks = category === 'DELEGATE' || Boolean(named) || keywordScore(text, rules.unblock).score > 0;
   const management = Math.min(2, keywordScore(text, rules.management_weight).matched.length);
   const who = delegateTarget(text, rules);
 
@@ -120,7 +130,8 @@ export function enrich(task, rules, profile, dateISO) {
     // 今日やらないと発生する損失（他人が止まる／売上に響く／期限）
     loss: Math.max(urgency, unblocks ? 2 : 0, Math.max(0, impact - 1)),
     quickWin: unblocks && minutes <= (profile?.rules?.quick_delegate_max ?? 10),
-    delegateTo: task.assignee ?? who,
+    assignee: named,
+    delegateTo: named ?? who,
     matched,
     confident,
   };

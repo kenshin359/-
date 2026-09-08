@@ -92,10 +92,13 @@ npm run secretary -- review --days=30
 | 何を重く見るか（売上か、緊急か） | 同上 | `weights` |
 | 「今日絶対終わらせる」の件数 | 同上 | `rules.must_do_count` |
 | 分類がズレる言葉 | `config/secretary/rules.json` | `categories.○○.keywords` |
-| 誰に振るか（担当者名） | 同上 | `delegate_targets` |
+| **メンバーの名前** | `config/secretary/rules.json` | `staff` |
+| 誰に振るか（役割ごとの担当） | 同上 | `delegate_targets` |
 
-`delegate_targets` は最初は「デザイン担当」「経理担当」のような役割名で入っています。
-**実際のスタッフ名に書き換えると、朝一の依頼リストがそのまま指示書になります。**
+`staff` にメンバー名（ToDoに書くとおりの呼び方）を入れておくと、
+「久保さんに共有」「じゅんぺいに依頼」のような書き方から**相手を自動で拾い、朝一の依頼リストに載せます**。
+`delegate_targets` は「デザイン担当」「経理担当」のような役割名で、名前が書かれていないときの推奨先です。
+**両方を実際のスタッフ名に書き換えると、朝一の依頼リストがそのまま指示書になります。**
 
 ---
 

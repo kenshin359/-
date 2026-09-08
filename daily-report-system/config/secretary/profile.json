@@ -14,16 +14,16 @@
  },
  "blocks": [
   { "id": "prep",     "start": "05:00", "end": "06:30", "label": "起床・朝の準備／数字とニュースのインプット", "energy": 4, "accept": [], "fixed": true },
-  { "id": "delegate0","start": "06:30", "end": "07:00", "label": "DELEGATE｜朝一の依頼出し（他人が動き出せる状態にする）", "energy": 4, "accept": ["DELEGATE"] },
-  { "id": "think",    "start": "07:00", "end": "09:00", "label": "THINK｜思考・分析（最も集中力が高い時間）", "energy": 5, "accept": ["THINK", "IMPROVE"] },
-  { "id": "improve",  "start": "09:00", "end": "11:00", "label": "IMPROVE｜制作・改善", "energy": 4, "accept": ["IMPROVE", "THINK"] },
-  { "id": "delegate", "start": "11:00", "end": "12:00", "label": "DELEGATE／MANAGEMENT｜依頼の残り・数字の確認", "energy": 3, "accept": ["DELEGATE", "MANAGEMENT", "MEETING"] },
+  { "id": "delegate0","start": "06:30", "end": "07:00", "label": "朝一の依頼出し（他人が動き出せる状態にする）", "energy": 4, "accept": ["DELEGATE"] },
+  { "id": "think",    "start": "07:00", "end": "09:00", "label": "午前ゴールデンタイム（THINK優先・最も集中力が高い）", "energy": 5, "accept": ["THINK", "IMPROVE"] },
+  { "id": "improve",  "start": "09:00", "end": "11:00", "label": "午前後半（IMPROVE優先・制作と改善）", "energy": 4, "accept": ["IMPROVE", "THINK"] },
+  { "id": "delegate", "start": "11:00", "end": "12:00", "label": "昼前（依頼の残り・数字の確認）", "energy": 3, "accept": ["DELEGATE", "MANAGEMENT", "MEETING"] },
   { "id": "lunch",    "start": "12:00", "end": "12:40", "label": "昼食", "energy": 0, "accept": [], "fixed": true },
   { "id": "nap",      "start": "12:40", "end": "13:00", "label": "昼寝・休憩（20分）", "energy": 0, "accept": [], "fixed": true },
-  { "id": "pm1",      "start": "13:00", "end": "14:30", "label": "MEETING / MANAGEMENT", "energy": 3, "accept": ["MEETING", "MANAGEMENT", "DELEGATE"] },
+  { "id": "pm1",      "start": "13:00", "end": "14:30", "label": "午後前半（会議・管理）", "energy": 3, "accept": ["MEETING", "MANAGEMENT", "DELEGATE"] },
   { "id": "break-pm", "start": "14:30", "end": "14:45", "label": "休憩（15分）", "energy": 0, "accept": [], "fixed": true },
-  { "id": "pm2",      "start": "14:45", "end": "16:00", "label": "MEETING / MANAGEMENT", "energy": 2, "accept": ["MEETING", "MANAGEMENT"] },
-  { "id": "admin",    "start": "16:00", "end": "17:30", "label": "ADMIN（事務・返信・確認）", "energy": 1, "accept": ["ADMIN", "MANAGEMENT"] },
+  { "id": "pm2",      "start": "14:45", "end": "16:00", "label": "午後後半（会議・管理／集中力が落ちる時間）", "energy": 2, "accept": ["MEETING", "MANAGEMENT"] },
+  { "id": "admin",    "start": "16:00", "end": "17:30", "label": "夕方（事務・返信・確認）", "energy": 1, "accept": ["ADMIN", "MANAGEMENT"] },
   { "id": "wrapup",   "start": "17:30", "end": "18:00", "label": "明日の整理（持ち越し確認・翌日のタスク出し）", "energy": 1, "accept": [], "fixed": true }
  ],
  "rules": {

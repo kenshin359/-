@@ -69,6 +69,8 @@ export function parseLine(line) {
   else if (mins) { t.minutes = +mins[1]; s = s.replace(mins[0], ' '); }
 
   // ③ 依頼先 / カテゴリ指定
+  //    「@佐藤」の明示指定のみ。文中の人名は日本語では機械的に切り出せないので、
+  //    config/secretary/rules.json の staff（メンバー名簿）と照合して拾います。
   const at = s.match(/[@＠]([^\s、,，]+)/);
   if (at) { t.assignee = at[1]; s = s.replace(at[0], ' '); }
   const tag = s.match(new RegExp(`[#＃](${CATEGORY_NAMES.join('|')})`, 'i'));
