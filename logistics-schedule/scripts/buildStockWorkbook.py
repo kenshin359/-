@@ -11,7 +11,7 @@
   ④消化スケジュール           在庫日数・欠品予測
   ⑤その他商品在庫(9-4)        ファン・ドライヤー等
   ⑥発注判断(在庫切れ予測)     日販×入荷予定から在庫切れ日を算出（🟥表示）
-  ⑦在庫推移カレンダー         週次の在庫推移（在庫0は🟥）
+  ⑦在庫消化カレンダー         日次の在庫推移（赤=欠品/緑=入荷日/青=在庫あり/黄=売切間近/灰=販売なし）
 
 out/ は .gitignore 対象のため、必要なときにこのスクリプトで作り直す。
 """
@@ -26,7 +26,7 @@ DATA = os.path.join(ROOT, 'data')
 OUT = os.path.join(ROOT, 'out')
 TODAY = datetime.date(2026, 9, 6)
 STOCK_DATE = datetime.date(2026, 9, 4)
-HORIZON = datetime.date(2026, 12, 31)
+HORIZON = datetime.date(2027, 6, 30)
 TRANSIT = 14  # 出荷→到着の実績平均日数
 
 thin = Side(style='thin', color='B0B0B0')
@@ -51,11 +51,20 @@ C = Alignment(horizontal='center', vertical='center')
 L = Alignment(horizontal='left', vertical='center', wrap_text=True)
 LN = Alignment(horizontal='left', vertical='center')
 
-# 日販（8/2実績を引き継ぎ）
-DPS = {'101': 12.1, '103a': 0.3, '105': 1.4, '106': 12.8, '107': 7.8, '108': 5.7,
-       '109': 0.0, '110': 0.6, '111': 3.5,
-       '201': 4.5, '206': 7.3, '207': 5.7, '208': 4.3, '210': 0.8, '211': 3.3,
-       '301': 2.3, '306': 2.2, '307': 6.1, '308': 1.1, '310': 1.5}
+# 日販＝7月実績（Amazon・楽天・自社の3媒体合計 ÷ 31日）。北野さんの在庫消化カレンダー準拠。
+DPS = {'106': 12.84, '101': 12.07, '107': 7.82, '108': 5.72, '111': 3.48,
+       '105': 1.36, '109': 0.68, '110': 0.62, '103a': 0.35,
+       '206': 7.30, '207': 5.65, '201': 4.55, '208': 4.30, '211': 3.30, '210': 0.80,
+       '307': 6.08, '301': 2.28, '306': 2.17, '310': 1.52, '308': 1.07,
+       'N_arumi01': 2.48, 'N_arumi02': 1.06, 'arumi01': 1.61, 'arumi02': 0.58,
+       'outdoorsk001': 0.0, 'outdoorsk002': 0.0}
+
+# 在庫消化カレンダーの表示期間（北野さん版は翌年6月末まで見る）
+CAL_END = datetime.date(2027, 6, 30)
+
+# 発注判断シートの並び順（スーツケースのS/M/L→アルミ→アウトドア）
+SIZE_ORDER = {'S': 0, 'M': 1, 'L': 2, 'クラシックアルミ': 3, '多機能アルミ': 4,
+              'アウトドア(スキー)スーツケース': 5}
 
 # 出荷予定日, 発注, 商品名JP, 商品名CN, サイズ, 数量, コンテナ, 状況JP, 状況CN, PL, BL, AN, 備考JP, 備考CN
 SCHEDULE = [
@@ -129,6 +138,10 @@ def simulate(suit):
         if r['カテゴリ'].startswith('スーツケース'):
             sku[r['SKU']] = {'name': r['商品名'], 'stock': int(r['総在庫']),
                              'dps': DPS.get(r['SKU'], 0.0), 'size': r['カテゴリ'][-1]}
+    for r in suit:
+        if not r['カテゴリ'].startswith('スーツケース'):
+            sku[r['SKU']] = {'name': r['商品名'], 'stock': int(r['総在庫']),
+                             'dps': DPS.get(r['SKU'], 0.0), 'size': r['カテゴリ']}
     sku['111L'] = {'name': 'エナメルカーキ L(新色)', 'stock': 0, 'dps': 0.0, 'size': 'L'}
 
     # 確定3本＝パッキングリストの色別内訳
@@ -178,7 +191,7 @@ def simulate(suit):
                     first_out[k] = cur
             hist[k][cur] = round(stock[k])
         cur += datetime.timedelta(days=1)
-    return sku, hist, first_out, next_arr
+    return sku, hist, first_out, next_arr, arrivals
 
 
 def sheet_schedule(wb, name, pos, title, sub, hdr, name_i, st_i, note_i, totlabel, yes, no, statlist):
@@ -308,13 +321,13 @@ def sheet_order_decision(wb, sku, first_out, next_arr):
            '🟥在庫切れ予測日', '次回入荷日', '次回入荷数', '入荷元', '判定', '必要アクション']
     for c, h in enumerate(hdr, 1):
         y = ws.cell(4, c, h); y.fill = HF; y.font = HFo; y.alignment = C; y.border = BD
-    order = sorted(sku, key=lambda k: ({'S': 0, 'M': 1, 'L': 2}[sku[k]['size']], k))
+    order = sorted(sku, key=lambda k: (SIZE_ORDER.get(sku[k]['size'], 9), k))
     r = 5; cur = None
     for k in order:
         v = sku[k]
         if v['size'] != cur:
             cur = v['size']
-            ws.cell(r, 1, f'■ {cur}サイズ')
+            ws.cell(r, 1, f'■ {cur}サイズ' if cur in ('S', 'M', 'L') else f'■ {cur}')
             ws.merge_cells(start_row=r, start_column=1, end_row=r, end_column=12)
             for c in range(1, 13):
                 y = ws.cell(r, c); y.fill = GF; y.font = GFo; y.alignment = LN
@@ -354,46 +367,117 @@ def sheet_order_decision(wb, sku, first_out, next_arr):
     ws.freeze_panes = 'D5'
 
 
-def sheet_calendar(wb, sku, hist):
-    ws = wb.create_sheet('⑦在庫推移カレンダー')
-    ws['A1'] = '在庫推移カレンダー（週次予測）　🟥=在庫0（欠品）'; ws['A1'].font = TF
-    ws['A2'] = '9/4〜12/31を週次表示。🟥在庫0／🟧7日分未満／🟨14日分未満／白=余裕。日販未設定SKUは灰色。'; ws['A2'].font = SUBF
+def sheet_calendar(wb, sku, hist, first_out, arrivals):
+    """在庫消化カレンダー（北野式）。日次・翌年6月末まで。
+    凡例: 赤=欠品 / 緑=入荷日 / 青=在庫あり / 黄=売切間近(7日分以下) / 灰=販売なし
+    """
+    ws = wb.create_sheet('⑦在庫消化カレンダー')
+    ws['A1'] = f'📅 在庫消化カレンダー（{STOCK_DATE:%Y/%m/%d}時点・7月実績日販ベース）'; ws['A1'].font = TF
+    for c, (lab, fill) in enumerate([('赤=欠品', RED), ('緑=入荷日', GRN), ('青=在庫あり', BLU),
+                                     ('黄=売切間近(7日分以下)', YEL), ('灰=販売なし', GRY)], 2):
+        y = ws.cell(2, c, lab); y.fill = fill; y.alignment = C; y.border = BD
+    ws['A2'] = '凡例:'; ws['A2'].font = Font(bold=True)
+    ws['A3'] = ('日販=7月の3媒体（Amazon・楽天・自社）実績÷31日。現庫=9/4在庫（FBA＋CS倉庫＋FBM＋事務所）。'
+                '入荷=確定便=パッキングリスト色別／LM20260808=発注書色別／注文6/18=日販按分。到着=出荷+14日。')
+    ws['A3'].font = SUBF
+
     dates = []
     d = STOCK_DATE
-    while d <= HORIZON:
-        dates.append(d); d += datetime.timedelta(days=7)
-    for c, h in enumerate(['サイズ', '商品名', '日販'], 1):
-        y = ws.cell(4, c, h); y.fill = HF; y.font = HFo; y.alignment = C; y.border = BD
+    while d <= CAL_END:
+        dates.append(d); d += datetime.timedelta(days=1)
+    # SKU別の入荷日→数量
+    arr_by_sku = {}
+    for ad, items, src in arrivals:
+        for k, q in items.items():
+            arr_by_sku.setdefault(k, {})[ad] = arr_by_sku.setdefault(k, {}).get(ad, 0) + q
+
+    head = ['SKU（色）', '日販', f'現庫({STOCK_DATE:%-m/%-d})', '入荷予定合計', '合計(現庫+入荷)',
+            '欠品開始(予測)', '欠品日数', '在庫月数']
+    HROW = 5
+    for c, h in enumerate(head, 1):
+        y = ws.cell(HROW, c, h); y.fill = HF; y.font = HFo; y.alignment = C; y.border = BD
+    # 月見出し＋日付
+    base = len(head)
+    curm = None
     for i, dt in enumerate(dates):
-        y = ws.cell(4, 4 + i, dt.strftime('%-m/%-d'))
-        y.fill = HF; y.font = HFo; y.alignment = C; y.border = BD
-        ws.column_dimensions[get_column_letter(4 + i)].width = 7
-    order = sorted(sku, key=lambda k: ({'S': 0, 'M': 1, 'L': 2}[sku[k]['size']], k))
-    r = 5
-    for k in order:
-        v = sku[k]; dps = v['dps']
-        for c, x in enumerate([v['size'], v['name'], dps or '—'], 1):
-            y = ws.cell(r, c, x); y.border = BD; y.alignment = L if c == 2 else C
-        for i, dt in enumerate(dates):
-            val = hist[k].get(dt, 0)
-            y = ws.cell(r, 4 + i, val); y.border = BD; y.alignment = C
-            if dps == 0:
-                y.fill = GRY
-            elif val <= 0:
-                y.fill = RED; y.font = Font(bold=True, color='FFFFFF')
-            elif val < dps * 7:
-                y.fill = ORG
-            elif val < dps * 14:
-                y.fill = YEL
+        col = base + 1 + i
+        if (dt.year, dt.month) != curm:
+            curm = (dt.year, dt.month)
+            y = ws.cell(HROW - 1, col, f'{dt.year}年{dt.month}月')
+            y.font = Font(bold=True, size=10, color='1F4E78'); y.alignment = LN
+        y = ws.cell(HROW, col, dt.day); y.fill = HF; y.font = Font(bold=True, color='FFFFFF', size=9)
+        y.alignment = C; y.border = BD
+        ws.column_dimensions[get_column_letter(col)].width = 3.4
+
+    groups = [('■ 多機能PC S', 'S'), ('■ 多機能PC M', 'M'), ('■ 多機能PC L', 'L'),
+              ('■ クラシック(ノーマル)アルミ', 'クラシックアルミ'),
+              ('■ 多機能アルミ', '多機能アルミ'),
+              ('■ アウトドア(スキー)', 'アウトドア(スキー)スーツケース')]
+    r = HROW + 1
+    for label, key in groups:
+        members = [k for k, v in sku.items() if v['size'] == key]
+        if not members:
+            continue
+        members.sort(key=lambda k: -sku[k]['dps'])
+        ws.cell(r, 1, label)
+        ws.merge_cells(start_row=r, start_column=1, end_row=r, end_column=base)
+        for c in range(1, base + 1):
+            y = ws.cell(r, c); y.fill = GF; y.font = GFo; y.alignment = LN
         r += 1
-    for col, w in (('A', 7), ('B', 22), ('C', 7)):
+        for k in members:
+            v = sku[k]; dps = v['dps']
+            incoming = sum(arr_by_sku.get(k, {}).values())
+            total = v['stock'] + incoming
+            fo = first_out.get(k)
+            months = round(total / (dps * 30.4), 1) if dps > 0 else None
+            vals = ['　' + v['name'], dps if dps else 0.00, v['stock'], incoming, total,
+                    fo.strftime('%m/%d') if fo else ('販売なし' if dps == 0 else f'{CAL_END:%Y/%-m}末まで無し'),
+                    '—', f'{months}ヶ月' if months is not None else '—']
+            for c, x in enumerate(vals, 1):
+                y = ws.cell(r, c, x); y.border = BD; y.alignment = LN if c == 1 else C
+                if c == 6 and fo:
+                    y.fill = RED; y.font = Font(bold=True, color='FFFFFF')
+                if c == 6 and dps == 0:
+                    y.fill = GRY
+            # 欠品日数
+            oos = sum(1 for dt in dates if dps > 0 and hist[k].get(dt, 0) <= 0)
+            ws.cell(r, 7, oos if dps > 0 else '—').border = BD
+            ws.cell(r, 7).alignment = C
+            if oos:
+                ws.cell(r, 7).fill = RED; ws.cell(r, 7).font = Font(bold=True, color='FFFFFF')
+            for i, dt in enumerate(dates):
+                col = base + 1 + i
+                val = hist[k].get(dt, 0)
+                y = ws.cell(r, col, val); y.alignment = C; y.font = Font(size=8)
+                if dps == 0:
+                    y.fill = GRY
+                elif dt in arr_by_sku.get(k, {}):
+                    y.fill = GRN
+                elif val <= 0:
+                    y.fill = RED; y.font = Font(size=8, bold=True, color='FFFFFF')
+                elif val < dps * 7:
+                    y.fill = YEL
+                else:
+                    y.fill = BLU
+            r += 1
+    r += 1
+    for note in [
+        '※ 到着日=販売可能日として計算（大阪港到着→倉庫入庫のリードタイムぶん、実際は数日後ろにずれます）。',
+        '※ 未出荷分の到着は「出荷予定日＋14日」で仮置き（実績平均）。着日が確定したら修正してください。',
+        '※ 注文7/4の混載3,250個・サザンモデル2,500個は品番内訳が未確定のため未計上（＝予測は保守的）。',
+        '※ ジップ1,726個（EITU1030111・CAAU5731521）は9/4在庫一覧に品目が無いため未計上。要確認。',
+        '※ 日販は7月実績の平均。8月以降のイベント・繁忙期（年末年始・GW）の増減は織り込んでいません。',
+    ]:
+        ws.cell(r, 1, note).font = SUBF; r += 1
+    ws.column_dimensions['A'].width = 30
+    for col, w in (('B', 7), ('C', 10), ('D', 12), ('E', 14), ('F', 16), ('G', 9), ('H', 10)):
         ws.column_dimensions[col].width = w
-    ws.freeze_panes = 'D5'
+    ws.freeze_panes = ws.cell(HROW + 1, base + 1)
 
 
 def main():
     suit, other = load_inventory()
-    sku, hist, first_out, next_arr = simulate(suit)
+    sku, hist, first_out, next_arr, arrivals = simulate(suit)
     wb = openpyxl.Workbook()
     wb.remove(wb.active)
     sheet_schedule(wb, '①在庫スケジュール(日本語)', 0,
@@ -415,7 +499,7 @@ def main():
     t5 = sheet_inventory(wb, '⑤その他商品在庫(9-4)', f'現在庫（その他商品）{STOCK_DATE:%Y/%m/%d} 時点',
         'ハンディファン・ドライヤー・フェイスクレンザー等。データ元は③と同じ。', other)
     sheet_order_decision(wb, sku, first_out, next_arr)
-    sheet_calendar(wb, sku, hist)
+    sheet_calendar(wb, sku, hist, first_out, arrivals)
     os.makedirs(OUT, exist_ok=True)
     path = os.path.join(OUT, '在庫スケジュール_統合版.xlsx')
     wb.save(path)
