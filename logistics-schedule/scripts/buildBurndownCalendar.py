@@ -35,6 +35,11 @@ GRN = PatternFill('solid', fgColor='00B050')
 BLU = PatternFill('solid', fgColor='BDD7EE')
 YEL = PatternFill('solid', fgColor='FFFF00')
 GRY = PatternFill('solid', fgColor='D9D9D9')
+MON_A = PatternFill('solid', fgColor='1F4E78')   # 月ヘッダー（奇数月）
+MON_B = PatternFill('solid', fgColor='2E75B6')   # 月ヘッダー（偶数月）
+_medium = Side(style='medium', color='1F4E78')
+MONBD = Border(left=_medium, right=_medium, top=_medium, bottom=_medium)
+MSTART = Border(left=_medium, right=thin, top=thin, bottom=thin)  # 月初の区切り線
 C = Alignment(horizontal='center', vertical='center')
 LN = Alignment(horizontal='left', vertical='center')
 
@@ -190,15 +195,26 @@ def main():
     HROW = 6
     for c, h in enumerate(HEAD, 1):
         y = ws.cell(HROW, c, h); y.fill = HF; y.font = HFo; y.alignment = C; y.border = BD
-    curm = None
+    # 月ヘッダーは月ごとに結合して交互色で塗る（月の切れ目を見やすくする）
+    month_start = {}
+    for i, dt in enumerate(dates):
+        month_start.setdefault((dt.year, dt.month), BASE + 1 + i)
+    months = sorted(month_start)
+    for mi, ym in enumerate(months):
+        c0 = month_start[ym]
+        c1 = month_start[months[mi + 1]] - 1 if mi + 1 < len(months) else BASE + len(dates)
+        ws.merge_cells(start_row=HROW - 1, start_column=c0, end_row=HROW - 1, end_column=c1)
+        fill = MON_A if mi % 2 == 0 else MON_B
+        for c in range(c0, c1 + 1):
+            y = ws.cell(HROW - 1, c); y.fill = fill; y.border = MONBD
+        y = ws.cell(HROW - 1, c0, f'{ym[0]}年{ym[1]}月')
+        y.font = Font(bold=True, size=11, color='FFFFFF'); y.alignment = C
+    ws.row_dimensions[HROW - 1].height = 20
     for i, dt in enumerate(dates):
         col = BASE + 1 + i
-        if (dt.year, dt.month) != curm:
-            curm = (dt.year, dt.month)
-            y = ws.cell(HROW - 1, col, f'{dt.year}年{dt.month}月')
-            y.font = Font(bold=True, size=10, color='1F4E78'); y.alignment = LN
         y = ws.cell(HROW, col, dt.day)
         y.fill = HF; y.font = Font(bold=True, color='FFFFFF', size=8); y.alignment = C
+        y.border = MSTART if dt.day == 1 else BD
         ws.column_dimensions[get_column_letter(col)].width = 3.2
 
     r = HROW + 1
@@ -235,6 +251,8 @@ def main():
                 col = BASE + 1 + i
                 val = hist[k].get(dt, 0)
                 y = ws.cell(r, col, val); y.alignment = C; y.font = Font(size=8)
+                if dt.day == 1:
+                    y.border = MSTART
                 if dps == 0:
                     y.fill = GRY
                 elif dt in arr_by_sku.get(k, {}):
