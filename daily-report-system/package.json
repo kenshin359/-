@@ -65,6 +65,9 @@
     "shopify:token": "node scripts/shopifyToken.js",
     "replies:pack": "node scripts/replyPack.js",
     "replies:pack:send": "node scripts/sendReplyPack.js",
+    "secretary": "node scripts/secretary.js",
+    "secretary:review": "node scripts/secretary.js review",
+    "secretary:status": "node scripts/secretary.js status",
     "expense:report": "node scripts/expenseReport.js && python3 scripts/buildExpensePdf.py",
     "expense:send": "node scripts/sendExpensePdf.js"
   }

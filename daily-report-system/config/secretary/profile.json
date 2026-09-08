@@ -1,0 +1,56 @@
+{
+ "_説明": [
+  "北野マネージャ専用『1日タスク最適化AI（AI秘書）』の生活リズム設定です。",
+  "ここの数字を書き換えれば、翌朝からその前提でスケジュールが組まれます。",
+  "blocks は上から時間順に並べてください。fixed:true の枠にはタスクを入れません（食事・休憩・固定作業）。",
+  "energy は集中力の目安（5=最高／1=低）。accept はその枠に入れてよいカテゴリです。"
+ ],
+ "owner": "北野マネージャ",
+ "rhythm": {
+  "wake": "05:00",
+  "sleep": "21:00",
+  "peak": "07:00-11:00",
+  "drop": "15:00"
+ },
+ "blocks": [
+  { "id": "prep",     "start": "05:00", "end": "06:30", "label": "起床・朝の準備／数字とニュースのインプット", "energy": 4, "accept": [], "fixed": true },
+  { "id": "delegate0","start": "06:30", "end": "07:00", "label": "DELEGATE｜朝一の依頼出し（他人が動き出せる状態にする）", "energy": 4, "accept": ["DELEGATE"] },
+  { "id": "think",    "start": "07:00", "end": "09:00", "label": "THINK｜思考・分析（最も集中力が高い時間）", "energy": 5, "accept": ["THINK", "IMPROVE"] },
+  { "id": "improve",  "start": "09:00", "end": "11:00", "label": "IMPROVE｜制作・改善", "energy": 4, "accept": ["IMPROVE", "THINK"] },
+  { "id": "delegate", "start": "11:00", "end": "12:00", "label": "DELEGATE／MANAGEMENT｜依頼の残り・数字の確認", "energy": 3, "accept": ["DELEGATE", "MANAGEMENT", "MEETING"] },
+  { "id": "lunch",    "start": "12:00", "end": "12:40", "label": "昼食", "energy": 0, "accept": [], "fixed": true },
+  { "id": "nap",      "start": "12:40", "end": "13:00", "label": "昼寝・休憩（20分）", "energy": 0, "accept": [], "fixed": true },
+  { "id": "pm1",      "start": "13:00", "end": "14:30", "label": "MEETING / MANAGEMENT", "energy": 3, "accept": ["MEETING", "MANAGEMENT", "DELEGATE"] },
+  { "id": "break-pm", "start": "14:30", "end": "14:45", "label": "休憩（15分）", "energy": 0, "accept": [], "fixed": true },
+  { "id": "pm2",      "start": "14:45", "end": "16:00", "label": "MEETING / MANAGEMENT", "energy": 2, "accept": ["MEETING", "MANAGEMENT"] },
+  { "id": "admin",    "start": "16:00", "end": "17:30", "label": "ADMIN（事務・返信・確認）", "energy": 1, "accept": ["ADMIN", "MANAGEMENT"] },
+  { "id": "wrapup",   "start": "17:30", "end": "18:00", "label": "明日の整理（持ち越し確認・翌日のタスク出し）", "energy": 1, "accept": [], "fixed": true }
+ ],
+ "rules": {
+  "think_cutoff": "15:00",
+  "judgement_cutoff": "16:00",
+  "judgement_focus": 4,
+  "meeting_max_run": 50,
+  "meeting_break": 10,
+  "meeting_alert_count": 4,
+  "meeting_alert_minutes": 180,
+  "quick_delegate_max": 10,
+  "must_do_count": 3,
+  "capacity_buffer": 0.15,
+  "split_min_chunk": 30,
+  "tier_size": 1.5,
+  "carry_alert_count": 3
+ },
+ "weights": {
+  "impact": 3.0,
+  "urgency": 2.5,
+  "unblock": 3.0,
+  "loss": 2.0,
+  "management": 1.5,
+  "quick_win": 1.5,
+  "effort": 0.6,
+  "carry": 0.8,
+  "_category_bias説明": "同じくらい重要なら、価値を『作る』仕事を上に、『確かめる/こなす』仕事を下に寄せるための補正。",
+  "category_bias": { "THINK": 1.0, "IMPROVE": 1.0, "DELEGATE": 0.5, "MEETING": 0.0, "MANAGEMENT": 0.0, "ADMIN": -1.0 }
+ }
+}
