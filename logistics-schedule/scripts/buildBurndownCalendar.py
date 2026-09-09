@@ -81,8 +81,8 @@ GROUPS = [
         ('多機能PC L マットホワイト', '308'), ('多機能PC L エナメルカーキ(新色)', 'L_khaki')]),
     ('■ ノーマルアルミ S（在庫表では「クラシックアルミ」）', [
         ('ノーマルアルミ S シルバー', 'N_arumi01'), ('ノーマルアルミ S ブラック', 'N_arumi02')]),
-    ('■ ノーマルアルミ M', [
-        ('ノーマルアルミ M シルバー', 'NA_M_silver'), ('ノーマルアルミ M ブラック', 'NA_M_black')]),
+    ('■ クラシックアルミ M（ノーマルアルミM）', [
+        ('クラシックアルミ M シルバー', 'NA_M_silver'), ('クラシックアルミ M ブラック', 'NA_M_black')]),
     ('■ 多機能アルミ S', [
         ('多機能アルミ S シルバー', 'arumi01'), ('多機能アルミ S ブラック', 'arumi02')]),
     ('■ ジップ S', [
@@ -103,8 +103,7 @@ GROUPS = [
 ]
 
 # 9/4在庫一覧に品目が無いSKU（入庫済みだが未登録の可能性）
-NOT_IN_SNAPSHOT = {'NA_M_silver', 'NA_M_black', 'zip_S_black', 'zip_S_silver',
-                   'zip_M_black', 'zip_M_silver', 'rental_M'}
+NOT_IN_SNAPSHOT = {'zip_S_black', 'zip_S_silver', 'zip_M_black', 'zip_M_silver', 'rental_M'}
 # 新商品・新色（9/4時点で在庫ゼロが正しい）
 NEW_ITEMS = {'L_khaki', 'TM_S_black', 'TM_S_gray', 'TM_S_silver', 'TM_S_white',
              'TM_S_turquoise', 'TM_M_black', 'TM_M_gray', 'TM_M_silver', 'TM_M_white',
@@ -150,6 +149,14 @@ def main():
     # 9/4一覧に無い品目は0（＝在庫登録待ちの可能性。注記で明示）
     for k in NOT_IN_SNAPSHOT | NEW_ITEMS:
         stock.setdefault(k, 0)
+    # 入庫済みだがスナップショットに載っていない分を補正
+    adj_path = os.path.join(DATA, 'stock-adjustments.json')
+    adjusted = {}
+    if os.path.exists(adj_path):
+        with open(adj_path, encoding='utf-8') as f:
+            for a in json.load(f)['adjustments']:
+                stock[a['sku']] = stock.get(a['sku'], 0) + a['qty']
+                adjusted[a['sku']] = a['qty']
     arrivals = build_arrivals(stock, DPS)
 
     dates = []
@@ -277,8 +284,10 @@ def main():
     for note in [
         '※ 到着日=販売可能日として計算（大阪港到着→倉庫入庫のリードタイムぶん、実際は数日後ろにずれます）。',
         '※ 未出荷分の到着は「出荷予定日＋14日」で仮置き（実績平均）。着日が確定したら修正してください。',
-        '※ ノーマルアルミM・ジップS/M は9/4の在庫一覧に品目が無いため現庫を「要確認」にしています'
-        '（8/23・8/25に入庫済みのはずなので、在庫登録漏れの可能性があります）。',
+        '※ クラシックアルミM（シルバー326／ブラック264＝590個・WHSU5830223 8/23入庫）は'
+        '9/4在庫一覧に品目が無いため、data/stock-adjustments.json で現庫に加算しています。',
+        '※ ジップS/M は9/4在庫一覧に品目が無いため現庫を「要確認」にしています'
+        '（8/25入庫済みのはず・パッキングリスト上は計1,687個。在庫登録漏れの可能性）。',
         '※ 反映済みの上线计划: LM20260618(3,500個)/LM20260625スポーツ(600個)/LM20260704 PC(5,600個)・アルミ(1,050個)。',
         '※ サザンモデル(LM20260907)は10/20・10/25・10/30出荷の3便=2,850個を計上。新商品のため現庫0・日販未設定。',
         '※ LM20260808は全13コンテナ(11/10〜2027/1/30出荷)を計上。色別合計 L2,600/M3,750/S4,400で検算一致。',
