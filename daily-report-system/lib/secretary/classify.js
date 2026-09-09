@@ -38,6 +38,12 @@ export function classify(task, rules) {
   if (task.category && rules.categories[task.category]) {
     return { category: task.category, matched: ['手動指定'], confident: true };
   }
+  // 「〜を依頼」「〜お願い」で終わる文は、中身が制作でも分析でも『人に振る仕事』。
+  // ここを取り違えると、10分で終わる依頼が1時間の作業として午前を占領してしまう。
+  const title = String(task.title ?? '').replace(/[\s　。、!！]+$/, '');
+  if ((rules.delegate_suffix ?? []).some((suf) => title.endsWith(suf))) {
+    return { category: 'DELEGATE', matched: ['文末が依頼'], confident: true };
+  }
   const scored = Object.entries(rules.categories).map(([name, def]) => {
     const { score, matched } = keywordScore(text, def.keywords);
     return { name, score, matched };
