@@ -102,6 +102,14 @@ export function formatPlan(plan) {
     parts.push(`　→ 目安 ${humanMinutes(t.minutes)}${t.slot ? ` ／ ${t.slot}` : ''}`);
   }
 
+  if ((plan.waiting ?? []).length) {
+    parts.push('', head('⏳ 相手待ち（自分の作業ではない・催促の要否だけ判断）'));
+    for (const w of plan.waiting) {
+      parts.push(`・${w.title}`);
+      parts.push(`　→ ${w.who ?? '相手'}待ち ／ ${w.days === 0 ? '本日から' : `${w.days}日経過`}（${w.since}〜）`);
+    }
+  }
+
   parts.push('', head('🗓 今日のスケジュール'), renderSchedule(plan));
 
   parts.push('', head('📋 タスク仕分け'), renderBuckets(plan));

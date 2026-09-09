@@ -33,7 +33,7 @@ function mergeCarryOver(tasks, carry) {
 
 /** ⚠️ 秘書からの指摘 */
 function buildAdvice(ctx) {
-  const { today, deferred, delegateSuggestions, schedule, capacity, totalMinutes, profile, stats, tasksCount } = ctx;
+  const { today, deferred, delegateSuggestions, schedule, capacity, totalMinutes, profile, stats, tasksCount, waiting } = ctx;
   const out = [];
   const r = profile.rules ?? {};
 
@@ -65,6 +65,10 @@ function buildAdvice(ctx) {
 
   for (const t of today.filter((x) => !x.confident)) {
     out.push(`「${t.title}」は分類が曖昧なため ${t.category} として置きました。違う場合は行末に #THINK のように書いてください。`);
+  }
+
+  for (const w of waiting ?? []) {
+    if (w.days >= 3) out.push(`「${w.title}」は${w.who ?? '相手'}待ちのまま${w.days}日経過しています。今日催促するか、待たずに進める方法に切り替えてください。`);
   }
 
   if (today.length > 0 && !today.some((t) => t.category === 'THINK')) {
@@ -125,6 +129,7 @@ export function buildDailyPlan(text, opt = {}) {
   const advice = buildAdvice({
     today, deferred: p.deferred, delegateSuggestions: p.delegateSuggestions, schedule,
     capacity: p.capacity, totalMinutes, profile, stats: opt.stats, tasksCount: tasks.length,
+    waiting: opt.waiting ?? [],
   });
 
   return {
@@ -141,6 +146,7 @@ export function buildDailyPlan(text, opt = {}) {
     deferred: p.deferred,
     delegateSuggestions: p.delegateSuggestions,
     schedule,
+    waiting: opt.waiting ?? [],
     advice,
   };
 }

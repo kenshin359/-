@@ -59,7 +59,7 @@ export function carryOver(dateISO) {
   const prev = listPlans(10).filter((p) => p.date < dateISO)[0];
   if (!prev) return [];
   return (prev.tasks ?? [])
-    .filter((t) => t.status !== 'done' && t.status !== 'dropped')
+    .filter((t) => t.status !== 'done' && t.status !== 'dropped' && t.status !== 'waiting')
     .map((t) => ({
       title: t.title,
       minutes: t.minutes_planned ?? null,
@@ -68,8 +68,30 @@ export function carryOver(dateISO) {
     }));
 }
 
+/**
+ * 相手待ちの仕事を集める。
+ * 自分の手は離れているので今日の作業時間には数えないが、
+ * 「何日待っているか」を毎朝出して、催促の判断だけはできるようにする。
+ */
+export function waitingItems(dateISO, days = 10) {
+  const out = new Map();
+  for (const p of listPlans(days)) {
+    if (p.date > dateISO) continue;
+    for (const t of p.tasks ?? []) {
+      if (t.status !== 'waiting') continue;
+      const since = t.waiting_since ?? p.date;
+      const elapsed = Math.round((Date.parse(`${dateISO}T00:00:00Z`) - Date.parse(`${since}T00:00:00Z`)) / 86400000);
+      const prev = out.get(t.id);
+      if (!prev || since < prev.since) {
+        out.set(t.id, { id: t.id, title: t.title, who: t.waiting_on ?? t.delegate_to ?? null, since, days: Math.max(0, elapsed) });
+      }
+    }
+  }
+  return [...out.values()].sort((a, b) => b.days - a.days);
+}
+
 /** 完了・未完了を記録する。query はタスク名の一部でもID でも可。 */
-export function markStatus(dateISO, query, status, minutesActual) {
+export function markStatus(dateISO, query, status, minutesActual, meta = {}) {
   const plan = loadPlan(dateISO);
   if (!plan) return { ok: false, reason: `${dateISO} の予定がまだありません（先に plan を実行してください）` };
   const q = String(query).toLowerCase();
@@ -78,6 +100,10 @@ export function markStatus(dateISO, query, status, minutesActual) {
   for (const t of hits) {
     t.status = status;
     if (minutesActual != null) t.minutes_actual = Number(minutesActual);
+    if (status === 'waiting') {
+      t.waiting_on = meta.who ?? t.delegate_to ?? null;
+      t.waiting_since = t.waiting_since ?? dateISO;
+    }
     t.updated_at = new Date().toISOString();
   }
   savePlan(plan);
@@ -110,7 +136,7 @@ export function analyze(days = 30) {
 
   for (const p of plans) {
     for (const t of p.tasks ?? []) {
-      if (t.deferred) continue;    // その日やらないと決めたものは分母に入れない
+      if (t.deferred || t.status === 'waiting') continue;  // 「今日やらない」「相手待ち」は自分の分母に入れない
       totalTasks += 1;
       const done = t.status === 'done';
       if (done) totalDone += 1;
