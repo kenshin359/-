@@ -49,6 +49,12 @@ export function savePlan(plan) {
       t.waiting_since = b.waiting_since ?? t.waiting_since;
       t.updated_at = b.updated_at;
     }
+    // 組み直しの入力に含まれなかったタスクでも、完了・相手待ち・中止の記録は残す。
+    // これを捨てると「誰を何日待っているか」が消えてしまう。
+    const now = new Set((plan.tasks ?? []).map((t) => t.id));
+    for (const b of prev.tasks ?? []) {
+      if (!now.has(b.id) && ['done', 'waiting', 'dropped'].includes(b.status)) plan.tasks.push(b);
+    }
   }
   fs.writeFileSync(planPath(plan.date), `${JSON.stringify(plan, null, 1)}\n`, 'utf8');
   return planPath(plan.date);
