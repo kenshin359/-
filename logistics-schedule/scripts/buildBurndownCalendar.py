@@ -10,7 +10,7 @@
   7行目以降 ■グループごとのSKU行、右側に日次カレンダー
   凡例: 赤=欠品 緑=入荷日 青=在庫あり 黄=売切間近(7日分以下) 灰=販売なし
 """
-import csv, datetime, os
+import csv, datetime, json, os
 import openpyxl
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from openpyxl.utils import get_column_letter
@@ -100,16 +100,21 @@ def arrive(ship, days=TRANSIT):
 
 
 def build_arrivals(stock, dps):
-    """入荷予定（到着日→SKU→数量）。確定便はパッキングリストの色別内訳を使う。"""
+    """入荷予定（到着日→SKU→数量）。
+
+    確定便＝パッキングリストの色別内訳。
+    未出荷分＝工場の上线计划（data/production-plans.json）の品番別内訳を使い、
+    到着日は「工場出荷予定日＋TRANSIT日」で置く。
+    """
     a = [
         # WHSU5516465 8/27出荷・9/7着（PC多機能M 700 + ノーマルアルミM 22）
         (datetime.date(2026, 9, 7), {'201': 100, '207': 200, '210': 100, '208': 100,
-                                     '206': 200, 'NA_M_silver': 22}),
+                                     '206': 200, 'NA_M_silver': 22}, 'WHSU5516465'),
         # TSSU5227711 8/25出荷・9/8着（PC多機能S 1,050 + ノーマルアルミS 27）
         (datetime.date(2026, 9, 8), {'111': 200, '103a': 100, '109': 100, '108': 200,
-                                     '107': 200, '110': 250, 'N_arumi01': 27}),
+                                     '107': 200, '110': 250, 'N_arumi01': 27}, 'TSSU5227711'),
         # CAAU8818353 9/3出荷・9/14着（PC多機能L 607）
-        (datetime.date(2026, 9, 14), {'301': 208, '306': 399}),
+        (datetime.date(2026, 9, 14), {'301': 208, '306': 399}, 'CAAU8818353'),
     ]
     # LM20260808（発注書の色別内訳／磨砂=マット・镜面=エナメル）
     for ship, items in [
@@ -122,16 +127,13 @@ def build_arrivals(stock, dps):
         ('2026/12/15', {'106': 100, '101': 400, '108': 400, '111': 200}),
         ('2026/12/25', {'206': 200, '207': 250, '201': 200, '208': 100}),
     ]:
-        a.append((arrive(ship), items))
-    # 注文6/18（品番内訳が未確定 → サイズ内で日販按分）
-    SIZE = {'S': ['106', '101', '107', '108', '111', '105', '109', '110', '103a'],
-            'M': ['206', '207', '201', '208', '211', '210'],
-            'L': ['307', '301', '306', '310', '308']}
-    for ship, size, qty in [('2026/9/10', 'S', 1100), ('2026/9/15', 'S', 1100),
-                            ('2026/9/20', 'M', 700), ('2026/9/25', 'L', 600)]:
-        ks = [k for k in SIZE[size] if dps.get(k, 0) > 0]
-        tot = sum(dps[k] for k in ks)
-        a.append((arrive(ship), {k: round(qty * dps[k] / tot) for k in ks}))
+        a.append((arrive(ship), items, 'LM20260808'))
+    # 工場の上线计划（品番別内訳が確定しているもの）
+    with open(os.path.join(DATA, 'production-plans.json'), encoding='utf-8') as f:
+        plans = json.load(f)['plans']
+    for plan in plans:
+        for sh in plan['shipments']:
+            a.append((arrive(sh['ship']), dict(sh['items']), plan['order_no']))
     a.sort(key=lambda x: x[0])
     return a
 
@@ -150,7 +152,7 @@ def main():
     while d <= CAL_END:
         dates.append(d); d += datetime.timedelta(days=1)
     arr_by_sku = {}
-    for ad, items in arrivals:
+    for ad, items, _src in arrivals:
         for k, q in items.items():
             arr_by_sku.setdefault(k, {})
             arr_by_sku[k][ad] = arr_by_sku[k].get(ad, 0) + q
@@ -186,7 +188,7 @@ def main():
             y.font = Font(bold=True, color='FFFFFF')
     ws['A3'] = ('日販=7月の3媒体（Amazon・楽天・自社）実績÷31日。'
                 '現庫=9/4在庫（FBA合計＋CS倉庫良品＋FBM＋事務所）。'
-                '入荷=確定便はパッキングリストの色別内訳、LM20260808は発注書の色別内訳、注文6/18は日販按分。')
+                '入荷=確定便はパッキングリストの色別内訳、未出荷分は工場の上线计划（品番別）を出荷予定日+14日で計上。')
     ws['A3'].font = SUBF
 
     HEAD = ['SKU（色）', '日販', f'現庫({STOCK_DATE:%-m/%-d})', '入荷予定合計', '合計(現庫+入荷)',
@@ -270,7 +272,8 @@ def main():
         '※ 未出荷分の到着は「出荷予定日＋14日」で仮置き（実績平均）。着日が確定したら修正してください。',
         '※ ノーマルアルミM・ジップS/M は9/4の在庫一覧に品目が無いため現庫を「要確認」にしています'
         '（8/23・8/25に入庫済みのはずなので、在庫登録漏れの可能性があります）。',
-        '※ 注文7/4の混載3,250個・サザンモデル2,500個は品番内訳が未確定のため未計上（＝予測は保守的）。',
+        '※ 反映済みの上线计划: LM20260618(3,500個)/LM20260625スポーツ(600個)/LM20260704 PC(5,600個)・アルミ(1,050個)。',
+        '※ サザンモデル2,500個は着日が「11月頭〜12月末」の幅のままなので未計上（＝予測は保守的）。',
         '※ 日販は7月実績の平均。8月以降のイベントや繁忙期（年末年始・GW）の増減は織り込んでいません。',
     ]:
         ws.cell(r, 1, note).font = SUBF; r += 1
