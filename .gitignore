@@ -10,3 +10,7 @@ npm-debug.log*
 # 出力・作業ファイル
 out/
 *.tmp
+
+# Python
+__pycache__/
+*.pyc
