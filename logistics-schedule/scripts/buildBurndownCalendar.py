@@ -55,6 +55,11 @@ DPS = {
     'zip_S_black': 0.00, 'zip_S_silver': 0.00,
     'zip_M_black': 0.00, 'zip_M_silver': 0.00,
     'outdoorsk001': 0.00, 'outdoorsk002': 0.00,
+    'L_khaki': 0.00,
+    'TM_S_black': 0.00, 'TM_S_gray': 0.00, 'TM_S_silver': 0.00,
+    'TM_S_white': 0.00, 'TM_S_turquoise': 0.00,
+    'TM_M_black': 0.00, 'TM_M_gray': 0.00, 'TM_M_silver': 0.00, 'TM_M_white': 0.00,
+    'TM_L_black': 0.00, 'TM_L_gray': 0.00, 'TM_L_silver': 0.00,
     'rental_M': 1.39,
 }
 
@@ -73,7 +78,7 @@ GROUPS = [
     ('■ 多機能PC L', [
         ('多機能PC L マットシルバー', '307'), ('多機能PC L エナメルシルバー', '301'),
         ('多機能PC L マットブラック', '306'), ('多機能PC L マットグレー', '310'),
-        ('多機能PC L マットホワイト', '308')]),
+        ('多機能PC L マットホワイト', '308'), ('多機能PC L エナメルカーキ(新色)', 'L_khaki')]),
     ('■ ノーマルアルミ S（在庫表では「クラシックアルミ」）', [
         ('ノーマルアルミ S シルバー', 'N_arumi01'), ('ノーマルアルミ S ブラック', 'N_arumi02')]),
     ('■ ノーマルアルミ M', [
@@ -86,12 +91,24 @@ GROUPS = [
         ('ジップ M シルバー', 'zip_M_silver'), ('ジップ M ブラック', 'zip_M_black')]),
     ('■ アウトドア(スキー)', [
         ('アウトドア マットシルバー', 'outdoorsk002'), ('アウトドア マットブラック', 'outdoorsk001')]),
+    ('■ サザンモデル(TM窄框款PC箱)／新商品', [
+        ('サザンモデル S ブラック', 'TM_S_black'), ('サザンモデル S シルバー', 'TM_S_silver'),
+        ('サザンモデル S トグレー', 'TM_S_gray'), ('サザンモデル S ホワイト', 'TM_S_white'),
+        ('サザンモデル S ターコイズ', 'TM_S_turquoise'),
+        ('サザンモデル M ブラック', 'TM_M_black'), ('サザンモデル M シルバー', 'TM_M_silver'),
+        ('サザンモデル M トグレー', 'TM_M_gray'), ('サザンモデル M ホワイト', 'TM_M_white'),
+        ('サザンモデル L ブラック', 'TM_L_black'), ('サザンモデル L シルバー', 'TM_L_silver'),
+        ('サザンモデル L トグレー', 'TM_L_gray')]),
     ('■ 参考', [('（参考）レンタルM', 'rental_M')]),
 ]
 
 # 9/4在庫一覧に品目が無いSKU（入庫済みだが未登録の可能性）
 NOT_IN_SNAPSHOT = {'NA_M_silver', 'NA_M_black', 'zip_S_black', 'zip_S_silver',
                    'zip_M_black', 'zip_M_silver', 'rental_M'}
+# 新商品・新色（9/4時点で在庫ゼロが正しい）
+NEW_ITEMS = {'L_khaki', 'TM_S_black', 'TM_S_gray', 'TM_S_silver', 'TM_S_white',
+             'TM_S_turquoise', 'TM_M_black', 'TM_M_gray', 'TM_M_silver', 'TM_M_white',
+             'TM_L_black', 'TM_L_gray', 'TM_L_silver'}
 
 
 def arrive(ship, days=TRANSIT):
@@ -116,18 +133,6 @@ def build_arrivals(stock, dps):
         # CAAU8818353 9/3出荷・9/14着（PC多機能L 607）
         (datetime.date(2026, 9, 14), {'301': 208, '306': 399}, 'CAAU8818353'),
     ]
-    # LM20260808（発注書の色別内訳／磨砂=マット・镜面=エナメル）
-    for ship, items in [
-        ('2026/11/10', {'307': 200, '310': 200, '308': 100}),
-        ('2026/11/15', {'206': 200, '207': 200, '201': 150, '208': 100, '211': 100}),
-        ('2026/11/25', {'106': 200, '101': 300, '108': 200, '111': 100, '105': 300}),
-        ('2026/11/30', {'106': 400, '101': 300, '108': 200, '111': 200}),
-        ('2026/12/5',  {'206': 100, '207': 100, '201': 150, '208': 200, '211': 200}),
-        ('2026/12/10', {'307': 200, '301': 100, '310': 200, '308': 150}),
-        ('2026/12/15', {'106': 100, '101': 400, '108': 400, '111': 200}),
-        ('2026/12/25', {'206': 200, '207': 250, '201': 200, '208': 100}),
-    ]:
-        a.append((arrive(ship), items, 'LM20260808'))
     # 工場の上线计划（品番別内訳が確定しているもの）
     with open(os.path.join(DATA, 'production-plans.json'), encoding='utf-8') as f:
         plans = json.load(f)['plans']
@@ -143,7 +148,7 @@ def main():
         suit = list(csv.DictReader(f))
     stock = {r['SKU']: int(r['総在庫']) for r in suit}
     # 9/4一覧に無い品目は0（＝在庫登録待ちの可能性。注記で明示）
-    for k in NOT_IN_SNAPSHOT:
+    for k in NOT_IN_SNAPSHOT | NEW_ITEMS:
         stock.setdefault(k, 0)
     arrivals = build_arrivals(stock, DPS)
 
@@ -232,7 +237,7 @@ def main():
             inc = sum(arr_by_sku.get(k, {}).values())
             fo = first_out.get(k)
             months = round((st + inc) / (dps * 30.4), 1) if dps > 0 else None
-            note = '要確認' if k in NOT_IN_SNAPSHOT else st
+            note = '要確認' if k in NOT_IN_SNAPSHOT else ('新商品' if k in NEW_ITEMS else st)
             vals = [
                 '　' + disp, dps, note, inc, (st + inc),
                 fo.strftime('%-m/%-d') if fo else ('販売なし' if dps == 0 else f'{CAL_END:%Y/%-m}末まで無し'),
@@ -243,6 +248,8 @@ def main():
                 y = ws.cell(r, c, x); y.border = BD; y.alignment = LN if c == 1 else C
                 if c == 3 and k in NOT_IN_SNAPSHOT:
                     y.fill = YEL
+                elif c == 3 and k in NEW_ITEMS:
+                    y.fill = GRN
                 if c == 6 and fo:
                     y.fill = RED; y.font = Font(bold=True, color='FFFFFF')
                 elif c == 6 and dps == 0:
@@ -273,7 +280,8 @@ def main():
         '※ ノーマルアルミM・ジップS/M は9/4の在庫一覧に品目が無いため現庫を「要確認」にしています'
         '（8/23・8/25に入庫済みのはずなので、在庫登録漏れの可能性があります）。',
         '※ 反映済みの上线计划: LM20260618(3,500個)/LM20260625スポーツ(600個)/LM20260704 PC(5,600個)・アルミ(1,050個)。',
-        '※ サザンモデル2,500個は着日が「11月頭〜12月末」の幅のままなので未計上（＝予測は保守的）。',
+        '※ サザンモデル(LM20260907)は10/20・10/25・10/30出荷の3便=2,850個を計上。新商品のため現庫0・日販未設定。',
+        '※ LM20260808は全13コンテナ(11/10〜2027/1/30出荷)を計上。色別合計 L2,600/M3,750/S4,400で検算一致。',
         '※ 日販は7月実績の平均。8月以降のイベントや繁忙期（年末年始・GW）の増減は織り込んでいません。',
     ]:
         ws.cell(r, 1, note).font = SUBF; r += 1
