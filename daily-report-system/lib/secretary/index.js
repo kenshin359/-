@@ -151,6 +151,42 @@ export function buildDailyPlan(text, opt = {}) {
   };
 }
 
+/**
+ * Excel などの帳票を作るための形へ。
+ * 画面用の整形（format.js）と違い、意味だけを渡します。
+ */
+export function toSheetJson(plan) {
+  const t = (x) => ({
+    title: x.title, icon: x.icon, category: x.category, minutes: x.minutes,
+    slot: x.slot ?? null, who: x.delegateTo ?? null, named: Boolean(x.assignee),
+    score: x.score ?? null, must: plan.mustDo.some((m) => m.id === x.id),
+  });
+  return {
+    date: plan.date,
+    tasks_count: plan.tasksCount,
+    total_minutes: plan.totalMinutes,
+    capacity: plan.capacity,
+    planned_minutes: plan.plannedMinutes,
+    must_do: plan.mustDo.map((x) => ({ ...t(x), why: x.why })),
+    morning_delegate: plan.morningDelegate.map(t),
+    timeline: plan.schedule.timeline.map((e) => ({
+      start: toHHMM(e.start), end: toHHMM(e.end), kind: e.kind,
+      label: e.label ?? null, minutes: (e.minutes ?? e.end - e.start),
+      block: e.block?.label ?? null, pinned: Boolean(e.pinned),
+      part: e.partCount ? `${e.partIndex}/${e.partCount}` : null,
+      ...(e.kind === 'task' ? t(e.task) : {}),
+    })),
+    buckets: Object.fromEntries(
+      Object.entries(plan.categories).map(([name, def]) => [
+        name, { icon: def.icon, label: def.label, items: plan.today.filter((x) => x.category === name).map(t) },
+      ])
+    ),
+    waiting: plan.waiting ?? [],
+    deferred: plan.deferred.map((x) => ({ ...t(x), reason: x.deferReason, recommend: x.recommend })),
+    advice: plan.advice,
+  };
+}
+
 /** 保存用（state/secretary/YYYY-MM-DD.json）に落とす形へ */
 export function toRecord(plan) {
   const row = (t, deferred) => ({

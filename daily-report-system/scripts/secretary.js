@@ -18,7 +18,10 @@
 //  ★記録は state/secretary/ に保存され、Git には上がりません。
 // ============================================================
 import fs from 'node:fs';
-import { buildDailyPlan, toRecord } from '../lib/secretary/index.js';
+import path from 'node:path';
+import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
+import { buildDailyPlan, toRecord, toSheetJson } from '../lib/secretary/index.js';
 import { formatPlan, formatReview } from '../lib/secretary/format.js';
 import { savePlan, loadPlan, carryOver, markStatus, analyze, planPath, waitingItems } from '../lib/secretary/store.js';
 import { humanMinutes } from '../lib/secretary/config.js';
@@ -50,7 +53,8 @@ const HELP = `AI秘書（1日タスク最適化）
   secretary [plan]              タスク一覧を標準入力から読んで today のプランを作る
     --file=tasks.txt            ファイルから読む
     --date=2026-09-08           日付を指定（既定は今日）
-    --json                      JSONで出す（他ツール連携用）
+    --json                      JSONで出す（Excel生成などの連携用。--record で保存形式）
+    --sheet                     Excel（out/AI秘書_YYYY-MM-DD.xlsx）も作る
     --no-save                   記録を残さない
     --no-carry                  前日の未完了を引き継がない
 
@@ -78,9 +82,17 @@ async function cmdPlan() {
   const plan = buildDailyPlan(text, { date, carry, waiting: waitingItems(date), stats: stats.days ? stats : null });
 
   if (flag('json')) {
-    console.log(JSON.stringify(toRecord(plan), null, 1));
+    console.log(JSON.stringify(flag('record') ? toRecord(plan) : toSheetJson(plan), null, 1));
   } else {
     console.log(formatPlan(plan));
+  }
+  if (flag('sheet')) {
+    const dir = path.dirname(fileURLToPath(import.meta.url));
+    const r = spawnSync('python3', [path.join(dir, 'buildSecretarySheet.py')], {
+      input: JSON.stringify(toSheetJson(plan)), encoding: 'utf8',
+    });
+    if (r.status === 0) console.log(`\n（Excel：${String(r.stdout).trim()}）`);
+    else console.error(`Excelの作成に失敗しました：${r.stderr || r.error}`);
   }
   if (!flag('no-save')) {
     const p = savePlan(toRecord(plan));

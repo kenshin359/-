@@ -125,6 +125,7 @@ daily-report-system/
 | `npm run backup` | **元データのバックアップ**（読み取りのみ） |
 | `npm test` | ユニットテスト（オフライン・228件） |
 | `npm run secretary` | **AI秘書（1日タスク最適化）**：朝タスクを貼るだけで時間割・優先順位・委任候補を作る |
+| `npm run secretary:sheet -- --file=today.txt` | 1日最適化を**Excel**（5シート・印刷対応）で出力 |
 | `npm run secretary -- review --days=30` | ためた実績から「見積もりのクセ・完了率が落ちる時間帯・後回しが続く仕事」を分析 |
 | `npm run sales` | **売上レポート**（CSV から・Amazon/楽天/自社/Meta/RPP・費用ゼロ） |
 | `npm run monthly` | **月次売上レポート**（Kintone売上アプリから・費用ゼロ） |
