@@ -55,7 +55,7 @@ function allowedAt(task, startMin, profile) {
  * @param {object[]} tasks 優先順位づけ済み（score降順）のタスク
  * @returns {{timeline:object[], unplaced:object[], notes:string[]}}
  */
-export function buildSchedule(tasks, profile) {
+export function buildSchedule(tasks, profile, optional = []) {
   const r = profile.rules ?? {};
   const blocks = makeBlocks(profile);
   const notes = [];
@@ -122,6 +122,31 @@ export function buildSchedule(tasks, profile) {
     .filter((x) => x.remaining > 0)
     .map((x) => (x.parts === 0 ? x.t : { ...x.t, minutes: x.remaining, partial: true }));
 
+  // ②-2 救済パス:
+  //   「時間が足りない」と判断して今日から外したタスクでも、
+  //   そのカテゴリの枠がまだ空いていれば拾い直す。
+  //   （ADMIN枠が90分空いているのに15分の事務を明日に回す、という事故を防ぐ）
+  const rescued = [];
+  for (const t of optional) {
+    let done = false;
+    for (const b of blocks) {
+      if (done || b.fixed || !b.accept.includes(t.category)) continue;
+      for (const g of b.gaps) {
+        if (done) break;
+        const last = g.items[g.items.length - 1];
+        const brk = t.category === 'MEETING' && last?.task?.category === 'MEETING' ? (r.meeting_break ?? 10) : 0;
+        const startAt = g.cursor + brk;
+        if (!allowedAt(t, startAt, profile)) continue;
+        if (g.end - startAt >= t.minutes) {
+          g.items.push({ task: t, minutes: t.minutes, breakBefore: brk, block: b });
+          g.cursor = startAt + t.minutes;
+          rescued.push(t.id);
+          done = true;
+        }
+      }
+    }
+  }
+
   // ③ 実際の時刻に展開する（分割された仕事には［1/2］の印をつける）
   const partCount = new Map();
   for (const b of blocks) for (const g of b.gaps) for (const it of g.items) {
@@ -166,7 +191,7 @@ export function buildSchedule(tasks, profile) {
     notes.push(`本日の会議は${meetings.length}件・合計${meetingMinutes}分。午後が会議で埋まると翌朝まで響きます。1〜2件は代理出席か議事録共有に置き換えてください。`);
   }
 
-  return { timeline, unplaced, notes, meetingMinutes, meetingCount: meetings.length };
+  return { timeline, unplaced, notes, rescued, meetingMinutes, meetingCount: meetings.length };
 }
 
 /** 時刻つきの1行に整える（フォーマッタから使う） */

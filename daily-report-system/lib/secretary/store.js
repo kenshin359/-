@@ -35,6 +35,21 @@ export function loadPlan(dateISO) {
 
 export function savePlan(plan) {
   ensureDir();
+  // 同じ日を組み直したとき、すでに付けた「完了・相手待ち・実績時間」を引き継ぐ。
+  // これが無いと、昼にタスクを足して組み直すたびに午前の記録が消える。
+  const prev = loadPlan(plan.date);
+  if (prev) {
+    const before = new Map((prev.tasks ?? []).map((t) => [t.id, t]));
+    for (const t of plan.tasks ?? []) {
+      const b = before.get(t.id);
+      if (!b || b.status === 'planned') continue;
+      t.status = b.status;
+      t.minutes_actual = b.minutes_actual ?? t.minutes_actual;
+      t.waiting_on = b.waiting_on ?? t.waiting_on;
+      t.waiting_since = b.waiting_since ?? t.waiting_since;
+      t.updated_at = b.updated_at;
+    }
+  }
   fs.writeFileSync(planPath(plan.date), `${JSON.stringify(plan, null, 1)}\n`, 'utf8');
   return planPath(plan.date);
 }

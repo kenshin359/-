@@ -110,7 +110,17 @@ export function buildDailyPlan(text, opt = {}) {
   const tasks = enrichAll(parsed, rules, profile, date);
   const capacity = workCapacity(profile);
   const p = prioritize(tasks, profile, capacity);
-  const schedule = buildSchedule(p.today, profile);
+  // 今日から外したタスクも「枠が余っていれば拾う」候補として渡す
+  const schedule = buildSchedule(p.today, profile, p.deferred);
+  if (schedule.rescued.length) {
+    const back = new Set(schedule.rescued);
+    for (const t of p.deferred.filter((x) => back.has(x.id))) {
+      p.today.push(t);
+      p.planned += t.minutes;
+    }
+    p.deferred = p.deferred.filter((x) => !back.has(x.id));
+    p.today.sort((a, b) => b.score - a.score);
+  }
 
   // 各タスクに実際の時間帯を書き戻す（出力とデータ保存の両方で使う）
   const slots = new Map();
