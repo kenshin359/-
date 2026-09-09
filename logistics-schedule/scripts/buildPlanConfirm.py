@@ -71,44 +71,63 @@ def describe(sku, order_no):
 
 
 def build_xlsx(plans, path):
-    """日中を左右に並べた確認シート＋オーダー別サマリーを書き出す。"""
+    """オーダーごとに1シート。先頭に「サマリー」シートを置く。"""
     thin = Side(style='thin', color='B0B0B0')
     bd = Border(left=thin, right=thin, top=thin, bottom=thin)
     HF = PatternFill('solid', fgColor='1F4E78')
     HFo = Font(bold=True, color='FFFFFF', size=10)
     TF = Font(bold=True, size=14, color='1F4E78')
     SUB = Font(size=9, color='808080')
-    ORD = PatternFill('solid', fgColor='4472C4')
-    ORDo = Font(bold=True, color='FFFFFF', size=12)
     SHIP = PatternFill('solid', fgColor='DDEBF7')
     TOT = PatternFill('solid', fgColor='F8CBAD')
     SPARE = PatternFill('solid', fgColor='FFF2CC')
     C = Alignment(horizontal='center', vertical='center')
     LN = Alignment(horizontal='left', vertical='center')
+    WRAP = Alignment(horizontal='center', vertical='center', wrap_text=True)
 
     wb = openpyxl.Workbook()
+
+    # ===== サマリー =====
     ws = wb.active
-    ws.title = '日中対照'
-    ws['A1'] = '生産計画 日中対照表 / 生产计划 中日对照表'
-    ws['A1'].font = TF
-    ws['A2'] = ('日本と中国で同じ行を見て確認してください。余りは色ごとの合計のため、'
-                'その色の最終便の行にのみ記載しています（「－」は記載なし）。')
+    ws.title = 'サマリー'
+    ws['A1'] = 'オーダー別サマリー / 订单汇总'; ws['A1'].font = TF
+    ws['A2'] = ('各オーダーの明細は下のシートタブに分けています。'
+                'サイズ対応: S=20寸 / M=24寸 / L=28寸 / M+S=26寸')
     ws['A2'].font = SUB
-    ws['A3'] = ('请中日双方核对同一行。余数为每个颜色的合计，只写在该颜色最后一班的行（「－」表示不适用）。'
-                '尺寸对应: S=20寸 / M=24寸 / L=28寸 / M+S=26寸')
+    ws['A3'] = '各订单的明细请见下方各个工作表标签。'
     ws['A3'].font = SUB
+    h = ['注文番号\n订单号', '内容', '数量\n数量', '出荷\n出货', '余り\n余数',
+         '便数\n班次', '初回出荷\n首班', '最終出荷\n末班', '納期 / 交期']
+    for c, x in enumerate(h, 1):
+        y = ws.cell(5, c, x); y.fill = HF; y.font = HFo; y.border = bd; y.alignment = WRAP
+    ws.row_dimensions[5].height = 30
+    r = 6
+    TQ = TS = TSP = TN = 0
+    for pl in plans:
+        tq = sum(pl['order_qty'].values())
+        ts = sum(sh['qty'] for sh in pl['shipments'])
+        tsp = sum(pl['spare_by_sku'].values())
+        ships = [sh['ship'] for sh in pl['shipments']]
+        vals = [pl['order_no'], pl['label'], tq, ts, tsp, len(ships),
+                ships[0], ships[-1], pl['deadline']]
+        for c, v in enumerate(vals, 1):
+            y = ws.cell(r, c, v); y.border = bd
+            y.alignment = LN if c in (2, 9) else C
+            if c == 5 and v:
+                y.fill = SPARE; y.font = Font(bold=True)
+        TQ += tq; TS += ts; TSP += tsp; TN += len(ships); r += 1
+    ws.cell(r, 2, '総合計 / 总合计')
+    ws.cell(r, 3, TQ); ws.cell(r, 4, TS); ws.cell(r, 5, TSP); ws.cell(r, 6, TN)
+    for c in range(1, 10):
+        y = ws.cell(r, c); y.fill = TOT; y.font = Font(bold=True, size=11)
+        y.border = bd; y.alignment = C if c != 2 else LN
+    for i, w in enumerate([16, 42, 10, 10, 9, 8, 12, 12, 40], 1):
+        ws.column_dimensions[get_column_letter(i)].width = w
+    ws.freeze_panes = 'A6'
 
-    hdr = ['便No.', '注文番号\n订单号', '商品名（日本語）', '品名（中文）',
-           'サイズ', '尺寸', 'カラー（日本語）', '颜色（中文）',
-           '数量', '出荷日\n出货日', '余り\n余数']
-    r = 5
-    for c, h in enumerate(hdr, 1):
-        y = ws.cell(r, c, h)
-        y.fill = HF; y.font = HFo; y.border = bd
-        y.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
-    ws.row_dimensions[r].height = 30
-    r += 1
-
+    # ===== オーダーごとのシート =====
+    hdr = ['便No.\n班次', '商品名（日本語）', '品名（中文）', 'サイズ', '尺寸',
+           'カラー（日本語）', '颜色（中文）', '数量', '出荷日\n出货日', '余り\n余数']
     for pl in plans:
         no = pl['order_no']
         oq, spare = pl['order_qty'], pl['spare_by_sku']
@@ -119,69 +138,47 @@ def build_xlsx(plans, path):
         tq = sum(oq.values())
         ts = sum(sh['qty'] for sh in pl['shipments'])
         tsp = sum(spare.values())
-        ws.cell(r, 1, f"【{no}】{pl['label']}　　数量 {tq:,} ／ 出荷 {ts:,} ／ 余り {tsp:,}"
-                      f"　　納期: {pl['deadline']}")
-        ws.merge_cells(start_row=r, start_column=1, end_row=r, end_column=11)
-        for c in range(1, 12):
-            y = ws.cell(r, c); y.fill = ORD; y.font = ORDo; y.alignment = LN
-        ws.row_dimensions[r].height = 20
-        r += 1
+
+        w = wb.create_sheet(no[:31])
+        w['A1'] = f"【{no}】{pl['label']}"; w['A1'].font = TF
+        w['A2'] = f"数量 {tq:,}個 ／ 出荷 {ts:,}個 ／ 余り {tsp:,}個　　納期: {pl['deadline']}"
+        w['A2'].font = Font(bold=True, size=11)
+        w['A3'] = f"数量 {tq:,}个 ／ 出货 {ts:,}个 ／ 余数 {tsp:,}个　　交期: {pl['deadline']}"
+        w['A3'].font = SUB
+        w['A4'] = ('※余りは色ごとの合計です。その色の最終便の行にのみ記載しています（「－」は記載なし）。'
+                   ' 余数为每个颜色的合计，只写在该颜色最后一班的行。')
+        w['A4'].font = SUB
+        if pl.get('note'):
+            w['A5'] = '※ ' + pl['note']; w['A5'].font = Font(size=9, color='C00000')
+
+        hr = 7
+        for c, x in enumerate(hdr, 1):
+            y = w.cell(hr, c, x); y.fill = HF; y.font = HFo; y.border = bd; y.alignment = WRAP
+        w.row_dimensions[hr].height = 30
+        r = hr + 1
         for sh in pl['shipments']:
-            ws.cell(r, 1, f"No.{sh['no']}　出荷日 {sh['ship']}　{sh['qty']:,}個 / 个")
-            ws.merge_cells(start_row=r, start_column=1, end_row=r, end_column=11)
-            for c in range(1, 12):
-                y = ws.cell(r, c); y.fill = SHIP; y.font = Font(bold=True); y.alignment = LN
+            w.cell(r, 1, f"No.{sh['no']}　出荷日 出货日 {sh['ship']}　{sh['qty']:,}個 / 个")
+            w.merge_cells(start_row=r, start_column=1, end_row=r, end_column=10)
+            for c in range(1, 11):
+                y = w.cell(r, c); y.fill = SHIP; y.font = Font(bold=True); y.alignment = LN
             r += 1
             for sku, q in sh['items'].items():
                 jp, cn, jsz, csz, cjp, ccn = describe(sku, no)
                 sp = spare.get(sku, 0) if last[sku] == sh['ship'] else '－'
-                vals = [f"No.{sh['no']}", no, jp, cn, jsz, csz, cjp, ccn, q, sh['ship'], sp]
+                vals = [f"No.{sh['no']}", jp, cn, jsz, csz, cjp, ccn, q, sh['ship'], sp]
                 for c, v in enumerate(vals, 1):
-                    y = ws.cell(r, c, v); y.border = bd
-                    y.alignment = LN if c in (3, 4) else C
-                    if c == 11 and isinstance(v, int) and v > 0:
+                    y = w.cell(r, c, v); y.border = bd
+                    y.alignment = LN if c in (2, 3) else C
+                    if c == 10 and isinstance(v, int) and v > 0:
                         y.fill = SPARE; y.font = Font(bold=True)
                 r += 1
-        ws.cell(r, 3, '小計 / 小计'); ws.cell(r, 9, ts); ws.cell(r, 11, tsp)
-        for c in range(1, 12):
-            y = ws.cell(r, c); y.fill = TOT; y.font = Font(bold=True); y.border = bd
-            y.alignment = C if c != 3 else LN
-        r += 2   # オーダー間に空白行
-
-    for i, w in enumerate([9, 16, 24, 26, 8, 8, 20, 14, 9, 13, 9], 1):
-        ws.column_dimensions[get_column_letter(i)].width = w
-    ws.freeze_panes = 'A6'
-
-    # サマリーシート
-    ws2 = wb.create_sheet('サマリー')
-    ws2['A1'] = 'オーダー別サマリー / 订单汇总'; ws2['A1'].font = TF
-    h2 = ['注文番号\n订单号', '内容', '数量\n数量', '出荷\n出货', '余り\n余数',
-          '便数\n班次', '初回出荷\n首班', '最終出荷\n末班', '納期 / 交期']
-    for c, h in enumerate(h2, 1):
-        y = ws2.cell(3, c, h); y.fill = HF; y.font = HFo; y.border = bd
-        y.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
-    ws2.row_dimensions[3].height = 30
-    rr = 4
-    TQ = TS = TSP = 0
-    for pl in plans:
-        oq, spare = pl['order_qty'], pl['spare_by_sku']
-        tq = sum(oq.values()); ts = sum(sh['qty'] for sh in pl['shipments'])
-        tsp = sum(spare.values())
-        ships = [sh['ship'] for sh in pl['shipments']]
-        vals = [pl['order_no'], pl['label'], tq, ts, tsp, len(ships),
-                ships[0], ships[-1], pl['deadline']]
-        for c, v in enumerate(vals, 1):
-            y = ws2.cell(rr, c, v); y.border = bd
-            y.alignment = LN if c in (2, 9) else C
-            if c == 5 and v: y.fill = SPARE
-        TQ += tq; TS += ts; TSP += tsp; rr += 1
-    ws2.cell(rr, 2, '総合計 / 总合计'); ws2.cell(rr, 3, TQ); ws2.cell(rr, 4, TS); ws2.cell(rr, 5, TSP)
-    for c in range(1, 10):
-        y = ws2.cell(rr, c); y.fill = TOT; y.font = Font(bold=True, size=11); y.border = bd
-        y.alignment = C if c != 2 else LN
-    for i, w in enumerate([16, 42, 10, 10, 9, 8, 12, 12, 40], 1):
-        ws2.column_dimensions[get_column_letter(i)].width = w
-    ws2.freeze_panes = 'A4'
+        w.cell(r, 2, '合計 / 合计'); w.cell(r, 8, ts); w.cell(r, 10, tsp)
+        for c in range(1, 11):
+            y = w.cell(r, c); y.fill = TOT; y.font = Font(bold=True); y.border = bd
+            y.alignment = C if c != 2 else LN
+        for i, ww in enumerate([11, 24, 26, 8, 8, 20, 14, 9, 13, 9], 1):
+            w.column_dimensions[get_column_letter(i)].width = ww
+        w.freeze_panes = w.cell(hr + 1, 1)
 
     wb.save(path)
 
