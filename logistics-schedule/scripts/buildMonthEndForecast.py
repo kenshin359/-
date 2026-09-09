@@ -152,9 +152,11 @@ def main():
         y.alignment = C if c != 1 else LN
     r += 2
 
-    ws.cell(r, 1, '■ 月別の入荷・販売・増減').font = Font(bold=True, size=12, color='1F4E78')
+    ws.cell(r, 1, '■ 月別の入荷・販売・増減　（増減＝入荷−販売。'
+                  '🟩プラス＝在庫が増える／🟥マイナス＝在庫が減る）'
+            ).font = Font(bold=True, size=12, color='1F4E78')
     r += 1
-    labels = ['月', '入荷', '販売', '増減']
+    labels = ['月', '入荷（＋）', '販売（−）', '増減\n＋増える/−減る']
     for i, lab in enumerate(labels):
         y = ws.cell(r + i, 1, lab); y.fill = HF; y.font = HFo; y.border = BD; y.alignment = C
     for j, e in enumerate(MONTH_ENDS):
@@ -168,6 +170,9 @@ def main():
                 y.font = Font(bold=True, color='C00000' if isinstance(v, int) and v < 0 else '006100')
     r += 5
     for note in [
+        '※ 増減は「その月に在庫が何個ふえたか／へったか」です。'
+        '🟥マイナスは在庫が積み上がるのではなく、取り崩している月を意味します。',
+        '※ 9〜1月は入荷が販売を上回り在庫が積み上がり（ピーク1月末）、2月から取り崩しに入ります。',
         '※ 3月・4月は入荷が0本です。現在の最終発注は LM20260808（2027/1/30出荷＝2/13着）。',
         '※ 生産＋輸送に2〜3ヶ月かかるため、次の発注は12月〜1月に出さないと5〜7月に品薄になります。',
         '※ 日販未設定（灰色）の区分は減らない計算です。日販が分かれば精度が上がります。',
