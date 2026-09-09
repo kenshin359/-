@@ -1,0 +1,38 @@
+# ============================================================
+#  広告費の商品別ダンプ（手動）
+# ------------------------------------------------------------
+#  KPIアプリの添付CSVを商品カテゴリに分類して、
+#  媒体×商品の月間広告費をログに出します（A-J符号化）。
+#  商品別の広告費率を出す資料づくり用。
+# ============================================================
+name: 広告費 商品別ダンプ（手動）
+
+on:
+  workflow_dispatch:
+    inputs:
+      month:
+        description: '対象月（YYYY-MM・空なら当月）'
+        required: false
+        default: ''
+
+jobs:
+  dump:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: daily-report-system
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: 商品別に分類してログに出す
+        env:
+          KINTONE_BASE_URL: ${{ secrets.KINTONE_BASE_URL }}
+          KINTONE_USER: ${{ secrets.KINTONE_USER }}
+          KINTONE_PASSWORD: ${{ secrets.KINTONE_PASSWORD }}
+          KINTONE_KPI_APP_ID: ${{ secrets.KINTONE_KPI_APP_ID }}
+        run: |
+          args=""
+          if [ -n "${{ inputs.month }}" ]; then args="--month=${{ inputs.month }}"; fi
+          python3 scripts/adProductDump.py $args
