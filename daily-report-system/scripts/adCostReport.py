@@ -147,7 +147,12 @@ def main():
                         media, colname = 'az', '合計費用 (換算済み)'
                     if not media:
                         continue
-                    if day and (day > upto or (media, day) in vals):
+                    if day and (media, day) in vals:
+                        continue
+                    # Amazonは日付列がないためファイル名の日付で判断。
+                    # Meta/RPPは中身の日付列で配分できるので、ファイル名の日付が
+                    # 明日以降でも読んでみる（エクスポート日で命名されることがある）
+                    if day and day > upto and media == 'az':
                         continue
                     text = read_text(kget(f"/k/v1/file.json?fileKey={f['fileKey']}"))
                     # Meta/RPPはCSV内の日付列で日次配分（添付名の日付間違いに強い）
