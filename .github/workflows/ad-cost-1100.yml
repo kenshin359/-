@@ -25,6 +25,10 @@ on:
         description: '対象月（YYYY-MM・空なら当月）'
         required: false
         default: ''
+      files:
+        description: '添付ファイル名の一覧だけログ出力（調査用・true/false）'
+        required: false
+        default: 'false'
 
 jobs:
   report:
@@ -51,4 +55,5 @@ jobs:
           if [ "${{ inputs.dry_run }}" = "true" ]; then args="--dry-run"; fi
           if [ "${{ inputs.dump }}" = "true" ]; then args="$args --dump"; fi
           if [ -n "${{ inputs.month }}" ]; then args="$args --month=${{ inputs.month }}"; fi
+          if [ "${{ inputs.files }}" = "true" ]; then args="$args --files"; fi
           python3 scripts/adCostReport.py $args

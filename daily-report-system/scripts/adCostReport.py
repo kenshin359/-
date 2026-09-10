@@ -113,6 +113,18 @@ def main():
             break
         offset += 100
 
+    # --files: 添付ファイル名の一覧だけ出して終了（取込されない原因の調査用。
+    #          数字はA-J符号化。中身は読まない）
+    if '--files' in sys.argv:
+        enc = lambda s: re.sub(r'\d', lambda x: 'ABCDEFGHIJ'[int(x.group())], s)
+        print('===FILES===')
+        for rec in records:
+            rd = rec.get('report_date', {}).get('value', '')
+            for field in ('file_ads', 'file_sales', 'file_other'):
+                for f in rec.get(field, {}).get('value', []):
+                    print(f"{enc(rd)} | {field} | {enc(f.get('name', ''))}")
+        return
+
     # (media, day) -> 金額。新しいレコードを先に処理し、最初の値を採用（重複添付対策）
     vals = {}
     google_daily = {}
