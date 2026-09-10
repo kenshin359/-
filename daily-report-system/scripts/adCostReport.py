@@ -46,12 +46,20 @@ def read_text(raw):
             continue
     return raw.decode('utf-8', 'replace')
 
+def find_amount_col(rows, colname):
+    """金額列を探す。指定列名→英語表記(Amount spent)の順で試す。
+    見つかったら (ヘッダー行, 列番号)、無ければ (None, None)。"""
+    for cn in (colname, 'Amount spent'):
+        hdr = next((r for r in rows if any(cn in c for c in r)), None)
+        if hdr:
+            return hdr, next(j for j, c in enumerate(hdr) if cn in c)
+    return None, None
+
 def sum_col(text, colname):
     rows = list(csv.reader(io.StringIO(text)))
-    hdr = next((r for r in rows if any(colname in c for c in r)), None)
+    hdr, i = find_amount_col(rows, colname)
     if not hdr:
         return None
-    i = next(j for j, c in enumerate(hdr) if colname in c)
     # 行の有効判定は合計列のセルで行う（RPP商品別CSVは先頭列が常に空のため）
     return int(sum(yen_num(r[i]) for r in rows[rows.index(hdr) + 1:]
                    if len(r) > i and str(r[i]).strip()))
@@ -64,11 +72,11 @@ def daily_col(text, colname):
     """日付列（レポート開始日/日付）がある表を日ごとに合計して {(年,月,日): 金額} を返す。
     ファイル名の日付が間違っていても中身の日付で正しく配分できる。日付列が無ければ None。"""
     rows = list(csv.reader(io.StringIO(text)))
-    hdr = next((r for r in rows if any(colname in c for c in r)), None)
+    hdr, i = find_amount_col(rows, colname)
     if not hdr:
         return None
-    i = next(j for j, c in enumerate(hdr) if colname in c)
-    di = next((j for j, c in enumerate(hdr) if 'レポート開始日' in c or c.strip() == '日付'), None)
+    di = next((j for j, c in enumerate(hdr) if 'レポート開始日' in c or c.strip() == '日付'
+               or 'Reporting starts' in c or c.strip() == 'Day'), None)
     if di is None:
         return None
     out = {}
@@ -123,6 +131,26 @@ def main():
             for field in ('file_ads', 'file_sales', 'file_other'):
                 for f in rec.get(field, {}).get('value', []):
                     print(f"{enc(rd)} | {field} | {enc(f.get('name', ''))}")
+        return
+
+    # --peek=キーワード: 名前にキーワードを含むCSVのヘッダー行だけ出す（列名の調査用。
+    #          データ行は出さない。数字はA-J符号化）
+    parg = next((a for a in sys.argv if a.startswith('--peek=')), None)
+    if parg:
+        kw = parg.split('=', 1)[1]
+        enc = lambda s: re.sub(r'\d', lambda x: 'ABCDEFGHIJ'[int(x.group())], s)
+        print('===PEEK===')
+        for rec in records:
+            for field in ('file_ads', 'file_sales', 'file_other'):
+                for f in rec.get(field, {}).get('value', []):
+                    name = f.get('name', '')
+                    if kw not in z2h(name) or not name.endswith('.csv'):
+                        continue
+                    text = read_text(kget(f"/k/v1/file.json?fileKey={f['fileKey']}"))
+                    rows = list(csv.reader(io.StringIO(text)))
+                    print(enc(name), '| 行数:', enc(str(len(rows))))
+                    if rows:
+                        print('  header:', enc(' / '.join(rows[0][:20])))
         return
 
     # (media, day) -> 金額。新しいレコードを先に処理し、最初の値を採用（重複添付対策）

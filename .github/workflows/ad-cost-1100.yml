@@ -29,6 +29,10 @@ on:
         description: '添付ファイル名の一覧だけログ出力（調査用・true/false）'
         required: false
         default: 'false'
+      peek:
+        description: '名前にこの語を含むCSVのヘッダー行だけログ出力（列名調査用・空なら無効）'
+        required: false
+        default: ''
 
 jobs:
   report:
@@ -56,4 +60,5 @@ jobs:
           if [ "${{ inputs.dump }}" = "true" ]; then args="$args --dump"; fi
           if [ -n "${{ inputs.month }}" ]; then args="$args --month=${{ inputs.month }}"; fi
           if [ "${{ inputs.files }}" = "true" ]; then args="$args --files"; fi
+          if [ -n "${{ inputs.peek }}" ]; then args="$args --peek=${{ inputs.peek }}"; fi
           python3 scripts/adCostReport.py $args
