@@ -151,6 +151,12 @@ def main():
                     print(enc(name), '| 行数:', enc(str(len(rows))))
                     if rows:
                         print('  header:', enc(' / '.join(rows[0][:20])))
+                    # 取込処理と同じ関数での解釈結果（日付と金額のみ・A-J符号化）
+                    dfn = day_from_name(name, m_num)
+                    daily = daily_col(text, '消化金額')
+                    print('  day_from_name:', enc(str(dfn)), '| daily_col:',
+                          enc(json.dumps({f'{y}-{m}-{d}': v for (y, m, d), v in daily.items()}))
+                          if daily else 'None')
         return
 
     # (media, day) -> 金額。新しいレコードを先に処理し、最初の値を採用（重複添付対策）
