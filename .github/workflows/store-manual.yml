@@ -1,0 +1,60 @@
+# ============================================================
+#  店舗責任者 業務マニュアル（Excel）の生成
+# ------------------------------------------------------------
+#  店舗を回す／スタッフを育てる／上司へ数字で報告する の3役割を
+#  1冊のExcelにまとめて作り、ダウンロードできる形で保存します。
+#  ★キントーンには一切アクセスしません（中身は config/store-manual.json のみ）。
+# ============================================================
+name: 店舗責任者 業務マニュアル（Excel）
+
+on:
+  workflow_dispatch:
+    inputs:
+      name:
+        description: '担当者名（例: 高山）'
+        required: false
+        default: '高山'
+      store:
+        description: '店舗名（空ならJSONの値）'
+        required: false
+      month:
+        description: '対象月（YYYY-MM／空なら今月）'
+        required: false
+      to:
+        description: '報告先（空ならJSONの値）'
+        required: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: daily-report-system
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Excelを作る
+        env:
+          IN_NAME: ${{ inputs.name }}
+          IN_STORE: ${{ inputs.store }}
+          IN_MONTH: ${{ inputs.month }}
+          IN_TO: ${{ inputs.to }}
+        run: |
+          pip install --quiet openpyxl
+          args=""
+          if [ -n "$IN_NAME" ];  then args="$args --name=$IN_NAME"; fi
+          if [ -n "$IN_STORE" ]; then args="$args --store=$IN_STORE"; fi
+          if [ -n "$IN_MONTH" ]; then args="$args --month=$IN_MONTH"; fi
+          if [ -n "$IN_TO" ];    then args="$args --to=$IN_TO"; fi
+          python3 scripts/buildStoreManual.py $args
+
+      - name: Excelを保存する（ダウンロード用）
+        uses: actions/upload-artifact@v4
+        with:
+          name: store-manual
+          path: daily-report-system/out/*.xlsx

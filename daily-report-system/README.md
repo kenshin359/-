@@ -108,7 +108,8 @@ daily-report-system/
 │   ├── error-handling.md         エラー対応マニュアル
 │   ├── kintone-staff-report-app.md   Kintone設定書①
 │   ├── kintone-ai-report-app.md      Kintone設定書②
-│   └── line-setup.md             LINE設定書
+│   ├── line-setup.md             LINE設定書
+│   └── 店舗責任者-業務マニュアル.md  店舗責任者のExcelマニュアルの作り方・運用 ★
 └── test/
     └── format.test.js            ユニットテスト（ネットワーク不要）
 ```
@@ -130,6 +131,7 @@ daily-report-system/
 | `npm run replies` | **楽天レビュー返信の下書き**を作りCSへ配信 |
 | `npm run sheet` | 売上管理シート(Excel)を生成 |
 | `npm run sheet:send` | 売上管理シートをChatworkへ送信 |
+| `npm run manual:store` | **店舗責任者の業務マニュアル(Excel)**を生成（日次/週次/月次チェック＋教育＋KPI＋報告テンプレ） |
 | `npm run create-business-apps` | 在庫数・広告費アプリをKintoneに作成 |
 | `npm run build:n8n` | 売上ワークフローJSONを再生成 |
 | `npm run apps` | Kintone アプリ一覧とIDを表示 |
