@@ -29,6 +29,9 @@ from openpyxl.utils import get_column_letter
 from openpyxl.worksheet.datavalidation import DataValidation
 from openpyxl.formatting.rule import FormulaRule
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from xlsx_common import setup_print  # noqa: E402
+
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 F = 'Yu Gothic'
@@ -65,13 +68,7 @@ def setup(ws, landscape=False):
     for i, w in enumerate(WIDTHS, 1):
         ws.column_dimensions[get_column_letter(i)].width = w
     ws.sheet_view.showGridLines = False
-    ws.page_setup.paperSize = ws.PAPERSIZE_A4
-    ws.page_setup.orientation = 'landscape' if landscape else 'portrait'
-    ws.page_setup.fitToWidth = 1
-    ws.page_setup.fitToHeight = 0
-    ws.sheet_properties.pageSetUpPr.fitToPage = True
-    ws.page_margins.left = ws.page_margins.right = 0.4
-    ws.page_margins.top = ws.page_margins.bottom = 0.5
+    setup_print(ws, landscape=landscape, centered=True)
 
 
 def span(ws, row, c1, c2, value=None, font=BODY, fill=None, border=None,
@@ -419,9 +416,7 @@ def sheet_ledger(wb, cfg):
              f'=COUNTIF({target}{first}:{target}{last},"{label}")', BOLD, None, BOX,
              align='center')
     ws.freeze_panes = f'A{first}'
-    ws.page_setup.orientation = 'landscape'
-    ws.page_setup.fitToWidth = 1
-    ws.sheet_properties.pageSetUpPr.fitToPage = True
+    setup_print(ws, landscape=True, title_rows=f'{HROW}:{HROW}')
     return ws
 
 
@@ -469,6 +464,7 @@ def sheet_rules(wb, cfg):
         c.alignment = Alignment(wrap_text=True, vertical='top')
         ws.merge_cells(start_row=r, start_column=2, end_row=r, end_column=5)
         ws.row_dimensions[r].height = 18
+    setup_print(ws, landscape=True, one_page=True)
     return ws
 
 
@@ -495,6 +491,7 @@ def sheet_legal(wb, cfg):
         c2.border = BOX
         ws.row_dimensions[r].height = 15 * max(1, -(-len(text) // 58)) + 6
         r += 2
+    setup_print(ws, one_page=True)
     return ws
 
 

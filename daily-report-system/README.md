@@ -139,6 +139,8 @@ daily-report-system/
 | `npm run handbook:manager` | **管理職育成マニュアル(PDF)**を生成（全8章＋1か月カレンダー＋6か月育成計画） |
 | `npm run handbook:all` | 研修PDF3冊をまとめて生成 |
 | `npm run store:all` | 上の3点をまとめて生成（店舗運営セット） |
+| `npm run pdf:excel` | out/ のExcelを**印刷用PDF**に変換（LibreOffice使用・無ければ案内だけ出す） |
+| `npm run store:pdf` | Excel3点を作って、そのままPDFにも変換 |
 | `npm run create-business-apps` | 在庫数・広告費アプリをKintoneに作成 |
 | `npm run build:n8n` | 売上ワークフローJSONを再生成 |
 | `npm run apps` | Kintone アプリ一覧とIDを表示 |

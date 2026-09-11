@@ -26,6 +26,9 @@ from openpyxl.utils import get_column_letter
 from openpyxl.worksheet.datavalidation import DataValidation
 from openpyxl.formatting.rule import CellIsRule, FormulaRule
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from xlsx_common import setup_print  # noqa: E402
+
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 F = 'Yu Gothic'
@@ -137,6 +140,7 @@ def sheet_symbols(wb, cfg):
                   f"閉店をカバーする記号: {'・'.join(cfg['close_symbols'])}").font = SMALL
     r += 1
     ws.cell(row=r, column=1, value='※「有」は労働時間には入れません（賃金は就業規則に従って支払う）。').font = SMALL
+    setup_print(ws, one_page=True)
     return first, last
 
 
@@ -205,10 +209,14 @@ def sheet_shift(wb, cfg, y, m, sym_first):
         for d in range(1, ndays + 1):
             put(ws, r, DAY0 + d - 1, None, BLUE, align='center')
         rng = f'{get_column_letter(DAY0)}{r}:{get_column_letter(LASTDAY)}{r}'
-        put(ws, r, LASTDAY + 1, count_formula(rng, work_syms), BODY, NUM, align='center')
-        put(ws, r, LASTDAY + 2, hours_formula(rng, work_rows), BODY, HOUR, align='center')
+        blank = f'COUNTA({rng})=0'
+        put(ws, r, LASTDAY + 1, f'=IF({blank},"",{count_formula(rng, work_syms)[1:]})',
+            BODY, NUM, align='center')
+        put(ws, r, LASTDAY + 2, f'=IF({blank},"",{hours_formula(rng, work_rows)[1:]})',
+            BODY, HOUR, align='center')
         cl = get_column_letter(LASTDAY + 2)
-        put(ws, r, LASTDAY + 3, f'=IF(N(C{r})=0,"",{cl}{r}*C{r})', BODY, YEN, align='center')
+        put(ws, r, LASTDAY + 3, f'=IF(OR({blank},N(C{r})=0),"",{cl}{r}*C{r})',
+            BODY, YEN, align='center')
     last = r
 
     # --- 日ごとの人数と穴のチェック ---
@@ -227,17 +235,19 @@ def sheet_shift(wb, cfg, y, m, sym_first):
         L = get_column_letter(col)
         wd = WD[date(y, m, d).weekday()]
         rng = f'{L}{first}:{L}{last}'
-        put(ws, rows['count'], col, count_formula(rng, work_syms), BOLD, NUM,
-            fill=TOTAL, align='center')
+        blank = f'COUNTA({rng})=0'          # その日がまだ真っ白かどうか
+        put(ws, rows['count'], col, f'=IF({blank},"",{count_formula(rng, work_syms)[1:]})',
+            BOLD, NUM, fill=TOTAL, align='center')
         put(ws, rows['need'], col, cfg['required'].get(wd, 2), BLUE, NUM,
             fill=INPUT, align='center')
         put(ws, rows['gap'], col,
-            f"={L}{rows['count']}-{L}{rows['need']}", BOLD, NUM, fill=TOTAL, align='center')
+            f"=IF({blank},\"\",{L}{rows['count']}-{L}{rows['need']})",
+            BOLD, NUM, fill=TOTAL, align='center')
         put(ws, rows['open'], col,
-            count_formula(rng, cfg['open_symbols']).replace('=', '=IF(', 1) + '=0,"×","○")',
+            f'=IF({blank},"",IF({count_formula(rng, cfg["open_symbols"])[1:]}=0,"×","○"))',
             BOLD, None, fill=TOTAL, align='center')
         put(ws, rows['close'], col,
-            count_formula(rng, cfg['close_symbols']).replace('=', '=IF(', 1) + '=0,"×","○")',
+            f'=IF({blank},"",IF({count_formula(rng, cfg["close_symbols"])[1:]}=0,"×","○"))',
             BOLD, None, fill=TOTAL, align='center')
 
     # --- 合計 ---
@@ -270,9 +280,7 @@ def sheet_shift(wb, cfg, y, m, sym_first):
             fill=PatternFill('solid', bgColor='FFC7CE'), font=Font(color='9C0006', bold=True)))
 
     ws.freeze_panes = f'{get_column_letter(DAY0)}{first}'
-    ws.page_setup.orientation = 'landscape'
-    ws.page_setup.fitToWidth = 1
-    ws.sheet_properties.pageSetUpPr.fitToPage = True
+    setup_print(ws, landscape=True, one_page=True)
     return first, last, DAY0, LASTDAY, total_row
 
 
@@ -329,9 +337,7 @@ def sheet_wish(wb, cfg, y, m):
     ws.add_data_validation(dv)
     dv.add(f'{get_column_letter(DAY0)}{first}:{get_column_letter(lastday)}{last}')
     ws.freeze_panes = f'{get_column_letter(DAY0)}{first}'
-    ws.page_setup.orientation = 'landscape'
-    ws.page_setup.fitToWidth = 1
-    ws.sheet_properties.pageSetUpPr.fitToPage = True
+    setup_print(ws, landscape=True, one_page=True)
     return ws
 
 
@@ -428,6 +434,7 @@ def sheet_summary(wb, cfg, y, m, shift, sym_rows):
         ws.merge_cells(start_row=r, start_column=2, end_row=r, end_column=3 + len(weeks))
         ws.row_dimensions[r].height = 16 * max(1, -(-len(text) // 60)) + 4
     ws.freeze_panes = f'B{HROW + 1}'
+    setup_print(ws, landscape=True, one_page=True)
     return ws
 
 

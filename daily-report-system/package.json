@@ -53,6 +53,8 @@
     "handbook:manager": "python3 scripts/buildManagerHandbook.py",
     "handbook:all": "python3 scripts/buildGymHandbook.py && python3 scripts/buildNewbieHandbook.py && python3 scripts/buildManagerHandbook.py",
     "store:all": "python3 scripts/buildStoreManual.py && python3 scripts/buildMemberForms.py && python3 scripts/buildShiftSheet.py",
+    "pdf:excel": "python3 scripts/toPdf.py",
+    "store:pdf": "npm run store:all && python3 scripts/toPdf.py",
     "ads:import": "node scripts/importAdCosts.js",
     "ads:report": "node scripts/adReport.js",
     "nightly": "sh scripts/nightly.sh",

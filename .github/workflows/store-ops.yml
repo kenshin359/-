@@ -6,9 +6,10 @@
 #    ② 会員手続き書類（入会同意書・休会届・退会届・受付台帳）
 #    ③ シフト表（労働時間・人件費・人数不足の自動チェック付き）
 #    ④ 研修PDF3冊（トレーナー研修・新人スタッフ研修・管理職育成）
+#    ⑤ ①〜③を印刷用PDFに変換（LibreOffice）。Excelとあわせて9点を保存
 #  ★キントーンには一切アクセスしません（中身は config/*.json のみ）。
 # ============================================================
-name: 店舗運営セット（Excel3点＋研修PDF3冊）
+name: 店舗運営セット（Excel3点＋PDF・研修PDF3冊）
 
 on:
   workflow_dispatch:
@@ -41,10 +42,11 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: 必要なライブラリと日本語フォントを入れる
+      - name: 必要なライブラリ・日本語フォント・PDF変換を入れる
         run: |
           pip install --quiet openpyxl reportlab
-          sudo apt-get update -qq && sudo apt-get install -y -qq fonts-ipafont-gothic
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq fonts-ipafont-gothic libreoffice-calc
 
       - name: ① 業務マニュアルを作る
         env:
@@ -90,7 +92,10 @@ jobs:
           python3 scripts/buildNewbieHandbook.py $args
           python3 scripts/buildManagerHandbook.py $args
 
-      - name: 6点を保存する（ダウンロード用）
+      - name: ⑤ Excel3点を印刷用PDFに変換する
+        run: python3 scripts/toPdf.py
+
+      - name: 一式を保存する（ダウンロード用）
         uses: actions/upload-artifact@v4
         with:
           name: store-ops

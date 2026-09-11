@@ -29,6 +29,9 @@ from openpyxl.utils import get_column_letter
 from openpyxl.worksheet.datavalidation import DataValidation
 from openpyxl.formatting.rule import CellIsRule, ColorScaleRule, DataBarRule, FormulaRule
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from xlsx_common import setup_print  # noqa: E402
+
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 F = 'Yu Gothic'
@@ -144,6 +147,7 @@ def sheet_intro(wb, cfg, month, sheets):
     note(ws, r + 1, '■ チェック欄は ✓（実施）と ー（実施せず）の2つだけ。空欄は「まだ記入していない」扱いで分母に入りません。')
     ws.column_dimensions['A'].width = 26
     ws.column_dimensions['B'].width = 78
+    setup_print(ws)
     return ws
 
 
@@ -222,9 +226,7 @@ def sheet_daily(wb, cfg, y, m):
         CellIsRule(operator='lessThan', formula=['0.9'],
                    fill=PatternFill('solid', bgColor='FFC7CE'), font=Font(color='9C0006')))
     ws.freeze_panes = f'H{first}'
-    ws.page_setup.orientation = 'landscape'
-    ws.page_setup.fitToWidth = 1
-    ws.sheet_properties.pageSetUpPr.fitToPage = True
+    setup_print(ws, landscape=True, title_rows=f'{HROW}:{HROW + 1}')
     return ws
 
 
@@ -261,6 +263,7 @@ def sheet_weekly(wb, cfg):
         CellIsRule(operator='lessThan', formula=['0.9'],
                    fill=PatternFill('solid', bgColor='FFC7CE'), font=Font(color='9C0006')))
     ws.freeze_panes = f'A{first}'
+    setup_print(ws, landscape=True, one_page=True, title_rows=f'{HROW}:{HROW}')
     return ws
 
 
@@ -304,6 +307,7 @@ def sheet_monthly(wb, cfg, month):
         FormulaRule(formula=[f'$D{first}="完了"'],
                     fill=PatternFill('solid', bgColor='C6EFCE'), font=Font(color='006100')))
     ws.freeze_panes = f'A{first}'
+    setup_print(ws, landscape=True, one_page=True, title_rows=f'{HROW}:{HROW}')
     return ws
 
 
@@ -343,6 +347,7 @@ def sheet_curriculum(wb, cfg):
     r += 2
     note(ws, r, '30日でLv2に届かない場合は、本人ではなく教育計画を作り直す（「判断基準」シート参照）。')
     ws.freeze_panes = f'A{HROW + 1}'
+    setup_print(ws, landscape=True, title_rows=f'{HROW}:{HROW}')
     return ws
 
 
@@ -422,6 +427,7 @@ def sheet_skills(wb, cfg):
         put(ws, r, 2, meaning, BODY)
         ws.merge_cells(start_row=r, start_column=2, end_row=r, end_column=6)
     ws.freeze_panes = f'C{first}'
+    setup_print(ws, landscape=True, one_page=True)
     return ws
 
 
@@ -524,9 +530,7 @@ def sheet_kpi(wb, cfg, y, m):
         CellIsRule(operator='lessThan', formula=[f'$E${total}'],
                    fill=PatternFill('solid', bgColor='FFF2CC')))
     ws.freeze_panes = f'C{first}'
-    ws.page_setup.orientation = 'landscape'
-    ws.page_setup.fitToWidth = 1
-    ws.sheet_properties.pageSetUpPr.fitToPage = True
+    setup_print(ws, landscape=True, title_rows=f'{HROW}:{HROW}')
     return ws
 
 
@@ -570,6 +574,7 @@ def sheet_report(wb, cfg):
         ws.merge_cells(start_row=r, start_column=1, end_row=r, end_column=4)
         ws.row_dimensions[r].height = 16 * (body.count('\n') + 2)
         r += 1
+    setup_print(ws)
     return ws
 
 
@@ -596,6 +601,7 @@ def sheet_rules(wb, cfg):
     note(ws, r, '■ 基準に無い事象が起きたら「自分で約束せず、事実だけを30分以内に報告」が既定の動き。')
     note(ws, r + 1, '■ この表は月次チェックの「業務マニュアルの見直し」で毎月1件以上直す。')
     ws.freeze_panes = 'A5'
+    setup_print(ws, landscape=True, one_page=True, title_rows='4:4')
     return ws
 
 
