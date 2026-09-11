@@ -35,16 +35,16 @@ from xlsx_common import setup_print  # noqa: E402
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 F = 'Yu Gothic'
-TITLE = Font(name=F, bold=True, size=15)
-H2 = Font(name=F, bold=True, size=12)
-HEAD = Font(name=F, bold=True, color='FFFFFF', size=10)
-BODY = Font(name=F, size=10)
-BOLD = Font(name=F, bold=True, size=10)
-SMALL = Font(name=F, size=9, color='666666')
-BLUE = Font(name=F, size=10, color='0000FF')
-MONO = Font(name=F, size=10)
-SAT = Font(name=F, size=9, color='0070C0')
-SUN = Font(name=F, size=9, color='C00000')
+TITLE = Font(name=F, bold=True, size=16)
+H2 = Font(name=F, bold=True, size=12.5)
+HEAD = Font(name=F, bold=True, color='FFFFFF', size=10.5)
+BODY = Font(name=F, size=10.5)
+BOLD = Font(name=F, bold=True, size=10.5)
+SMALL = Font(name=F, size=9.5, color='595959')
+BLUE = Font(name=F, size=10.5, color='0000CC')
+MONO = Font(name=F, size=10.5)
+SAT = Font(name=F, size=9.5, color='0070C0')
+SUN = Font(name=F, size=9.5, color='C00000')
 
 NAVY = PatternFill('solid', fgColor='1F3864')
 GRAY = PatternFill('solid', fgColor='F2F2F2')
@@ -203,7 +203,7 @@ def sheet_daily(wb, cfg, y, m):
             c.border = B
             c.font = BLUE
             c.alignment = Alignment(horizontal='center')
-        ws.row_dimensions[r].height = 30
+        ws.row_dimensions[r].height = 34
     lastrow = r
 
     r += 1
@@ -253,7 +253,7 @@ def sheet_weekly(wb, cfg):
         put(ws, r, 9, f'=IF(COUNTIF(D{r}:H{r},"✓")+COUNTIF(D{r}:H{r},"ー")=0,"",'
                       f'COUNTIF(D{r}:H{r},"✓")/(COUNTIF(D{r}:H{r},"✓")+COUNTIF(D{r}:H{r},"ー")))',
             BODY, PCT, align='center')
-        ws.row_dimensions[r].height = 30
+        ws.row_dimensions[r].height = 34
     last = r
     dv = DataValidation(type='list', formula1=CHECK_DV, allow_blank=True, showErrorMessage=True)
     ws.add_data_validation(dv)
@@ -288,7 +288,7 @@ def sheet_monthly(wb, cfg, month):
         put(ws, r, 4, '未着手', BLUE, align='center')
         put(ws, r, 5, None, BLUE, align='center')
         put(ws, r, 6, None, BLUE, wrap=True)
-        ws.row_dimensions[r].height = 30
+        ws.row_dimensions[r].height = 34
     last = r
     r += 1
     put(ws, r, 1, '完了率', BOLD, fill=TOTAL)
@@ -332,7 +332,7 @@ def sheet_curriculum(wb, cfg):
         put(ws, r, 3, standard, wrap=True)
         put(ws, r, 4, f'{days}日', SMALL, align='center')
         put(ws, r, 5, how, SMALL, wrap=True)
-        ws.row_dimensions[r].height = 28
+        ws.row_dimensions[r].height = 34
 
     r += 2
     ws.cell(row=r, column=1, value='新人の30日プラン（Lv2到達までの型）').font = H2
@@ -343,7 +343,7 @@ def sheet_curriculum(wb, cfg):
         put(ws, r, 1, period, BOLD, fill=BLOCK, align='center')
         put(ws, r, 2, doing, wrap=True)
         put(ws, r, 3, goal, wrap=True)
-        ws.row_dimensions[r].height = 28
+        ws.row_dimensions[r].height = 34
     r += 2
     note(ws, r, '30日でLv2に届かない場合は、本人ではなく教育計画を作り直す（「判断基準」シート参照）。')
     ws.freeze_panes = f'A{HROW + 1}'
@@ -552,7 +552,7 @@ def sheet_report(wb, cfg):
         put(ws, r, 2, when, BODY, wrap=True)
         put(ws, r, 3, what, BODY, wrap=True)
         put(ws, r, 4, care, SMALL, wrap=True)
-        ws.row_dimensions[r].height = 32
+        ws.row_dimensions[r].height = 34
 
     r += 2
     ws.cell(row=r, column=1, value='「緊急報告」に当てはまるもの（30分以内・時間帯を問わない）').font = H2
@@ -596,7 +596,7 @@ def sheet_rules(wb, cfg):
         put(ws, r, 3, who, BODY, align='center')
         put(ws, r, 4, when, BODY, wrap=True)
         put(ws, r, 5, action, BODY, wrap=True)
-        ws.row_dimensions[r].height = 32
+        ws.row_dimensions[r].height = 34
     r += 2
     note(ws, r, '■ 基準に無い事象が起きたら「自分で約束せず、事実だけを30分以内に報告」が既定の動き。')
     note(ws, r + 1, '■ この表は月次チェックの「業務マニュアルの見直し」で毎月1件以上直す。')

@@ -36,14 +36,14 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 F = 'Yu Gothic'
 TITLE = Font(name=F, bold=True, size=16)
-SUB = Font(name=F, size=9, color='666666')
+SUB = Font(name=F, size=9.5, color='595959')
 H2 = Font(name=F, bold=True, size=11)
-HEAD = Font(name=F, bold=True, color='FFFFFF', size=10)
-BODY = Font(name=F, size=10)
-SMALL = Font(name=F, size=9)
-TINY = Font(name=F, size=8, color='666666')
-BOLD = Font(name=F, bold=True, size=10)
-RED = Font(name=F, bold=True, size=10, color='C00000')
+HEAD = Font(name=F, bold=True, color='FFFFFF', size=10.5)
+BODY = Font(name=F, size=10.5)
+SMALL = Font(name=F, size=9.8)
+TINY = Font(name=F, size=8.5, color='595959')
+BOLD = Font(name=F, bold=True, size=10.5)
+RED = Font(name=F, bold=True, size=10.5, color='C00000')
 
 NAVY = PatternFill('solid', fgColor='1F3864')
 LABEL = PatternFill('solid', fgColor='F2F2F2')
@@ -95,7 +95,7 @@ def band(ws, row, text):
     return row + 1
 
 
-def field(ws, row, label, value='', label_to=2, height=24, font=BODY):
+def field(ws, row, label, value='', label_to=2, height=26, font=BODY):
     """左に項目名（灰色）、右に記入欄（枠線）。"""
     span(ws, row, 1, label_to, label, BOLD, LABEL, BOX, align='left')
     span(ws, row, label_to + 1, COLS, value, font, None, BOX, align='left', wrap=True)
@@ -103,7 +103,7 @@ def field(ws, row, label, value='', label_to=2, height=24, font=BODY):
     return row + 1
 
 
-def pair(ws, row, l1, l2, height=24):
+def pair(ws, row, l1, l2, height=26):
     """1行に2項目（左半分・右半分）。"""
     span(ws, row, 1, 2, l1, BOLD, LABEL, BOX)
     span(ws, row, 3, 4, '', BODY, None, BOX)
@@ -132,7 +132,7 @@ def checkboxes(ws, row, items, per_row=2):
             c1 = 1 + j * step
             c2 = c1 + step - 1
             span(ws, row, c1, c2, CHECK + items[i + j], SMALL, None, None, wrap=True)
-        ws.row_dimensions[row].height = 18
+        ws.row_dimensions[row].height = 20
         row += 1
         i += per_row
     return row

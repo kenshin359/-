@@ -34,14 +34,14 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 F = 'Yu Gothic'
 TITLE = Font(name=F, bold=True, size=15)
 H2 = Font(name=F, bold=True, size=12)
-HEAD = Font(name=F, bold=True, color='FFFFFF', size=10)
-BODY = Font(name=F, size=10)
-BOLD = Font(name=F, bold=True, size=10)
-SMALL = Font(name=F, size=9, color='666666')
-BLUE = Font(name=F, size=10, color='0000FF')
-SAT = Font(name=F, size=9, color='0070C0')
-SUN = Font(name=F, size=9, color='C00000')
-RED = Font(name=F, bold=True, size=10, color='C00000')
+HEAD = Font(name=F, bold=True, color='FFFFFF', size=10.5)
+BODY = Font(name=F, size=10.5)
+BOLD = Font(name=F, bold=True, size=10.5)
+SMALL = Font(name=F, size=9.5, color='595959')
+BLUE = Font(name=F, size=10.5, color='0000CC')
+SAT = Font(name=F, size=9.5, color='0070C0')
+SUN = Font(name=F, size=9.5, color='C00000')
+RED = Font(name=F, bold=True, size=10.5, color='C00000')
 
 NAVY = PatternFill('solid', fgColor='1F3864')
 GRAY = PatternFill('solid', fgColor='F2F2F2')
@@ -184,7 +184,7 @@ def sheet_shift(wb, cfg, y, m, sym_first):
         c2.alignment = Alignment(horizontal='center')
         if wd in '土日':
             c2.fill = WEEKEND
-        ws.column_dimensions[get_column_letter(col)].width = 4.2
+        ws.column_dimensions[get_column_letter(col)].width = 4.6
     for i, label in enumerate(['', '', '曜日'], 1):
         c = ws.cell(row=HROW + 1, column=i, value=label)
         c.font = SMALL
@@ -310,7 +310,7 @@ def sheet_wish(wb, cfg, y, m):
         c2.alignment = Alignment(horizontal='center')
         if wd in '土日':
             c2.fill = WEEKEND
-        ws.column_dimensions[get_column_letter(col)].width = 4.2
+        ws.column_dimensions[get_column_letter(col)].width = 4.6
     put(ws, HROW + 1, 1, None, SMALL)
     put(ws, HROW + 1, 2, '（○の数）', SMALL, align='center')
     lastday = DAY0 + ndays - 1
