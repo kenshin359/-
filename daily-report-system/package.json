@@ -52,6 +52,8 @@
     "handbook:newbie": "python3 scripts/buildNewbieHandbook.py",
     "handbook:manager": "python3 scripts/buildManagerHandbook.py",
     "handbook:all": "python3 scripts/buildGymHandbook.py && python3 scripts/buildNewbieHandbook.py && python3 scripts/buildManagerHandbook.py",
+    "handbook:lint": "node scripts/handbookLint.js",
+    "handbook:ai": "node scripts/handbookAI.js",
     "store:all": "python3 scripts/buildStoreManual.py && python3 scripts/buildMemberForms.py && python3 scripts/buildShiftSheet.py",
     "pdf:excel": "python3 scripts/toPdf.py",
     "store:pdf": "npm run store:all && python3 scripts/toPdf.py",

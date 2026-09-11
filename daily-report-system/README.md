@@ -138,6 +138,8 @@ daily-report-system/
 | `npm run handbook:newbie` | **新人スタッフ研修マニュアル(PDF)**を生成（入社1〜12週・1週1ページ・目標から逆算） |
 | `npm run handbook:manager` | **管理職育成マニュアル(PDF)**を生成（全8章＋1か月カレンダー＋6か月育成計画） |
 | `npm run handbook:all` | 研修PDF3冊をまとめて生成 |
+| `npm run handbook:lint` | **研修資料の品質チェック**（大手水準の仕上げ基準・AI不要／無料） |
+| `npm run handbook:ai` | **AIで研修資料を仕上げる**（指摘を渡して章ごとに書き直し・要APIキー） |
 | `npm run store:all` | 上の3点をまとめて生成（店舗運営セット） |
 | `npm run pdf:excel` | out/ のExcelを**印刷用PDF**に変換（LibreOffice使用・無ければ案内だけ出す） |
 | `npm run store:pdf` | Excel3点を作って、そのままPDFにも変換 |
