@@ -129,6 +129,15 @@ WEBページアクセス数：X
   各ルール最大5件表示＋超過は「…他N件」。ワチソン出力に含めて貼る（月累計の手前）。
 - 当日を指定すると広告APIも台帳もまだ取り込まれておらず、ほぼ全項目が `不明` になる
   （広告APIは翌朝8:00、台帳は翌朝7:45に反映）。既定を**昨日**にしているのはこのため。
+- **A欄の広告データ自動化（2026-09-11実装・Secrets登録待ち）**: 現状A欄のGoogle/Meta数値はスタッフの
+  kintone手入力。`o2gym-kpi` に API自動取得を実装済みで、Secrets登録と同時に毎朝上書きが始まる:
+  Meta `kpi-meta-api.yml`(8:00・`fetchMetaAds.js`・消化/リンククリック/CV=カスタムCV「体験予約完了_全店_v2」/表示)、
+  Google `kpi-google-api.yml`(8:05・`fetchGoogleAds.js`・費用/クリック/CV/表示・O2GYMキャンペーンのみ・API v23→v22→v21自動フォールバック)、
+  予備 `kpi-google-sheet.yml`(8:10・Google Adsアドオンの毎日更新シートをgviz CSVで読む・API承認待ち用)、
+  接続確認 `kpi-ads-check.yml`(手動・書き込みなし)。手順書 `o2gym-kpi/docs/ADS_API_SETUP.md`。
+  必要Secrets: `META_ACCESS_TOKEN` `META_AD_ACCOUNT_ID`／`GOOGLE_ADS_CUSTOMER_ID` `GOOGLE_ADS_DEVELOPER_TOKEN`
+  `GOOGLE_ADS_CLIENT_ID` `GOOGLE_ADS_CLIENT_SECRET` `GOOGLE_ADS_REFRESH_TOKEN`（MCC経由なら `GOOGLE_ADS_LOGIN_CUSTOMER_ID`）。
+  Google開発者トークンは「ベーシックアクセス」承認が必要（数日〜）→ その間は予備ルート。API接続後は広告欄を手入力しない。
 - GitHub Actions のログは Secrets と一致する数値を `***` にマスクすることがある。
   マスクされた項目は推測で埋めず、マスクされた旨を添えて出す。
 
