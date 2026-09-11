@@ -75,6 +75,12 @@ async function main() {
         if ((text.match(/�/g) || []).length > 5) {
           text = new TextDecoder('shift_jis').decode(buf);
         }
+        // 顧客情報入りの注文データ等は絶対に出力しない（在庫CSV以外を弾く）
+        const head = text.split(/\r?\n/, 1)[0] || '';
+        if (/orders?_export/i.test(f.name) || /Email|メールアドレス|注文/.test(head)) {
+          console.log('（在庫CSVではないため出力しません: 注文/顧客データの可能性）');
+          continue;
+        }
         console.log('===CSV_B===');
         printChunked(enc(text));
         console.log('===CSV_END===');
