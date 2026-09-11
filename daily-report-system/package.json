@@ -48,6 +48,7 @@
     "manual:store": "python3 scripts/buildStoreManual.py",
     "forms:member": "python3 scripts/buildMemberForms.py",
     "shift": "python3 scripts/buildShiftSheet.py",
+    "handbook:gym": "python3 scripts/buildGymHandbook.py",
     "store:all": "python3 scripts/buildStoreManual.py && python3 scripts/buildMemberForms.py && python3 scripts/buildShiftSheet.py",
     "ads:import": "node scripts/importAdCosts.js",
     "ads:report": "node scripts/adReport.js",
