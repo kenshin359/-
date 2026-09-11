@@ -2,7 +2,8 @@
 # ============================================================
 #  店舗責任者 業務マニュアル＆チェックリスト（Excel）の生成
 # ------------------------------------------------------------
-#  店舗を回す／スタッフを育てる／上司へ数字で報告する の3役割を、
+#  パーソナルジム（O2ジム）の店舗責任者向け。
+#  店舗を回す／トレーナーを育てる／上司へ数字で報告する の3役割を、
 #  そのまま印刷・配布して使える1冊のExcelにまとめます。
 #
 #  入力: config/store-manual.json（文面・チェック項目はすべてここ。
@@ -311,7 +312,7 @@ def sheet_monthly(wb, cfg, month):
 # ------------------------------------------------------------
 def sheet_curriculum(wb, cfg):
     ws = wb.create_sheet('教育カリキュラム')
-    ws['A1'] = 'スタッフ教育カリキュラム（4段階）'
+    ws['A1'] = 'トレーナー教育カリキュラム（4段階）'
     ws['A1'].font = TITLE
     note(ws, 2, '「できるようになった」の判定は必ず数字で行う。到達基準を満たしたら習得状況シートのレベルを上げる。')
     HROW = 4
@@ -351,13 +352,13 @@ def sheet_curriculum(wb, cfg):
 def sheet_skills(wb, cfg):
     ws = wb.create_sheet('習得状況')
     skills = cfg['skills']
-    ws['A1'] = 'スタッフ別 習得状況'
+    ws['A1'] = 'トレーナー別 習得状況'
     ws['A1'].font = TITLE
     note(ws, 2, '1=見習い（見学のみ）／2=補助付きでできる／3=単独でできる／4=人に教えられる。1on1のたびに更新する。')
 
     HROW = 4
     n = len(skills)
-    headers = ['スタッフ', '入社日'] + skills + ['平均', '判定']
+    headers = ['トレーナー', '入社日'] + skills + ['平均', '判定']
     head_row(ws, HROW, headers)
     ws.column_dimensions['A'].width = 14
     ws.column_dimensions['B'].width = 12
@@ -373,7 +374,7 @@ def sheet_skills(wb, cfg):
     ws.column_dimensions[get_column_letter(jdg_col)].width = 18
 
     first = HROW + 1
-    ROWS = 10  # 空行。スタッフが増えても行を挿入すれば数式はコピーで足りる
+    ROWS = 10  # 空行。トレーナーが増えても行を挿入すれば数式はコピーで足りる
     for i in range(ROWS):
         r = first + i
         put(ws, r, 1, None, BLUE)
@@ -430,86 +431,97 @@ def sheet_skills(wb, cfg):
 def sheet_kpi(wb, cfg, y, m):
     ws = wb.create_sheet('KPI記録')
     ndays = calendar.monthrange(y, m)[1]
-    labels = cfg['kpi']['labels']
+    L = cfg['kpi']['labels']          # 体験・見学 / 入会 / 退会 / 在籍会員数 / セッション実施 / 売上
     t = cfg['kpi']['targets']
     ws['A1'] = f'KPI記録（{y}年{m}月）'
     ws['A1'].font = TITLE
-    note(ws, 2, '毎日、閉店後に黄色い欄へ入力する。率・客単価・達成率・必要日販は自動計算。日報／週報／月報の数字はこのシートから取る。')
+    note(ws, 2, '毎日、閉店後に黄色い欄へ入力する。入会率・在籍・合計・達成率・残りの必要数は自動計算。'
+                '日報／週報／月報の数字はこのシートから取る。')
 
-    # --- 目標ブロック（黄色＝入力欄） ---
-    ws['A4'] = '月間目標'
+    # --- 月間目標と月初の在籍（黄色＝入力欄） ---
+    ws['A4'] = '月間目標と月初の在籍'
     ws['A4'].font = H2
-    rows = [('売上目標（円）', t.get('sales', 0), YEN),
-            ('成約目標（件）', t.get('deals', 0), NUM),
-            ('営業日数（日）', t.get('workdays', 26), NUM),
-            ('残り営業日（日）', 0, NUM)]
-    for i, (label, val, fmt) in enumerate(rows):
+    inputs = [('売上目標（円）', t.get('sales', 0), YEN),
+              ('入会目標（件）', t.get('joins', 0), NUM),
+              ('月初の在籍会員数（名）', t.get('members_start', 0), NUM),
+              ('営業日数（日）', t.get('workdays', 26), NUM),
+              ('残り営業日（日）', 0, NUM)]
+    for i, (label, val, fmt) in enumerate(inputs):
         r = 5 + i
         put(ws, r, 1, label, BOLD)
         put(ws, r, 2, val, BLUE, fmt, fill=INPUT, align='center')
 
-    HROW = 10
-    heads = ['日付', '曜日', labels[0], labels[1], labels[2], '成約率', labels[3], '客単価',
-             labels[4], labels[5], 'メモ']
-    head_row(ws, HROW, heads, [8, 6, 9, 12, 9, 9, 13, 12, 12, 12, 30])
+    HROW = 11
+    heads = ['日付', '曜日', L[0], L[1], '入会率', L[2], L[3], L[4], L[5], 'メモ']
+    head_row(ws, HROW, heads, [8, 6, 11, 8, 9, 8, 12, 13, 13, 30])
     first = HROW + 1
     for d in range(1, ndays + 1):
         r = first + d - 1
         wd = WD[date(y, m, d).weekday()]
         put(ws, r, 1, f'{m}/{d}', BODY, align='center')
         put(ws, r, 2, wd, SUN if wd == '日' else (SAT if wd == '土' else SMALL), align='center')
-        for cc in (3, 4, 5, 7, 9, 10):
-            put(ws, r, cc, None, BLUE, YEN if cc == 7 else NUM, fill=INPUT, align='center')
-        put(ws, r, 6, f'=IF(N(D{r})=0,"",E{r}/D{r})', BODY, PCT, align='center')
-        put(ws, r, 8, f'=IF(N(E{r})=0,"",G{r}/E{r})', BODY, YEN, align='center')
-        put(ws, r, 11, None, BLUE, wrap=True)
+        for cc in (3, 4, 6, 8, 9):
+            put(ws, r, cc, None, BLUE, YEN if cc == 9 else NUM, fill=INPUT, align='center')
+        put(ws, r, 5, f'=IF(N(C{r})=0,"",D{r}/C{r})', BODY, PCT, align='center')
+        # 在籍は「月初 ＋ 入会の累計 − 退会の累計」。毎日数えなくても合うようにする。
+        put(ws, r, 7, f'=$B$7+SUM($D${first}:D{r})-SUM($F${first}:F{r})', BODY, NUM, align='center')
+        put(ws, r, 10, None, BLUE, wrap=True)
     last = first + ndays - 1
 
     r = last + 1
-    put(ws, r, 1, '合計', BOLD, fill=TOTAL)
-    put(ws, r, 2, None, BOLD, fill=TOTAL)
-    for cc, letter in [(3, 'C'), (4, 'D'), (5, 'E'), (7, 'G'), (9, 'I')]:
-        put(ws, r, cc, f'=SUM({letter}{first}:{letter}{last})', BOLD,
-            YEN if cc == 7 else NUM, fill=TOTAL, align='center')
-    put(ws, r, 6, f'=IF(N(D{r})=0,"",E{r}/D{r})', BOLD, PCT, fill=TOTAL, align='center')
-    put(ws, r, 8, f'=IF(N(E{r})=0,"",G{r}/E{r})', BOLD, YEN, fill=TOTAL, align='center')
-    put(ws, r, 10, f'=IF(COUNT(J{first}:J{last})=0,"",ROUND(AVERAGE(J{first}:J{last}),1))',
-        BOLD, '0.0', fill=TOTAL, align='center')
-    put(ws, r, 11, '← 稼働数は平均', SMALL, fill=TOTAL)
     total = r
+    put(ws, r, 1, '月計', BOLD, fill=TOTAL)
+    put(ws, r, 2, None, BOLD, fill=TOTAL)
+    for cc, letter in [(3, 'C'), (4, 'D'), (6, 'F'), (8, 'H'), (9, 'I')]:
+        put(ws, r, cc, f'=SUM({letter}{first}:{letter}{last})', BOLD,
+            YEN if cc == 9 else NUM, fill=TOTAL, align='center')
+    put(ws, r, 5, f'=IF(N(C{r})=0,"",D{r}/C{r})', BOLD, PCT, fill=TOTAL, align='center')
+    put(ws, r, 7, f'=G{last}', BOLD, NUM, fill=TOTAL, align='center')
+    put(ws, r, 10, '← 在籍は月末時点', SMALL, fill=TOTAL)
 
     r += 1
     put(ws, r, 1, '達成率', BOLD, fill=GRAY)
-    put(ws, r, 2, None, BOLD, fill=GRAY)
-    put(ws, r, 3, None, BOLD, fill=GRAY)
-    put(ws, r, 4, None, BOLD, fill=GRAY)
-    put(ws, r, 5, f'=IF(N($B$6)=0,"",E{total}/$B$6)', BOLD, PCT, fill=GRAY, align='center')
-    put(ws, r, 6, None, BOLD, fill=GRAY)
-    put(ws, r, 7, f'=IF(N($B$5)=0,"",G{total}/$B$5)', BOLD, PCT, fill=GRAY, align='center')
-    for cc in (8, 9, 10, 11):
+    for cc in (2, 3, 5, 6, 7, 8, 10):
         put(ws, r, cc, None, BOLD, fill=GRAY)
-    rate = r
+    put(ws, r, 4, f'=IF(N($B$6)=0,"",D{total}/$B$6)', BOLD, PCT, fill=GRAY, align='center')
+    put(ws, r, 9, f'=IF(N($B$5)=0,"",I{total}/$B$5)', BOLD, PCT, fill=GRAY, align='center')
 
     r += 1
-    put(ws, r, 1, '残りの必要日販', BOLD, fill=GRAY)
-    put(ws, r, 2, None, BOLD, fill=GRAY)
-    put(ws, r, 3, None, BOLD, fill=GRAY)
-    put(ws, r, 4, None, BOLD, fill=GRAY)
-    put(ws, r, 5, f'=IF(N($B$8)=0,"",ROUNDUP(MAX($B$6-E{total},0)/$B$8,0))', BOLD, NUM,
-        fill=GRAY, align='center')
-    put(ws, r, 6, None, BOLD, fill=GRAY)
-    put(ws, r, 7, f'=IF(N($B$8)=0,"",ROUNDUP(MAX($B$5-G{total},0)/$B$8,0))', BOLD, YEN,
-        fill=GRAY, align='center')
-    put(ws, r, 8, '← 残り営業日（B8）で割った、1日あたりの必要数', SMALL, fill=GRAY)
-    for cc in (9, 10, 11):
+    put(ws, r, 1, '残り1日あたり必要数', BOLD, fill=GRAY)
+    for cc in (2, 3, 5, 6, 7, 8):
         put(ws, r, cc, None, BOLD, fill=GRAY)
+    put(ws, r, 4, f'=IF(N($B$9)=0,"",ROUNDUP(MAX($B$6-D{total},0)/$B$9,0))', BOLD, NUM,
+        fill=GRAY, align='center')
+    put(ws, r, 9, f'=IF(N($B$9)=0,"",ROUNDUP(MAX($B$5-I{total},0)/$B$9,0))', BOLD, YEN,
+        fill=GRAY, align='center')
+    put(ws, r, 10, '← 残り営業日（B9）で割った必要数', SMALL, fill=GRAY)
 
-    ws.conditional_formatting.add(f'G{first}:G{last}',
+    # --- 月次サマリー（月報にそのまま書き写す数字） ---
+    r += 2
+    ws.cell(row=r, column=1, value='月次サマリー（月報に書き写す）').font = H2
+    r += 1
+    head_row(ws, r, ['指標', '値', '見方'])
+    ws.column_dimensions['C'].width = 11
+    summary = [
+        ('在籍の純増（入会−退会）', f'=D{total}-F{total}', NUM, 'マイナスなら、入会より退会が多い月'),
+        ('退会率（月初在籍に対して）', f'=IF(N($B$7)=0,"",F{total}/$B$7)', PCT, '5%超なら退会理由を全件確認（判断基準シート）'),
+        ('体験→入会率', f'=E{total}', PCT, '店平均。トレーナー個人の率と比べる'),
+        ('会員単価（売上÷月末在籍）', f'=IF(N(G{total})=0,"",I{total}/G{total})', YEN, '単価が下がっていれば安いプランに偏っている'),
+        ('会員1人あたりセッション数', f'=IF(N(G{total})=0,"",H{total}/G{total})', '0.0', '少ない月は来店が減っている＝退会の前ぶれ'),
+    ]
+    for label, formula, fmt, how in summary:
+        r += 1
+        put(ws, r, 1, label, BOLD)
+        put(ws, r, 2, formula, BODY, fmt, align='center')
+        put(ws, r, 3, how, SMALL, wrap=True)
+        ws.column_dimensions['B'].width = 13
+
+    ws.conditional_formatting.add(f'I{first}:I{last}',
                                   DataBarRule(start_type='num', start_value=0,
                                               end_type='max', color='638EC6'))
     ws.conditional_formatting.add(
-        f'F{first}:F{last}',
-        CellIsRule(operator='lessThan', formula=[f'$F${total}'],
+        f'E{first}:E{last}',
+        CellIsRule(operator='lessThan', formula=[f'$E${total}'],
                    fill=PatternFill('solid', bgColor='FFF2CC')))
     ws.freeze_panes = f'C{first}'
     ws.page_setup.orientation = 'landscape'
@@ -602,11 +614,11 @@ def main():
 
     sheets = [
         ('日次チェック', '毎日。開店前・営業中・閉店後の3ブロック。終わったら ✓。'),
-        ('週次チェック', '週1回（主に月曜と金曜）。数値のふり返りと1on1、棚卸と安全点検。'),
-        ('月次チェック', '月1回。目標合意・シフト・発注・月報・育成計画の更新。'),
-        ('教育カリキュラム', 'スタッフを採ったとき／レベルを上げるとき。到達基準は数字。'),
-        ('習得状況', '1on1のあと。スタッフ別に1〜4で記入。低い列が店の弱点。'),
-        ('KPI記録', '毎日、閉店後。報告に使う数字はすべてここから取る。'),
+        ('週次チェック', '週1回。数値のふり返り・1on1・翌週シフト・退会リスク会員の洗い出し・設備点検。'),
+        ('月次チェック', '月1回。翌月シフト・目標合意・休会退会の締切処理・月報・育成計画。'),
+        ('教育カリキュラム', 'トレーナーを採ったとき／レベルを上げるとき。到達基準は数字。'),
+        ('習得状況', '1on1のあと。トレーナー別に1〜4で記入。低い列が店の弱点。'),
+        ('KPI記録', '毎日、閉店後。体験・入会・退会・在籍・セッション・売上。報告の数字はここから。'),
         ('上司報告', '日報・週報・月報・緊急報告を書くとき。定型文をコピーする。'),
         ('判断基準', '迷ったとき。しきい値に触れたら自分で決めずに上げる。'),
     ]

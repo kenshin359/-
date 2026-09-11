@@ -1,0 +1,82 @@
+# ============================================================
+#  店舗運営セット（Excel3点）の生成
+# ------------------------------------------------------------
+#  パーソナルジムの店舗責任者が使う3点を作ってダウンロードできる形で保存します。
+#    ① 業務マニュアル＆チェックリスト
+#    ② 会員手続き書類（入会同意書・休会届・退会届・受付台帳）
+#    ③ シフト表（労働時間・人件費・人数不足の自動チェック付き）
+#  ★キントーンには一切アクセスしません（中身は config/*.json のみ）。
+# ============================================================
+name: 店舗運営セット（Excel3点）
+
+on:
+  workflow_dispatch:
+    inputs:
+      name:
+        description: '担当者名（例: 高山）'
+        required: false
+        default: '高山'
+      store:
+        description: '店舗名（例: 梅田店／空ならJSONの値）'
+        required: false
+      month:
+        description: '対象月（YYYY-MM／空なら今月）'
+        required: false
+      to:
+        description: '報告先（空ならJSONの値）'
+        required: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: daily-report-system
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Excelライブラリを入れる
+        run: pip install --quiet openpyxl
+
+      - name: ① 業務マニュアルを作る
+        env:
+          IN_NAME: ${{ inputs.name }}
+          IN_STORE: ${{ inputs.store }}
+          IN_MONTH: ${{ inputs.month }}
+          IN_TO: ${{ inputs.to }}
+        run: |
+          args=""
+          if [ -n "$IN_NAME" ];  then args="$args --name=$IN_NAME"; fi
+          if [ -n "$IN_STORE" ]; then args="$args --store=$IN_STORE"; fi
+          if [ -n "$IN_MONTH" ]; then args="$args --month=$IN_MONTH"; fi
+          if [ -n "$IN_TO" ];    then args="$args --to=$IN_TO"; fi
+          python3 scripts/buildStoreManual.py $args
+
+      - name: ② 会員手続き書類を作る
+        env:
+          IN_STORE: ${{ inputs.store }}
+        run: |
+          args=""
+          if [ -n "$IN_STORE" ]; then args="--store=$IN_STORE"; fi
+          python3 scripts/buildMemberForms.py $args
+
+      - name: ③ シフト表を作る
+        env:
+          IN_STORE: ${{ inputs.store }}
+          IN_MONTH: ${{ inputs.month }}
+        run: |
+          args=""
+          if [ -n "$IN_STORE" ]; then args="$args --store=$IN_STORE"; fi
+          if [ -n "$IN_MONTH" ]; then args="$args --month=$IN_MONTH"; fi
+          python3 scripts/buildShiftSheet.py $args
+
+      - name: 3点を保存する（ダウンロード用）
+        uses: actions/upload-artifact@v4
+        with:
+          name: store-ops
+          path: daily-report-system/out/*.xlsx

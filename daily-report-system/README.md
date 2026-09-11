@@ -109,7 +109,7 @@ daily-report-system/
 │   ├── kintone-staff-report-app.md   Kintone設定書①
 │   ├── kintone-ai-report-app.md      Kintone設定書②
 │   ├── line-setup.md             LINE設定書
-│   └── 店舗責任者-業務マニュアル.md  店舗責任者のExcelマニュアルの作り方・運用 ★
+│   └── 店舗運営セット-パーソナルジム.md  マニュアル/会員書類/シフト表(Excel3点)の作り方・運用 ★
 └── test/
     └── format.test.js            ユニットテスト（ネットワーク不要）
 ```
@@ -131,7 +131,10 @@ daily-report-system/
 | `npm run replies` | **楽天レビュー返信の下書き**を作りCSへ配信 |
 | `npm run sheet` | 売上管理シート(Excel)を生成 |
 | `npm run sheet:send` | 売上管理シートをChatworkへ送信 |
-| `npm run manual:store` | **店舗責任者の業務マニュアル(Excel)**を生成（日次/週次/月次チェック＋教育＋KPI＋報告テンプレ） |
+| `npm run manual:store` | **店舗責任者の業務マニュアル(Excel)**を生成（日次/週次/月次チェック＋トレーナー教育＋KPI＋報告テンプレ） |
+| `npm run forms:member` | **会員手続き書類(Excel)**を生成（入会同意書・休会届・退会届・受付台帳） |
+| `npm run shift` | **シフト表(Excel)**を生成（労働時間・人件費・人数不足・開店/閉店の穴を自動チェック） |
+| `npm run store:all` | 上の3点をまとめて生成（店舗運営セット） |
 | `npm run create-business-apps` | 在庫数・広告費アプリをKintoneに作成 |
 | `npm run build:n8n` | 売上ワークフローJSONを再生成 |
 | `npm run apps` | Kintone アプリ一覧とIDを表示 |

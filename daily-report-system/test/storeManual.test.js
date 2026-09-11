@@ -23,9 +23,10 @@ test('担当者・店舗・報告先が入っている', () => {
   }
 });
 
-test('KPIは列名6つと目標3項目を持つ', () => {
+test('KPIは列名6つと目標4項目を持つ', () => {
+  // 体験・見学 / 入会 / 退会 / 在籍会員数 / セッション実施 / 売上
   assert.equal(cfg.kpi.labels.length, 6);
-  for (const key of ['sales', 'deals', 'workdays']) {
+  for (const key of ['sales', 'joins', 'members_start', 'workdays']) {
     assert.equal(typeof cfg.kpi.targets[key], 'number', `targets.${key} が数値でない`);
   }
 });
