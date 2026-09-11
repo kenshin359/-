@@ -30,6 +30,9 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 def build(cfg, out):
     H.init()
+    # 1章＝見開き2ページなので1ページあたりに余りが出る。
+    # その余白を行間と記入欄に回して、読みやすさと書き込みやすさを上げる。
+    H.set_room(1.8)
     meta = cfg['meta']
     doc = H.make_doc(out, meta['title'], f'{meta["company"]}｜{meta["title"]}', meta['company'])
     F = []
@@ -71,12 +74,14 @@ def build(cfg, out):
     F.append(H.P('巻末②　次の管理職を育てる計画（6か月）', 'h1'))
     F.append(H.P('候補者を1人決めて、毎月ひとつずつ自分の仕事を渡します。'
                  '「できたら渡す」ではなく、<b>渡してから育てる</b>のがコツです。', 'small'))
-    F.append(H.table([['候補者', '', '開始日', '']], [22 * mm, H.W * 0.35, 20 * mm, H.W * 0.25],
+    F.append(H.table([['候補者', '', '開始日', '']],
+                     [22 * mm, H.W * 0.4 - 22 * mm, 20 * mm, H.W * 0.6 - 20 * mm],
                      header=False, zebra=False, row_h=9 * mm))
     F.append(Spacer(1, 2 * mm))
     F.append(H.table([['いつ', '渡す仕事', '到達基準（数字）', '判定（◯×・日付）']]
                      + [[a, b, c, d] for a, b, c, d in cfg['succession']],
-                     [20 * mm, H.W * 0.30, H.W * 0.40, H.W * 0.22], row_h=12 * mm))
+                     [20 * mm, (H.W - 20 * mm) * 0.34, (H.W - 20 * mm) * 0.40,
+                      (H.W - 20 * mm) * 0.26], row_h=12 * mm))
     F.append(Spacer(1, 3 * mm))
     F.append(H.callout('渡すときの約束',
                        '渡した仕事は、<b>やり方ではなく結果を見ます</b>。'

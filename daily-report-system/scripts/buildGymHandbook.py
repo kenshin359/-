@@ -106,7 +106,7 @@ def build(cfg, out):
                  '間違えた章はチェックリストに戻ってやり直します。', 'small'))
     F.append(H.table([['#', '問題', '答え（記入欄）']]
                      + [[str(i), q, ''] for i, (q, _) in enumerate(cfg['test'], 1)],
-                     [10 * mm, 88 * mm, H.W - 98 * mm], row_h=10 * mm, align=[0]))
+                     [10 * mm, 92 * mm, H.W - 102 * mm], row_h=10 * mm, align=[0]))
     F.append(PageBreak())
 
     F.append(H.P('巻末資料⑤　まとめテスト 解答（研修担当用）', 'h1'))

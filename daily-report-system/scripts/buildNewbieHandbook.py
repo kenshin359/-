@@ -29,8 +29,10 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 def week_page(F, w):
     """1週ぶん（1ページ）。"""
+    F.append(H.SectionMark(f'第{w["no"]}週　{w["level"]}'))
     F.append(KeepTogether([
-        H.P(f'第{w["no"]}週（入社 {w["days"]}）　{w["level"]}', 'h1'),
+        H.chapter_head(f'第{w["no"]}週', f'（入社 {w["days"]}）　{w["level"]}'),
+        Spacer(1, 2 * mm),
         H.callout('ひとことで言うと', w['oneline']),
     ]))
 
@@ -40,7 +42,7 @@ def week_page(F, w):
     F.append(KeepTogether([
         H.P('2. 今週の数字（月間目標から逆算した、今週のぶん）', 'h2'),
         H.table([['何を', 'いくつ', '数え方']] + [[a, b, c] for a, b, c in w['numbers']],
-                [H.W * 0.36, 24 * mm, H.W * 0.64 - 24 * mm], align=[1])]))
+                [H.W * 0.33, 34 * mm, H.W * 0.67 - 34 * mm], align=[1])]))
 
     F.append(KeepTogether([H.P('3. やること（この順で）', 'h2'), H.numbered(w['todos'])]))
 
@@ -99,7 +101,7 @@ def build(cfg, out):
         H.P('12週間の地図（全体を1枚で）', 'h2'),
         H.table([['週', 'レベル', 'この週でできるようになること']]
                 + [[f'第{w["no"]}週', w['level'], w['oneline']] for w in cfg['weeks']],
-                [14 * mm, 20 * mm, H.W - 34 * mm], align=[0, 1])]))
+                [19 * mm, 22 * mm, H.W - 41 * mm], align=[0, 1])]))
     F.append(PageBreak())
 
     # ───────── 週ページ ─────────
@@ -125,7 +127,7 @@ def build(cfg, out):
     for label in ['今週できたこと（数字で）', 'できなかったこと', 'つまずいた理由',
                   '来週やること（1つだけ）', '研修担当から（良い点1つ・直す点1つ）']:
         F.append(H.P(label, 'h2'))
-        F.append(H.write_lines(2))
+        F.append(H.write_lines(3, height=11 * mm))   # コピーして手書きするページなので広く取る
     F.append(PageBreak())
 
     F.append(H.P('巻末③　むずかしい言葉の一覧', 'h1'))
