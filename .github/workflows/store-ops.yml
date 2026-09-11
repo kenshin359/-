@@ -5,10 +5,10 @@
 #    ① 業務マニュアル＆チェックリスト
 #    ② 会員手続き書類（入会同意書・休会届・退会届・受付台帳）
 #    ③ シフト表（労働時間・人件費・人数不足の自動チェック付き）
-#    ④ トレーナー研修ハンドブック（PDF・全8章＋まとめテスト）
+#    ④ 研修PDF3冊（トレーナー研修・新人スタッフ研修・管理職育成）
 #  ★キントーンには一切アクセスしません（中身は config/*.json のみ）。
 # ============================================================
-name: 店舗運営セット（Excel3点＋研修ハンドブックPDF）
+name: 店舗運営セット（Excel3点＋研修PDF3冊）
 
 on:
   workflow_dispatch:
@@ -78,7 +78,7 @@ jobs:
           if [ -n "$IN_MONTH" ]; then args="$args --month=$IN_MONTH"; fi
           python3 scripts/buildShiftSheet.py $args
 
-      - name: ④ トレーナー研修ハンドブック（PDF）を作る
+      - name: ④ 研修PDF3冊（トレーナー・新人・管理職）を作る
         env:
           IN_STORE: ${{ inputs.store }}
           IN_NAME: ${{ inputs.name }}
@@ -87,8 +87,10 @@ jobs:
           if [ -n "$IN_STORE" ]; then args="$args --store=$IN_STORE"; fi
           if [ -n "$IN_NAME" ];  then args="$args --name=$IN_NAME"; fi
           python3 scripts/buildGymHandbook.py $args
+          python3 scripts/buildNewbieHandbook.py $args
+          python3 scripts/buildManagerHandbook.py $args
 
-      - name: 4点を保存する（ダウンロード用）
+      - name: 6点を保存する（ダウンロード用）
         uses: actions/upload-artifact@v4
         with:
           name: store-ops

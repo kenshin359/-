@@ -135,6 +135,9 @@ daily-report-system/
 | `npm run forms:member` | **会員手続き書類(Excel)**を生成（入会同意書・休会届・退会届・受付台帳） |
 | `npm run shift` | **シフト表(Excel)**を生成（労働時間・人件費・人数不足・開店/閉店の穴を自動チェック） |
 | `npm run handbook:gym` | **トレーナー研修ハンドブック(PDF)**を生成（全8章＋まとめテスト・SNS研修ハンドブックと同じ体裁） |
+| `npm run handbook:newbie` | **新人スタッフ研修マニュアル(PDF)**を生成（入社1〜12週・1週1ページ・目標から逆算） |
+| `npm run handbook:manager` | **管理職育成マニュアル(PDF)**を生成（全8章＋1か月カレンダー＋6か月育成計画） |
+| `npm run handbook:all` | 研修PDF3冊をまとめて生成 |
 | `npm run store:all` | 上の3点をまとめて生成（店舗運営セット） |
 | `npm run create-business-apps` | 在庫数・広告費アプリをKintoneに作成 |
 | `npm run build:n8n` | 売上ワークフローJSONを再生成 |
