@@ -321,6 +321,18 @@ WEBページアクセス数：X
   O＝待合スペース写真（アーチ鏡・観葉植物・白椅子）「ジムらしくない、静かなジム。」バッジ「完全予約制」。
   マシンフロア2枚目（machines2.jpg）はL案の予備。E〜Oで計11案。
 
+## ［メタ広告］5工程分業（2026-09-12 BOSS共有「Claude Meta Creative OS｜5-System Prompt Book」）
+
+- 原本: BOSS共有xlsx（00使い方／01戦略設計／02コピー／03デザイン／04生成AI／05CRO改善／06QCチェック）。
+  O2版: `scratchpad/build_meta_os.py` → `O2GYM_Meta_Creative_OS_入力済み_2026-09-12.xlsx`
+  （原本7シート＋07_O2GYM入力（一次情報のみ・不明は【データ不足】）＋08_既存案QC採点＋09_ABテスト設計＋10_O2運用手順）。
+- 運用: 01戦略 → 02コピー（違和感チェック係を通す） → 03デザイン（`build_meta_ad3.py` の html が基準テンプレ） → 04生成AI（O2は原則不使用・実写のみ）
+  → 配信（主変数1つのAB） → 05CRO改善（Spend→CPM→CTR→CPC→LPV→CVR→CPAの順・動画トラッカーと同じCSV追記）。役割を混ぜない。
+- 100点配点（01）: Hook20/Relevance15/Clarity15/Offer15/Proof10/Visual10/CTA10/Compliance5。
+  既存E〜O採点（2026-09-12）: I 80／G 77／N 77／E 75／J 75／M 74／F 73／K 73／O 72／H 71／L 69。
+  **推奨TOP3: I「1店舗完結」・G「初めてでも隣に」・E/N「手ぶら」**。全案Offer5〜6点＝画像内に体験条件が無い（体験の料金・時間・レンタル無料＝【データ不足】）。
+- QCゲート（06）: 料金は税込・一次情報のみ／設備は実写／Hookは1秒／主変数1つ。合格まで出稿しない。
+
 ## AI引き継ぎOS（2026-09-11作成）
 
 - `scratchpad/build_handover.py` → `O2GYM_AI引き継ぎOS_2026-09-11.xlsx`（22シート: プロフィール／会社／事業／商品／KPI／広告ルール／
