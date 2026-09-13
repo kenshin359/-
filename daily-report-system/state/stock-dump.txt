@@ -1,4 +1,6 @@
 最新日: CACG-AJ-BB / レコード 3件
+===FILE=== name=orders_export (B).csv memo=CS在庫 type=csv
+（在庫CSVではないため出力しません: 注文/顧客データの可能性）
 ===FILE=== name=スクリーンショット CACG-AJ-BB BHAAAC.png memo=事務所在庫 type=skip
 ===FILE=== name=スクリーンショット CACG-AJ-BB BHAABB.png memo=事務所在庫 type=skip
 ===FILE=== name=スクリーンショット CACG-AJ-BB BHAABG.png memo=事務所在庫 type=skip
