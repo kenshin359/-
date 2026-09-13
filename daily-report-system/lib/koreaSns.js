@@ -63,6 +63,7 @@ export function normalizeRecord(record) {
 
   return {
     id: text(record, '$id'),
+    account: text(record, 'account') ?? '(アカウント未設定)',
     title: text(record, 'title') ?? '(案件名なし)',
     status: text(record, 'status'),
     owner: text(record, 'owner'),
@@ -233,10 +234,24 @@ export function summarize(records, { today, rules, targets = {}, from = null, to
   };
   const byMedia = {};
   const byStatus = {};
+  // アカウント（店）別。Tiffany と ONA を混ぜると、どちらの予約が増えたのか分からなくなる。
+  const byAccount = {};
   const alerts = [];
 
+  const accountOf = (name) => {
+    byAccount[name] = byAccount[name] ?? { shoots: 0, posts: 0, views: 0, adCost: 0, inflow: 0, reserve: 0, sales: 0 };
+    return byAccount[name];
+  };
+
   for (const r of items) {
-    if (r.status !== '中止') totals.shoots += 1;
+    const acc = accountOf(r.account ?? '(アカウント未設定)');
+    if (r.status !== '中止') {
+      totals.shoots += 1;
+      acc.shoots += 1;
+    }
+    acc.inflow = add(acc.inflow, r.inflow);
+    acc.reserve = add(acc.reserve, r.reserve);
+    acc.sales = add(acc.sales, r.sales);
     totals.shotCount = add(totals.shotCount, r.shotCount);
     totals.editCount = add(totals.editCount, r.editCount);
     totals.inflow = add(totals.inflow, r.inflow);
@@ -256,15 +271,21 @@ export function summarize(records, { today, rules, targets = {}, from = null, to
         byMedia[key].posts += 1;
         byMedia[key].views += p.views ?? 0;
         byMedia[key].adCost += p.adCost ?? 0;
+        acc.posts += 1;
+        acc.views += p.views ?? 0;
+        acc.adCost += p.adCost ?? 0;
       }
     }
 
     for (const a of checkRecord(r, { today, rules })) {
-      alerts.push({ ...a, title: r.title, id: r.id, owner: r.owner, editor: r.editor });
+      alerts.push({ ...a, title: r.title, id: r.id, account: r.account, owner: r.owner, editor: r.editor });
     }
   }
 
   const cpa = totals.reserve > 0 ? Math.round(totals.adCost / totals.reserve) : null;
+  for (const a of Object.values(byAccount)) {
+    a.cpa = a.reserve > 0 ? Math.round(a.adCost / a.reserve) : null;
+  }
 
   return {
     from,
@@ -273,6 +294,7 @@ export function summarize(records, { today, rules, targets = {}, from = null, to
     totals,
     byMedia,
     byStatus,
+    byAccount,
     cpa,
     targets,
     // 目的（予約）まで届いたか。ここが見たいのであって、投稿数ではない。
@@ -319,8 +341,9 @@ export function formatKoreaSnsReport(s, { title = '韓国SNS 週次まとめ（�
     L.push('■ 要対応: なし（報告の抜け・遅れはありません）');
   } else {
     L.push(`■ 要対応 ${high.length}件${mid.length ? `（ほか要確認 ${mid.length}件）` : ''}`);
-    for (const a of high.slice(0, 10)) L.push(`${a.level} ${a.title}: ${a.message}`);
-    for (const a of mid.slice(0, 10)) L.push(`${a.level} ${a.title}: ${a.message}`);
+    const line = (a) => `${a.level} ${a.account && a.account !== '(アカウント未設定)' ? `[${a.account}] ` : ''}${a.title}: ${a.message}`;
+    for (const a of high.slice(0, 10)) L.push(line(a));
+    for (const a of mid.slice(0, 10)) L.push(line(a));
     const rest = high.length + mid.length - Math.min(high.length, 10) - Math.min(mid.length, 10);
     if (rest > 0) L.push(`… ほか ${rest}件（kintoneの一覧で確認してください）`);
   }
@@ -340,7 +363,22 @@ export function formatKoreaSnsReport(s, { title = '韓国SNS 週次まとめ（�
     L.push('🟡 広告費は出ているが予約が未入力のため、費用対効果が出せません');
   }
 
-  // ③ 媒体別（どこが効いているか）
+  // ③ アカウント別（Tiffany / ONA のどちらが動いたか）
+  const accounts = Object.entries(s.byAccount ?? {}).sort((a, b) => (b[1].reserve ?? 0) - (a[1].reserve ?? 0));
+  if (accounts.length > 1 || (accounts.length === 1 && accounts[0][0] !== '(アカウント未設定)')) {
+    L.push('');
+    L.push('■ アカウント別');
+    for (const [name, a] of accounts) {
+      const parts = [`撮影 ${cnt(a.shoots)}件`, `投稿 ${cnt(a.posts)}本`, `再生 ${cnt(a.views)}`];
+      if (a.adCost) parts.push(`広告 ${yen(a.adCost)}`);
+      parts.push(`予約 ${cnt(a.reserve)}`);
+      if (a.cpa !== null && a.cpa !== undefined) parts.push(`予約単価 ${yen(a.cpa)}`);
+      if (a.sales) parts.push(`売上 ${yen(a.sales)}`);
+      L.push(`${name}: ${parts.join(' / ')}`);
+    }
+  }
+
+  // ④ 媒体別（どこが効いているか）
   const media = Object.entries(s.byMedia).sort((a, b) => b[1].views - a[1].views);
   if (media.length) {
     L.push('');
@@ -350,7 +388,7 @@ export function formatKoreaSnsReport(s, { title = '韓国SNS 週次まとめ（�
     }
   }
 
-  // ④ 次にやること（進捗の内訳＝いま誰が何をしているか）
+  // ⑤ 次にやること（進捗の内訳＝いま誰が何をしているか）
   const status = Object.entries(s.byStatus).sort();
   if (status.length) {
     L.push('');

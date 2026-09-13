@@ -193,6 +193,9 @@ CSVを `data/sales/` に置いて `npm run sales` を実行すると、
 ## 韓国SNS運用管理（明洞）
 
 韓国チームの **撮影 → 編集 → 投稿 → 広告 → 流入 → 予約** を1案件＝1レコードで追いかけます。
+対象アカウントは **Tiffany**（[@tiffany_massage5](https://www.instagram.com/tiffany_massage5)）と
+**ONA**（[@ona_womenspa](https://www.instagram.com/ona_womenspa)）の2つ。案件ごとにどちらかを選び、
+予約・広告費・予約単価をアカウント別に出します。
 「誰が・いつ・何をしているか」が見えない状態と、月末までズレに気づけない状態をなくすための仕組みです。
 
 ```bash
@@ -201,7 +204,7 @@ npm run korea:sns                       # 今週の進捗・未報告・成果�
 npm run korea:sns -- --month=2026-09 --send   # 月次まとめをChatworkへ
 ```
 
-- 事前共有は **撮影日の2日前まで**。破ると週次レポートに 🔴 で出ます。
+- 事前共有は **撮影日の2日前まで**。破ると週次レポートに 🔴 で出ます（`[ONA] …` とアカウント名つき）。
 - 撮影後・投稿後・成果（流入/予約）の未入力も 🔴🟡 で自動検出（判定値は `config/korea-sns.json`）。
 - ルールと報告テンプレート: **[docs/korea-sns-運用ルール.md](docs/korea-sns-運用ルール.md)** ／
   韓国語版 **[docs/korea-sns-보고양식-ko.md](docs/korea-sns-보고양식-ko.md)**

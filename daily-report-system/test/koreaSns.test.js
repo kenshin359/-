@@ -12,7 +12,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
 import {
-  FIELDS, VIEWS, REPORTS, MEDIA_OPTIONS, FORMAT_OPTIONS, POST_TYPE_OPTIONS, GOAL_OPTIONS, STATUS_OPTIONS,
+  FIELDS, VIEWS, REPORTS, ACCOUNT_OPTIONS, MEDIA_OPTIONS, FORMAT_OPTIONS, POST_TYPE_OPTIONS, GOAL_OPTIONS, STATUS_OPTIONS,
 } from '../kintone/koreaSnsSchema.js';
 import {
   normalizeRecord, checkRecord, summarize, formatKoreaSnsReport,
@@ -26,6 +26,7 @@ const RULES = CFG.rules;
 function rec(over = {}, posts = []) {
   const base = {
     $id: '1',
+    account: 'Tiffany',
     title: '9/20 明洞店 インフルエンサー撮影',
     status: '① 事前共有済み',
     owner: 'ミンジ',
@@ -75,6 +76,7 @@ const codes = (alerts) => alerts.map((a) => a.code);
 
 // ── 設計のズレ防止 ────────────────────────────────
 test('kintoneの選択肢と config/korea-sns.json が一致している', () => {
+  assert.deepEqual(ACCOUNT_OPTIONS, CFG.accounts.map((a) => a.id));
   assert.deepEqual(MEDIA_OPTIONS, CFG.media);
   assert.deepEqual(FORMAT_OPTIONS, CFG.formats);
   assert.deepEqual(POST_TYPE_OPTIONS, CFG.post_types);
@@ -320,4 +322,63 @@ test('週は月曜はじまり・日曜おわり', () => {
 test('月の範囲（うるう年も）', () => {
   assert.deepEqual(monthRange('2026-09'), ['2026-09-01', '2026-09-30']);
   assert.deepEqual(monthRange('2024-02'), ['2024-02-01', '2024-02-29']);
+});
+
+// ── アカウント（Tiffany / ONA）────────────────────
+test('運用アカウントの Instagram が設定に入っている', () => {
+  const byId = Object.fromEntries(CFG.accounts.map((a) => [a.id, a]));
+  assert.equal(byId.Tiffany.instagram, 'tiffany_massage5');
+  assert.equal(byId.ONA.instagram, 'ona_womenspa');
+  // 共有リンクの stkn（個人用トークン）は保存しない
+  for (const a of CFG.accounts) assert.ok(!a.url || !a.url.includes('stkn='), `${a.id} のURLにトークンが入っています`);
+});
+
+test('アカウントは必ず選ぶ（未選択で保存させない）', () => {
+  assert.equal(FIELDS.account.required, true);
+  for (const view of Object.values(VIEWS)) {
+    // アカウント別の一覧は絞り込みで店が決まっているので列は不要
+    if (view.filterCond?.includes('account in')) continue;
+    assert.ok(view.fields.includes('account'), `一覧「${view.name}」にアカウント列がありません`);
+  }
+});
+
+test('★アカウント別に 撮影・投稿・広告費・予約・予約単価 を分けて出す', () => {
+  const tiffany = norm(
+    { account: 'Tiffany', shot_count: 3, reserve: 20, sales: 800000 },
+    [{ p_post_date: '2026-09-25', p_media: 'Instagram', p_views: 120000, p_ad: 'あり', p_ad_cost: 100000 }]
+  );
+  const ona = norm(
+    { $id: '2', account: 'ONA', shot_count: 2, reserve: 5, sales: 150000 },
+    [{ p_post_date: '2026-09-26', p_media: 'Instagram', p_views: 30000, p_ad: 'あり', p_ad_cost: 50000 }]
+  );
+
+  const s = summarize([tiffany, ona], {
+    today: '2026-09-30', rules: RULES, targets: CFG.targets, from: '2026-09-01', to: '2026-09-30',
+  });
+
+  assert.equal(s.byAccount.Tiffany.shoots, 1);
+  assert.equal(s.byAccount.Tiffany.posts, 1);
+  assert.equal(s.byAccount.Tiffany.reserve, 20);
+  assert.equal(s.byAccount.Tiffany.cpa, 5000, '広告費100,000 ÷ 予約20件');
+  assert.equal(s.byAccount.ONA.cpa, 10000, '広告費50,000 ÷ 予約5件');
+  assert.equal(s.byAccount.ONA.sales, 150000);
+  assert.equal(s.totals.reserve, 25, '全体の合計はそのまま');
+
+  const text = formatKoreaSnsReport(s);
+  assert.match(text, /■ アカウント別/);
+  assert.match(text, /Tiffany: 撮影 1件 \/ 投稿 1本/);
+  assert.match(text, /ONA:.*予約単価 ¥10,000/);
+});
+
+test('予約が0のアカウントは予約単価を出さない', () => {
+  const r = norm({ account: 'ONA', reserve: null }, [{ p_post_date: '2026-09-25', p_ad: 'あり', p_ad_cost: 40000 }]);
+  const s = summarize([r], { today: '2026-09-26', rules: RULES, targets: CFG.targets });
+  assert.equal(s.byAccount.ONA.cpa, null);
+  assert.ok(!formatKoreaSnsReport(s).includes('予約単価'));
+});
+
+test('アラートにアカウント名が付く（どの店の話か分かるように）', () => {
+  const r = norm({ account: 'ONA', shared_at: null });
+  const s = summarize([r], { today: '2026-09-18', rules: RULES, targets: CFG.targets });
+  assert.match(formatKoreaSnsReport(s), /🔴 \[ONA\] 9\/20 明洞店 インフルエンサー撮影: 事前共有の記録がありません/);
 });

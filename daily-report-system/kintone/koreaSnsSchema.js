@@ -39,6 +39,10 @@ const checks = (code, label, options, extra = {}) => ({
 const num = (code, label, extra = {}) => ({ type: 'NUMBER', code, label, ...extra });
 
 // ── 選択肢（config/korea-sns.json と必ず一致させること。test で検査しています）──
+// 運用しているアカウント（ブランド）。店舗が混ざると成果が読めないため必ず選ぶ。
+//   Tiffany … https://www.instagram.com/tiffany_massage5
+//   ONA     … https://www.instagram.com/ona_womenspa
+export const ACCOUNT_OPTIONS = ['Tiffany', 'ONA', 'その他'];
 export const MEDIA_OPTIONS = ['Instagram', 'TikTok', 'NAVER', 'YouTube', 'その他'];
 export const FORMAT_OPTIONS = ['リール', 'フィード', 'ストーリー', 'ショート', 'ブログ記事', 'その他'];
 export const POST_TYPE_OPTIONS = ['通常投稿', 'タイアップ（PR表記あり）', '広告クリエイティブ', 'リポスト・二次利用'];
@@ -77,6 +81,7 @@ function postFields() {
 
 export const FIELDS = {
   // ── 案件の基本 ──
+  account: drop('account', 'アカウント（どの店のSNSか）', ACCOUNT_OPTIONS, { required: true, defaultValue: 'Tiffany' }),
   title: { type: 'SINGLE_LINE_TEXT', code: 'title', label: '案件名（例: 9/20 明洞店 インフルエンサー撮影）', required: true },
   status: drop('status', '進捗（ここを進めるだけでOK）', STATUS_OPTIONS, { defaultValue: '① 事前共有済み' }),
   owner: { type: 'SINGLE_LINE_TEXT', code: 'owner', label: '案件担当（韓国チーム）' },
@@ -145,7 +150,7 @@ export const VIEWS = {
     index: 0,
     type: 'LIST',
     name: '今週の撮影予定',
-    fields: ['shoot_date', 'shoot_time', 'title', 'place', 'cast', 'plan_count', 'plan_post_date', 'plan_ad', 'status'],
+    fields: ['shoot_date', 'shoot_time', 'account', 'title', 'place', 'cast', 'plan_count', 'plan_post_date', 'plan_ad', 'status'],
     filterCond: 'shoot_date >= TODAY() and status not in ("中止")',
     sort: 'shoot_date asc',
   },
@@ -153,7 +158,7 @@ export const VIEWS = {
     index: 1,
     type: 'LIST',
     name: '⚠ 事前共有がない撮影',
-    fields: ['shoot_date', 'title', 'shared_at', 'place', 'cast', 'owner'],
+    fields: ['shoot_date', 'account', 'title', 'shared_at', 'place', 'cast', 'owner'],
     // 共有日そのものが空＝ルール違反。2日前を切っているかは週次レポートが判定します。
     filterCond: 'shared_at is empty and status not in ("中止")',
     sort: 'shoot_date asc',
@@ -162,7 +167,7 @@ export const VIEWS = {
     index: 2,
     type: 'LIST',
     name: '編集中（期限順）',
-    fields: ['edit_due', 'title', 'editor', 'shot_count', 'edit_count', 'plan_post_date', 'status'],
+    fields: ['edit_due', 'account', 'title', 'editor', 'shot_count', 'edit_count', 'plan_post_date', 'status'],
     filterCond: 'status in ("② 撮影済み", "③ 編集中")',
     sort: 'edit_due asc',
   },
@@ -170,7 +175,7 @@ export const VIEWS = {
     index: 3,
     type: 'LIST',
     name: '投稿済み・成果が未入力',
-    fields: ['shoot_date', 'title', 'total_views', 'total_ad_cost', 'inflow', 'reserve', 'status'],
+    fields: ['shoot_date', 'account', 'title', 'total_views', 'total_ad_cost', 'inflow', 'reserve', 'status'],
     filterCond: 'reserve is empty and status in ("④ 投稿済み", "⑤ 広告運用中")',
     sort: 'shoot_date asc',
   },
@@ -178,15 +183,31 @@ export const VIEWS = {
     index: 4,
     type: 'LIST',
     name: '今月の案件（成果つき）',
-    fields: ['shoot_date', 'title', 'goal', 'cast', 'total_views', 'total_ad_cost', 'inflow', 'reserve', 'sales', 'cpa'],
+    fields: ['shoot_date', 'account', 'title', 'goal', 'cast', 'total_views', 'total_ad_cost', 'inflow', 'reserve', 'sales', 'cpa'],
     filterCond: 'shoot_date = THIS_MONTH()',
     sort: 'shoot_date desc',
   },
-  すべて: {
+  'Tiffany の案件': {
     index: 5,
     type: 'LIST',
+    name: 'Tiffany の案件',
+    fields: ['shoot_date', 'title', 'goal', 'cast', 'total_views', 'total_ad_cost', 'inflow', 'reserve', 'sales', 'cpa'],
+    filterCond: 'account in ("Tiffany")',
+    sort: 'shoot_date desc',
+  },
+  'ONA の案件': {
+    index: 6,
+    type: 'LIST',
+    name: 'ONA の案件',
+    fields: ['shoot_date', 'title', 'goal', 'cast', 'total_views', 'total_ad_cost', 'inflow', 'reserve', 'sales', 'cpa'],
+    filterCond: 'account in ("ONA")',
+    sort: 'shoot_date desc',
+  },
+  すべて: {
+    index: 7,
+    type: 'LIST',
     name: 'すべて',
-    fields: ['shoot_date', 'title', 'owner', 'editor', 'status', 'reserve', 'sales'],
+    fields: ['shoot_date', 'account', 'title', 'owner', 'editor', 'status', 'reserve', 'sales'],
     sort: 'shoot_date desc',
   },
 };
@@ -203,10 +224,20 @@ export const REPORTS = {
     filterCond: 'shoot_date = THIS_MONTH()',
     sorts: [{ by: 'TOTAL', order: 'DESC' }],
   },
-  '今月 目的別の予約件数': {
+  '今月 アカウント別の予約件数': {
     chartType: 'BAR',
     chartMode: 'NORMAL',
     index: 1,
+    name: '今月 アカウント別の予約件数',
+    groups: [{ code: 'account' }],
+    aggregations: [{ type: 'SUM', code: 'reserve' }],
+    filterCond: 'shoot_date = THIS_MONTH()',
+    sorts: [{ by: 'TOTAL', order: 'DESC' }],
+  },
+  '今月 目的別の予約件数': {
+    chartType: 'BAR',
+    chartMode: 'NORMAL',
+    index: 2,
     name: '今月 目的別の予約件数',
     groups: [{ code: 'goal' }],
     aggregations: [{ type: 'SUM', code: 'reserve' }],
@@ -216,7 +247,7 @@ export const REPORTS = {
   '進捗の内訳': {
     chartType: 'PIE',
     chartMode: 'NORMAL',
-    index: 2,
+    index: 3,
     name: '進捗の内訳',
     groups: [{ code: 'status' }],
     aggregations: [{ type: 'COUNT' }],

@@ -23,6 +23,28 @@
     "_cpa_yen": "予約1件あたりの広告費の上限。超えたらクリエイティブか導線を見直す。"
   },
 
+  "_アカウント": "運用しているSNSアカウント。案件は必ずどちらかに紐づけます（店舗が混ざると成果が読めないため）。",
+  "accounts": [
+    {
+      "id": "Tiffany",
+      "name": "Tiffany（明洞・マッサージ）",
+      "instagram": "tiffany_massage5",
+      "url": "https://www.instagram.com/tiffany_massage5"
+    },
+    {
+      "id": "ONA",
+      "name": "ONA（女性専用スパ）",
+      "instagram": "ona_womenspa",
+      "url": "https://www.instagram.com/ona_womenspa"
+    },
+    {
+      "id": "その他",
+      "name": "その他・新規アカウント",
+      "instagram": null,
+      "url": null
+    }
+  ],
+
   "media": ["Instagram", "TikTok", "NAVER", "YouTube", "その他"],
   "formats": ["リール", "フィード", "ストーリー", "ショート", "ブログ記事", "その他"],
   "post_types": ["通常投稿", "タイアップ（PR表記あり）", "広告クリエイティブ", "リポスト・二次利用"],
