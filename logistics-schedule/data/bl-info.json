@@ -157,7 +157,7 @@
     "vessel": "TS SURABAYA 2617N",
     "pol": "SHEKOU, CHINA",
     "pod": "OSAKA, JAPAN",
-    "status": "輸送中",
+    "status": "完了",
     "docs_status": "完備",
     "order_no": "LM260512",
     "container_type": "40HQ",
@@ -165,13 +165,14 @@
     "arrival_date": "2026-09-10",
     "total_cartons": 1077,
     "products": "PC多機能S 1,050＋ノーマルアルミS 27",
-    "memo": "5/12注文のS分。PC多機能S 1,050+ノーマルアルミS 27=1,077個。8/25出荷。書類3点完備(HBL GZTLF2608056サレンダー済9/4・AN受領)。本船TS SURABAYA 2617N・9/10大阪着予定(9/8から変更)。40HQ 6,560KGS/67.54CBM。CY:ドリームアイランドコンテナターミナル(上組)06-6467-1821。",
-    "next_action": "9/10着後 通関依頼",
+    "memo": "9/10大阪着・9/12通関完了。 5/12注文のS分。PC多機能S 1,050+ノーマルアルミS 27=1,077個。8/25出荷。書類3点完備(HBL GZTLF2608056サレンダー済9/4・AN受領)。本船TS SURABAYA 2617N・9/10大阪着予定(9/8から変更)。40HQ 6,560KGS/67.54CBM。CY:ドリームアイランドコンテナターミナル(上組)06-6467-1821。",
+    "next_action": "ドレー手配→入庫",
     "mbl_no": "721611211021",
     "ref_no": "TGL26-1678",
     "cy": "DREAM ISLAND CONTAINER TERMINAL（DICT・上組）",
     "cy_tel": "06-6467-1821",
-    "cargo_control_no": "13DF + M.B/L NO."
+    "cargo_control_no": "13DF + M.B/L NO.",
+    "customs_date": "2026-09-12"
   },
   "WHSU5516465": {
     "hbl_no": "GZTLF2608061",
@@ -185,24 +186,26 @@
     "arrival_date": "2026-09-07",
     "total_cartons": 722,
     "ref_no": "TGL26-1659",
-    "status": "輸送中",
+    "status": "完了",
     "docs_status": "完備",
     "order_no": "LM260512",
     "products": "PC多機能M(エナメル銀100/マット銀200/灰100/白100/黒200)＋ノーマルアルミM 22",
-    "memo": "5/12注文のM分。PC多機能M 700+ノーマルアルミM 22=722個。8/27出荷。書類3点完備(HBL GZTLF2608061サレンダー済9/3・AN 9/4発行)。本船WAN HAI 102 W427 ETA9/7大阪。CY:南港C-9三菱倉庫。フリータイム入港翌日から6日間。段ボール箱S/M/L各50は備品。",
-    "next_action": "9/7着後 通関依頼"
+    "memo": "9/7大阪着・9/12通関完了。 5/12注文のM分。PC多機能M 700+ノーマルアルミM 22=722個。8/27出荷。書類3点完備(HBL GZTLF2608061サレンダー済9/3・AN 9/4発行)。本船WAN HAI 102 W427 ETA9/7大阪。CY:南港C-9三菱倉庫。フリータイム入港翌日から6日間。段ボール箱S/M/L各50は備品。",
+    "next_action": "ドレー手配→入庫",
+    "customs_date": "2026-09-12"
   },
   "CAAU8818353": {
     "bl_surrendered": "",
     "container_type": "40HQ",
     "seal_no": "IAAJ509405",
     "total_cartons": 607,
-    "status": "輸送中",
+    "status": "完了",
     "docs_status": "一部",
     "order_no": "LM260512",
     "products": "PC多機能L 28インチ(エナメル銀208/マット黒399)",
-    "memo": "5/12注文のL分。PC多機能L 607個。9/3出荷。9/14大阪着予定。BL・アライバル待ち。",
-    "next_action": "BL・アライバル受領→9/14着後通関",
-    "arrival_date": "2026-09-14"
+    "memo": "9/12通関完了。※着予定は9/14だったため実着日は要確認。BL・アライバルの現物も未受領。 5/12注文のL分。PC多機能L 607個。9/3出荷。9/14大阪着予定。BL・アライバル待ち。",
+    "next_action": "ドレー手配→入庫",
+    "arrival_date": "2026-09-14",
+    "customs_date": "2026-09-12"
   }
 }
