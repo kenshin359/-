@@ -11,6 +11,7 @@
 //    node kintone/createBusinessApps.js intake     … CSV提出ボックスのみ
 //    node kintone/createBusinessApps.js salesdetail … 売上明細のみ
 //    node kintone/createBusinessApps.js kpi         … 毎朝KPI報告のみ
+//    node kintone/createBusinessApps.js koreasns    … 韓国SNS運用管理（明洞）のみ
 //    node kintone/createBusinessApps.js --dry-run  … 作らずに内容だけ表示
 //
 //  ★既存アプリは一切変更しません。新規に作るだけです。
@@ -32,6 +33,7 @@ import * as logininfo from './loginInfoSchema.js';
 import * as promocost from './promoCostSchema.js';
 import * as minutes from './minutesSchema.js';
 import * as expense from './expenseSchema.js';
+import * as koreasns from './koreaSnsSchema.js';
 import { VIEWS as AD_VIEWS, REPORTS as AD_REPORTS } from './adCostViews.js';
 import { VIEWS as INTAKE_VIEWS } from './intakeViews.js';
 import { VIEWS as INV_VIEWS, REPORTS as INV_REPORTS } from './inventoryViews.js';
@@ -145,6 +147,7 @@ async function main() {
   if (which === 'promocost') targets.push(['promocost', promocost]);
   if (which === 'minutes') targets.push(['minutes', minutes]);
   if (which === 'expense') targets.push(['expense', expense]);
+  if (which === 'koreasns') targets.push(['koreasns', koreasns]);
 
   if (isDry) {
     console.log('[dry-run] 作成せず、内容だけ表示します。');
@@ -168,6 +171,7 @@ async function main() {
     promocost: { views: promocost.VIEWS },
     minutes: { views: minutes.VIEWS },
     expense: { views: expense.VIEWS, reports: expense.REPORTS },
+    koreasns: { views: koreasns.VIEWS, reports: koreasns.REPORTS },
   };
 
   const results = {};
@@ -182,6 +186,7 @@ async function main() {
   if (results.salesdetail) console.log(`KINTONE_SALES_DETAIL_APP_ID=${results.salesdetail}`);
   if (results.kpi) console.log(`KINTONE_KPI_APP_ID=${results.kpi}`);
   if (results.anken) console.log(`KINTONE_ANKEN_APP_ID=${results.anken}`);
+  if (results.koreasns) console.log(`KINTONE_KOREA_SNS_APP_ID=${results.koreasns}`);
   console.log('この行を .env に貼り付けてください。');
   if (results.adcost) {
     console.log('');

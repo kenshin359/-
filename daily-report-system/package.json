@@ -66,6 +66,7 @@
     "replies:pack": "node scripts/replyPack.js",
     "replies:pack:send": "node scripts/sendReplyPack.js",
     "expense:report": "node scripts/expenseReport.js && python3 scripts/buildExpensePdf.py",
-    "expense:send": "node scripts/sendExpensePdf.js"
+    "expense:send": "node scripts/sendExpensePdf.js",
+    "korea:sns": "node scripts/koreaSnsReport.js"
   }
 }

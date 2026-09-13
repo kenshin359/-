@@ -1,0 +1,37 @@
+{
+  "_説明": "韓国SNS（明洞）運用のルールと目標。週次レポート（npm run korea:sns）はこの数字で遅れ・未報告を判定します。",
+  "_注意": "media / formats / post_types / goals は kintone/koreaSnsSchema.js の選択肢と必ず一致させること（test/koreaSns.test.js が検査します）。",
+
+  "rules": {
+    "advance_notice_days": 2,
+    "_advance_notice_days": "撮影日の何日前までに事前共有するか。2 = 撮影日の2日前まで。",
+    "shoot_report_days": 1,
+    "_shoot_report_days": "撮影後報告の期限（撮影日から何日以内に本数・編集予定を出すか）。",
+    "edit_overdue_days": 0,
+    "_edit_overdue_days": "編集完了予定日を何日過ぎたら遅れ扱いにするか。0 = 当日中。",
+    "post_overdue_days": 1,
+    "_post_overdue_days": "投稿予定日を何日過ぎても投稿が無ければ遅れ扱いにするか。",
+    "result_days_after_post": 7,
+    "_result_days_after_post": "投稿から何日経っても流入・予約が未入力なら未報告扱いにするか。"
+  },
+
+  "targets": {
+    "shoots_per_month": 8,
+    "posts_per_month": 24,
+    "reservations_per_month": 60,
+    "cpa_yen": 8000,
+    "_cpa_yen": "予約1件あたりの広告費の上限。超えたらクリエイティブか導線を見直す。"
+  },
+
+  "media": ["Instagram", "TikTok", "NAVER", "YouTube", "その他"],
+  "formats": ["リール", "フィード", "ストーリー", "ショート", "ブログ記事", "その他"],
+  "post_types": ["通常投稿", "タイアップ（PR表記あり）", "広告クリエイティブ", "リポスト・二次利用"],
+  "goals": ["予約獲得", "認知拡大（リーチ）", "来店促進", "ブランディング", "商品・メニュー訴求", "イベント告知"],
+
+  "report": {
+    "weekly_day": "月",
+    "_weekly_day": "週次まとめを送る曜日。都度報告（事前・撮影後・投稿後）はこれとは別に、その都度おこなう。",
+    "monthly_day": 1,
+    "_monthly_day": "前月まとめを送る日。"
+  }
+}

@@ -108,6 +108,8 @@ daily-report-system/
 │   ├── error-handling.md         エラー対応マニュアル
 │   ├── kintone-staff-report-app.md   Kintone設定書①
 │   ├── kintone-ai-report-app.md      Kintone設定書②
+│   ├── korea-sns-運用ルール.md       韓国SNS（明洞）の報告体制とルール ★
+│   ├── korea-sns-보고양식-ko.md      韓国チーム向け報告フォーマット（韓国語）★
 │   └── line-setup.md             LINE設定書
 └── test/
     └── format.test.js            ユニットテスト（ネットワーク不要）
@@ -131,6 +133,8 @@ daily-report-system/
 | `npm run sheet` | 売上管理シート(Excel)を生成 |
 | `npm run sheet:send` | 売上管理シートをChatworkへ送信 |
 | `npm run create-business-apps` | 在庫数・広告費アプリをKintoneに作成 |
+| `npm run create-business-apps koreasns` | 韓国SNS運用管理（明洞）アプリをKintoneに作成 |
+| `npm run korea:sns` | **韓国SNS（明洞）の進捗・成果レポート**（未報告・遅れを自動で洗い出す） |
 | `npm run build:n8n` | 売上ワークフローJSONを再生成 |
 | `npm run apps` | Kintone アプリ一覧とIDを表示 |
 | `npm run inspect -- <appId>` | 既存アプリの構成と不足フィールドを確認 |
@@ -183,6 +187,24 @@ CSVを `data/sales/` に置いて `npm run sales` を実行すると、
 
 **⚠️ 実データは絶対にコミットしない。** `data/` は `.gitignore` 済み。
 `samples/sales/` は全て架空のダミーデータ。
+
+---
+
+## 韓国SNS運用管理（明洞）
+
+韓国チームの **撮影 → 編集 → 投稿 → 広告 → 流入 → 予約** を1案件＝1レコードで追いかけます。
+「誰が・いつ・何をしているか」が見えない状態と、月末までズレに気づけない状態をなくすための仕組みです。
+
+```bash
+npm run create-business-apps koreasns   # kintoneにアプリを作る（初回のみ）
+npm run korea:sns                       # 今週の進捗・未報告・成果をまとめる
+npm run korea:sns -- --month=2026-09 --send   # 月次まとめをChatworkへ
+```
+
+- 事前共有は **撮影日の2日前まで**。破ると週次レポートに 🔴 で出ます。
+- 撮影後・投稿後・成果（流入/予約）の未入力も 🔴🟡 で自動検出（判定値は `config/korea-sns.json`）。
+- ルールと報告テンプレート: **[docs/korea-sns-運用ルール.md](docs/korea-sns-運用ルール.md)** ／
+  韓国語版 **[docs/korea-sns-보고양식-ko.md](docs/korea-sns-보고양식-ko.md)**
 
 ---
 
