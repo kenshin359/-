@@ -68,6 +68,7 @@
     "expense:report": "node scripts/expenseReport.js && python3 scripts/buildExpensePdf.py",
     "expense:send": "node scripts/sendExpensePdf.js",
     "korea:sns": "node scripts/koreaSnsReport.js",
-    "korea:sheet": "python3 scripts/buildKoreaSnsSheet.py"
+    "korea:sheet": "python3 scripts/buildKoreaSnsSheet.py",
+    "korea:orders": "python3 scripts/buildKoreaOrderSheet.py"
   }
 }
