@@ -135,6 +135,7 @@ daily-report-system/
 | `npm run create-business-apps` | 在庫数・広告費アプリをKintoneに作成 |
 | `npm run create-business-apps koreasns` | 韓国SNS運用管理（明洞）アプリをKintoneに作成 |
 | `npm run korea:sns` | **韓国SNS（明洞）の進捗・成果レポート**（未報告・遅れを自動で洗い出す） |
+| `npm run korea:sheet` | **韓国SNS管理表(Excel)**を生成（撮影/投稿スケジュール＋案件進捗） |
 | `npm run build:n8n` | 売上ワークフローJSONを再生成 |
 | `npm run apps` | Kintone アプリ一覧とIDを表示 |
 | `npm run inspect -- <appId>` | 既存アプリの構成と不足フィールドを確認 |
@@ -202,6 +203,7 @@ CSVを `data/sales/` に置いて `npm run sales` を実行すると、
 npm run create-business-apps koreasns   # kintoneにアプリを作る（初回のみ）
 npm run korea:sns                       # 今週の進捗・未報告・成果をまとめる
 npm run korea:sns -- --month=2026-09 --send   # 月次まとめをChatworkへ
+npm run korea:sheet                     # Excel管理表（撮影/投稿スケジュール・案件進捗）
 ```
 
 - 事前共有は **撮影日の2日前まで**。破ると週次レポートに 🔴 で出ます（`[ONA] …` とアカウント名つき）。
