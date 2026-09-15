@@ -60,6 +60,10 @@ def classify_product(name):
             k = z2h(kw).upper()
             if k and k in upper:
                 return p['canonical']
+    # ジップタイプはキャンペーン名の「J」表記（他のどの商品キーワードにも
+    # 一致しなかった場合のみ）。例: J新規 / Jリタゲ
+    if 'ジップ' in upper or 'ZIP' in upper or 'J' in upper:
+        return 'ジップ'
     return RULES.get('unknown_product', '未分類')
 
 
@@ -68,8 +72,8 @@ RPP_MAP = [
     ('LIBETEE001', '多機能PC'),      # libetee より先に判定する
     ('SKARUMIN', 'ノーマルアルミ'),
     ('LIBETEE', '多機能アルミ'),
+    ('ZIPSUITCASE', 'ジップ'),       # SUITCASE より先に判定する（部分一致のため）
     ('SUITCASE', '多機能PC'),
-    ('ZIPSUITCASE', '多機能PC'),
     ('OUTDOORSK', 'アウトドア'),
 ]
 
