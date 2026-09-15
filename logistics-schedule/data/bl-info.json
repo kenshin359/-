@@ -197,17 +197,43 @@
     "warehouse_in": "2026-09-13"
   },
   "CAAU8818353": {
-    "bl_surrendered": "",
+    "bl_surrendered": "済(9/12)",
     "container_type": "40HQ",
     "seal_no": "IAAJ509405",
     "total_cartons": 607,
-    "status": "完了",
-    "docs_status": "一部",
+    "status": "通関待ち",
+    "docs_status": "完備",
     "order_no": "LM260512",
     "products": "PC多機能L 28インチ(エナメル銀208/マット黒399)",
-    "memo": "9/12通関完了。※着予定は9/14だったため実着日は要確認。BL・アライバルの現物も未受領。 5/12注文のL分。PC多機能L 607個。9/3出荷。9/14大阪着予定。BL・アライバル待ち。",
-    "next_action": "ドレー手配→入庫",
-    "arrival_date": "2026-09-14",
-    "customs_date": "2026-09-12"
+    "memo": "5/12注文のL分。PC多機能L 28インチ(エナメル銀208/マット黒399)=607個。9/3出荷。書類3点完備(HBL GZTLF2609001サレンダー済9/12・AN 9/14発行)。本船INTERASIA TENACITY N023・9/15大阪着。CY:南港C-9三菱倉庫。※PL/BL/AN の数量・重量・CBM すべて一致を確認済み。",
+    "next_action": "9/15着後 通関依頼",
+    "arrival_date": "2026-09-15",
+    "hbl_no": "GZTLF2609001",
+    "mbl_no": "A33GY06746",
+    "vessel": "INTERASIA TENACITY N023",
+    "pol": "SHEKOU, CHINA",
+    "pod": "OSAKA, JAPAN",
+    "ref_no": "TGL26-1703",
+    "cy": "南港C-9 三菱倉庫",
+    "cy_tel": "06-6612-4861",
+    "notify_code": "4LMWC",
+    "qty_check": {
+      "packing_list": 607,
+      "bl": 607,
+      "arrival_notice": 607,
+      "result": "一致"
+    },
+    "weight_check": {
+      "packing_list": 5189.85,
+      "bl": 5190.0,
+      "arrival_notice": 5190.0,
+      "result": "一致(四捨五入)"
+    },
+    "cbm_check": {
+      "packing_list": 67.83225,
+      "bl": 67.83,
+      "arrival_notice": 67.83,
+      "result": "一致"
+    }
   }
 }
