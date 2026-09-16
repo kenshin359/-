@@ -11,7 +11,7 @@
 - Neon は Free プランで開始可能（DB容量0.5GB・自動停止あり）。安定運用に入ったら Launch（$19/月〜）へ。
 
 ### 初回セットアップ（30分程度）
-1. **Neon** (https://neon.tech) に会社メールで登録 → 「New Project」→ Region は **Asia Pacific (Singapore)**（東京は無い）。
+1. **Neon** (https://neon.tech) に会社メールで登録 → 「New Project」→ Region は **AWS US East 2 (Ohio)** で作成済み（2026-09-16）。アプリ側(Vercel)は同じ米国東部 iad1 に置いてDBとの往復を短くする。
    - 「Connection string」で **Pooled connection** と **Direct connection**（Poolerのチェックを外したもの）の2つをコピーしておく。
 2. **Vercel** (https://vercel.com) に会社メールで登録し GitHub と連携 → 「Add New Project」→ リポジトリ `kenshin359/-` を Import。
    - **Root Directory** を `dashboard` にする（重要）。Framework は Next.js が自動検出される。
