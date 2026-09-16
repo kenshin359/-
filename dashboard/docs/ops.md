@@ -33,7 +33,12 @@ docker compose logs -f app   # "Ready" が出れば起動完了
 ブラウザで `https://<DOMAIN>` を開き、デモユーザーでログインできることを確認。
 
 ### 初回後に必ずやること
-- 実ユーザー（管理者・編集者・閲覧者）を登録し、デモユーザー（*@demo.local）を削除する
+- 実ユーザーを登録する。最初の管理者はCLIで作る（以降は画面「各種マスター管理 > ユーザー管理」で追加可能）:
+  ```bash
+  docker compose exec app node node_modules/tsx/dist/cli.mjs scripts/create-user.ts \
+    --email 本人のメール --name "塚本 崚太郎" --role admin --password "10文字以上"
+  ```
+- デモユーザー（*@demo.local）をユーザー管理画面から削除する
 - `.env` の `SEED_DEMO` を `0` に戻す（次回起動時にデモを再投入しない）
 - `.env` はサーバー上にだけ置き、Git にコミットしない
 

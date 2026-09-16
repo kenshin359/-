@@ -56,12 +56,6 @@ function LoginForm() {
       >
         {busy ? 'サインイン中…' : 'サインイン'}
       </button>
-      <div className="rounded-md bg-slate-50 p-3 text-xs leading-5 text-slate-500">
-        デモアカウント:
-        <br />admin@demo.local / admin1234（管理者）
-        <br />editor@demo.local / editor1234（編集者）
-        <br />viewer@demo.local / viewer1234（閲覧者）
-      </div>
     </form>
   );
 }
