@@ -1,0 +1,287 @@
+// Libetee 経営AIダッシュボード — 初期版はSQLite（本番はprovider切替でPostgres移行）
+// 金額はすべて税抜・円・整数。率はアプリ層で計算（docs/metrics.md）。
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  passwordHash String
+  role         String   // admin | editor | viewer
+  createdAt    DateTime @default(now())
+  auditLogs    AuditLog[]
+  tasks        Task[]   @relation("assignee")
+}
+
+model Channel {
+  id       String @id @default(cuid())
+  code     String @unique // rakuten | amazon | own
+  name     String
+  active   Boolean @default(true)
+  orders   Order[]
+  access   AccessDaily[]
+}
+
+model Media {
+  id     String @id @default(cuid())
+  code   String @unique // meta_travel | meta_catalog | rpp | amazon_ads | google
+  name   String
+  active Boolean @default(true)
+  ads    AdDaily[]
+}
+
+model Warehouse {
+  id    String @id @default(cuid())
+  code  String @unique
+  name  String
+  moves InventoryMove[]
+}
+
+model Supplier {
+  id   String @id @default(cuid())
+  code String @unique
+  name String
+  pos  PurchaseOrder[]
+}
+
+model ProductSeries {
+  id    String @id @default(cuid())
+  code  String @unique
+  name  String
+  skus  Sku[]
+}
+
+model Sku {
+  id        String @id @default(cuid())
+  code      String @unique
+  seriesId  String
+  series    ProductSeries @relation(fields: [seriesId], references: [id])
+  size      String?
+  color     String?
+  name      String
+  active    Boolean @default(true)
+  costs     SkuCost[]
+  items     OrderItem[]
+  moves     InventoryMove[]
+  poLines   PoLine[]
+}
+
+// 有効期間付き原価（過去取引の原価を書き換えない）
+model SkuCost {
+  id        String   @id @default(cuid())
+  skuId     String
+  sku       Sku      @relation(fields: [skuId], references: [id])
+  unitCost  Int      // 円
+  validFrom DateTime
+  validTo   DateTime?
+  @@index([skuId, validFrom])
+}
+
+model Order {
+  id              String   @id @default(cuid())
+  demo            Boolean  @default(false)
+  channelId       String
+  channel         Channel  @relation(fields: [channelId], references: [id])
+  storeCode       String   @default("main")
+  orderNo         String   // チャネル内注文ID
+  orderDate       DateTime
+  shipDate        DateTime?
+  status          String   // ordered | shipped | cancelled
+  shippingRevenue Int      @default(0)
+  discount        Int      @default(0)
+  taxMode         String   @default("exclusive") // exclusive | inclusive | unknown
+  items           OrderItem[]
+  refunds         Refund[]
+  @@unique([channelId, storeCode, orderNo])
+  @@index([shipDate])
+}
+
+model OrderItem {
+  id         String @id @default(cuid())
+  orderId    String
+  order      Order  @relation(fields: [orderId], references: [id])
+  lineNo     Int
+  skuId      String
+  sku        Sku    @relation(fields: [skuId], references: [id])
+  qty        Int
+  unitPrice  Int    // 税抜円
+  costAtSale Int?   // 取引時点原価（未登録はnull=暫定）
+  @@unique([orderId, lineNo])
+  @@index([skuId])
+}
+
+model Refund {
+  id         String   @id @default(cuid())
+  orderId    String
+  order      Order    @relation(fields: [orderId], references: [id])
+  refundDate DateTime
+  amount     Int
+  reason     String?
+  restock    Boolean  @default(false)
+  @@index([refundDate])
+}
+
+model AdDaily {
+  id                 String   @id @default(cuid())
+  demo               Boolean  @default(false)
+  date               DateTime
+  mediaId            String
+  media              Media    @relation(fields: [mediaId], references: [id])
+  account            String   @default("main")
+  campaign           String   @default("-")
+  spend              Int
+  impressions        Int?
+  clicks             Int?
+  mediaCv            Int?
+  attributedRevenue  Int?     // 媒体報告。未取得はnull（総売上で代用しない）
+  attributionWindow  String?  // 例: 7d_click_1d_view
+  @@unique([date, mediaId, account, campaign])
+}
+
+model AccessDaily {
+  id        String   @id @default(cuid())
+  demo      Boolean  @default(false)
+  date      DateTime
+  channelId String
+  channel   Channel  @relation(fields: [channelId], references: [id])
+  sessions  Int
+  users     Int?
+  pv        Int?
+  @@unique([date, channelId])
+}
+
+model Cost {
+  id         String   @id @default(cuid())
+  demo       Boolean  @default(false)
+  date       DateTime
+  scope      String   // all | channel | sku
+  scopeCode  String   @default("all")
+  costType   String   // commission | shipping | other_variable
+  amount     Int
+  isEstimate Boolean  @default(false)
+  @@unique([date, scope, scopeCode, costType])
+}
+
+model InventoryMove {
+  id          String   @id @default(cuid())
+  demo        Boolean  @default(false)
+  date        DateTime
+  skuId       String
+  sku         Sku      @relation(fields: [skuId], references: [id])
+  warehouseId String
+  warehouse   Warehouse @relation(fields: [warehouseId], references: [id])
+  moveType    String   // in | out | return | adjust
+  qty         Int      // inは正、outは負で保存
+  reason      String?
+  operator    String?
+  poLineId    String?  @unique // 入庫確定元（二重確定防止）
+  @@index([skuId, date])
+}
+
+model PurchaseOrder {
+  id         String   @id @default(cuid())
+  demo       Boolean  @default(false)
+  poNo       String   @unique
+  supplierId String
+  supplier   Supplier @relation(fields: [supplierId], references: [id])
+  status     String   // research | quote | sample | test_sale | ordered | producing | shipped | received | archived
+  assignee   String?
+  etaDate    DateTime?
+  memo       String?
+  createdAt  DateTime @default(now())
+  lines      PoLine[]
+}
+
+model PoLine {
+  id        String  @id @default(cuid())
+  poId      String
+  po        PurchaseOrder @relation(fields: [poId], references: [id])
+  skuId     String
+  sku       Sku     @relation(fields: [skuId], references: [id])
+  qty       Int
+  unitCost  Int
+  currency  String  @default("JPY")
+  fxRate    Float?  // 外貨時: 元通貨額×レート=円換算
+  received  Boolean @default(false) // 入庫確定済みフラグ（一度だけ在庫反映）
+  @@unique([poId, skuId])
+}
+
+model Target {
+  id        String @id @default(cuid())
+  month     String // YYYY-MM
+  scope     String // all | channel | media
+  scopeCode String @default("all")
+  metric    String // sales | profit | ad_budget
+  amount    Int
+  updatedBy String?
+  updatedAt DateTime @updatedAt
+  @@unique([month, scope, scopeCode, metric])
+}
+
+model Task {
+  id         String   @id @default(cuid())
+  title      String
+  assigneeId String?
+  assignee   User?    @relation("assignee", fields: [assigneeId], references: [id])
+  dueDate    DateTime?
+  priority   String   @default("mid") // high | mid | low
+  status     String   @default("todo") // todo | doing | waiting | done
+  relation   String?  // 関連商品・媒体
+  proposalId String?  @unique // 提案からの二重タスク化防止
+  doneMemo   String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Proposal {
+  id          String   @id @default(cuid())
+  source      String   @default("rule") // rule | llm
+  ruleCode    String?
+  title       String
+  priority    Int      @default(2)
+  targetLabel String?
+  facts       String   // 観測事実と根拠数値(JSON文字列)
+  period      String?
+  dataAsOf    DateTime?
+  hypothesis  String?
+  action      String?
+  effectNote  String?  // 効果試算（式・前提・「予測」ラベル）根拠なしで金額を生成しない
+  status      String   @default("open") // open | adopted | held | rejected
+  statusNote  String?
+  createdAt   DateTime @default(now())
+}
+
+model ImportBatch {
+  id           String   @id @default(cuid())
+  fileName     String
+  dataType     String
+  rowCount     Int
+  errorCount   Int
+  status       String   // success | failed | partial
+  executedById String?
+  version      String   @default("v1")
+  rawPath      String?
+  createdAt    DateTime @default(now())
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
+  action    String
+  detail    String?
+  createdAt DateTime @default(now())
+}
+
+model Setting {
+  key   String @id
+  value String
+}

@@ -1,5 +1,13 @@
 # リベティ運用メモ（Claude向け）
 
+## 経営AIダッシュボード（dashboard/）
+
+`dashboard/` はNext.js+Prisma(SQLite)の業務ダッシュボード。開発時は必ず以下を守る:
+- 仕様は `dashboard/docs/spec.md`、指標定義は `dashboard/docs/metrics.md`、CSV/DB粒度は `dashboard/docs/data-contracts.md` が正。進捗・判断記録は `dashboard/docs/progress.md` を更新する。
+- 集計は必ず `src/lib/metrics/` を通す（画面ごとの独自計算・数値のハードコード禁止）。変更したら `npm run test`（検算17件）と `npm run build` を通してからコミット。
+- demo=true のデータは実データ集計から常に排他。未接続の外部連携は「未接続」表示（成功と偽らない）。ROASは帰属売上未取得なら「未取得」（総売上÷広告費で代用しない）。
+- `.env` と `*.db` はコミットしない（`.env.example` のみ可・本物の秘密を入れない）。
+
 ## 合言葉コマンド
 
 ユーザー（北野さん）が以下の合言葉を送ってきたら、対応するアクションを実行する。
