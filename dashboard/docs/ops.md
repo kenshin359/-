@@ -2,7 +2,43 @@
 
 最終更新: 2026-09-16
 
-## 0. サーバーの種類について（重要）
+## ★ 採用構成: Vercel ＋ Neon（2026-09-16 北野さん決定）
+
+サーバー管理なし・HTTPS自動・GitHubへのpushで自動デプロイ。以下が本番の標準手順。VPS/Dockerの手順（1章以降）は代替案として残す。
+
+### 料金の注意
+- Vercel の無料プラン（Hobby）は**商用利用不可**の規約。会社利用は **Pro（$20/月/ユーザー）** を契約する。デプロイする人（席）は1人で足りる（閲覧者はVercelアカウント不要）。
+- Neon は Free プランで開始可能（DB容量0.5GB・自動停止あり）。安定運用に入ったら Launch（$19/月〜）へ。
+
+### 初回セットアップ（30分程度）
+1. **Neon** (https://neon.tech) に会社メールで登録 → 「New Project」→ Region は **Asia Pacific (Singapore)**（東京は無い）。
+   - 「Connection string」で **Pooled connection** と **Direct connection**（Poolerのチェックを外したもの）の2つをコピーしておく。
+2. **Vercel** (https://vercel.com) に会社メールで登録し GitHub と連携 → 「Add New Project」→ リポジトリ `kenshin359/-` を Import。
+   - **Root Directory** を `dashboard` にする（重要）。Framework は Next.js が自動検出される。
+   - Build Command は `vercel.json` に書いてあるので変更不要（Prisma生成→DBマイグレーション→初回管理者作成→ビルド）。
+3. Environment Variables に以下を設定（Production）:
+   | 変数 | 値 |
+   |---|---|
+   | `DATABASE_URL` | Neon の Pooled connection string。末尾に `?sslmode=require&pgbouncer=true&connection_limit=1` を付ける |
+   | `DIRECT_URL` | Neon の Direct connection string（末尾 `?sslmode=require`） |
+   | `NEXTAUTH_SECRET` | `openssl rand -base64 32` の出力（Macのターミナルか https://generate-secret.vercel.app/32 で生成） |
+   | `NEXTAUTH_URL` | `https://<プロジェクト名>.vercel.app`（独自ドメイン設定後はそのURLに変更） |
+   | `INITIAL_ADMIN_EMAIL` | 最初の管理者のメール（例: 北野さん） |
+   | `INITIAL_ADMIN_NAME` | 氏名 |
+   | `INITIAL_ADMIN_PASSWORD` | 初期パスワード（10文字以上） |
+4. 「Deploy」。完了後 `https://<プロジェクト名>.vercel.app` を開き、INITIAL_ADMIN_* のメール／パスワードでログイン。
+5. ログインできたら Vercel の環境変数から `INITIAL_ADMIN_*` の3つを削除（以降のユーザー追加は画面の「各種マスター管理 > ユーザー管理」で行う）。
+6. Settings > Git > **Production Branch** を `claude/kintone-daily-report-system-f8migr`（ダッシュボードのコードがあるブランチ）にする。以後このブランチへの push で自動更新。
+
+### 独自ドメイン（例 dashboard.libetee.net）
+Vercel の Settings > Domains にドメインを追加すると CNAME の値が表示される。Wix のドメイン管理（DNSレコード）で `dashboard` の CNAME をその値に向ける。反映後、`NEXTAUTH_URL` を `https://dashboard.libetee.net` に変更して Redeploy。
+
+### 更新・バックアップ
+- コード更新: ブランチへ push するだけ（Vercelが自動ビルド。失敗時は前のバージョンが残る）。
+- DBバックアップ: Neon は7日間の履歴（Point-in-time restore）が標準。加えて月1回、Neon のダッシュボードから `pg_dump` 相当のエクスポートを取り Google Drive 等に保存する。
+- デモデータ: Vercel では投入しない（実データのみ）。
+
+## 0. サーバーの種類について（VPS案・代替）
 
 このアプリは Node.js のサーバープロセスとして動きます。**共用レンタルサーバー（ロリポップ／さくらのレンタルサーバ／エックスサーバー共用プラン等）は Node.js アプリを常駐できないため動きません。**
 「レンタルサーバー」として契約するなら **VPS**（さくらのVPS／Xserver VPS／ConoHa VPS／KAGOYA 等、月1,000〜2,000円台の2GBメモリ以上プラン）を選んでください。VPSなら Docker で下記の手順どおりに配置でき、全員がブラウザから同じURLで閲覧できます。

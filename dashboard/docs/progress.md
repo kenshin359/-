@@ -46,6 +46,15 @@
 - ログイン画面のデモアカウント表示を削除（公開運用のため。デモ情報はREADMEのみ）
 - 検証: 北野さんアカウントでログイン→ユーザー管理表示→画面から追加→削除、viewerは拒否表示、をPlaywrightで確認
 
+## 2026-09-16 配置先決定: Vercel ＋ Neon（北野さん回答）
+- `vercel.json`（buildCommand: prisma generate → migrate deploy → bootstrap-admin → next build、region hnd1）
+- `scripts/bootstrap-admin.ts`: ユーザー0人かつ INITIAL_ADMIN_* 設定時のみ初回管理者を作成
+- Postgresスキーマに `directUrl`（Neonプーリング対策）。`output: standalone` はVercelでは無効化
+- ログインロックをDB保存（LoginFailureテーブル）に変更: サーバーレスでもプロセス間で共有される
+- 北野さんのログインIDを実メールに変更（開発DBのみ・コミットしない）。塚本さんの実メールは未受領
+- docs/ops.md にVercel手順（料金注意: Hobbyは商用不可→Pro必須）を追記
+- 未検証: Vercel上での実デプロイ（アカウント作成待ち）。ローカルでは検算・ビルド・ロック動作を再確認
+
 ## 次の作業
 1. CSV取込UI（マッピング→プレビュー→検証→確定、UPSERT・取込履歴・原本保持）
 2. 売上・利益／広告分析／商品分析画面（指標辞書ベース）

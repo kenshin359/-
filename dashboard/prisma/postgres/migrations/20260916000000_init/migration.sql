@@ -303,6 +303,15 @@ CREATE TABLE "Setting" (
     CONSTRAINT "Setting_pkey" PRIMARY KEY ("key")
 );
 
+-- CreateTable
+CREATE TABLE "LoginFailure" (
+    "email" TEXT NOT NULL,
+    "count" INTEGER NOT NULL DEFAULT 0,
+    "until" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "LoginFailure_pkey" PRIMARY KEY ("email")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 

@@ -3,7 +3,10 @@
 # schema.prisma を変更したら必ず実行し、生成物もコミットすること。
 set -e
 cd "$(dirname "$0")/.."
-sed 's/provider = "sqlite"/provider = "postgresql"/' prisma/schema.prisma > prisma/postgres/schema.prisma
+# provider を postgresql に、マイグレーション用の直結URL(DIRECT_URL)を追加（Neon等のプーリング接続対策）
+sed -e 's/provider = "sqlite"/provider = "postgresql"/' \
+    -e 's|url      = env("DATABASE_URL")|url       = env("DATABASE_URL")\n  directUrl = env("DIRECT_URL")|' \
+    prisma/schema.prisma > prisma/postgres/schema.prisma
 mkdir -p prisma/postgres/migrations/20260916000000_init
 npx prisma migrate diff --from-empty --to-schema-datamodel prisma/postgres/schema.prisma --script \
   > prisma/postgres/migrations/20260916000000_init/migration.sql

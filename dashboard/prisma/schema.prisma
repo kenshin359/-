@@ -285,3 +285,10 @@ model Setting {
   key   String @id
   value String
 }
+
+// ログイン失敗回数（サーバーレス環境でもプロセスをまたいでロックを効かせるためDBに持つ）
+model LoginFailure {
+  email String   @id
+  count Int      @default(0)
+  until DateTime
+}

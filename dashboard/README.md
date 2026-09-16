@@ -37,11 +37,11 @@ npm run build    # 型チェック込みのビルド
 - `data-contracts.md` — 統一CSVとDBの粒度規則
 - `progress.md` — 進捗・状態管理・判断記録
 
-## 本番配置（VPS + Docker）
+## 本番配置（Vercel + Neon Postgres）
 
-手順は `docs/ops.md`。要点: `cp .env.production.example .env` → 値を設定 → `docker compose up -d --build`。
-Postgres用スキーマは `prisma/postgres/`（`scripts/sync-postgres-schema.sh` で開発用SQLiteスキーマから再生成）。
-共用レンタルサーバーでは動作しません（Node.js常駐が必要）。
+手順は `docs/ops.md` 冒頭。Vercel の Root Directory を `dashboard` にし、環境変数（DATABASE_URL / DIRECT_URL / NEXTAUTH_SECRET / NEXTAUTH_URL / INITIAL_ADMIN_*）を設定して Deploy するだけ。`vercel.json` の buildCommand がマイグレーションと初回管理者作成まで行う。
+代替として VPS + Docker の手順も同じ文書にある。Postgres用スキーマは `prisma/postgres/`（`scripts/sync-postgres-schema.sh` で開発用SQLiteスキーマから再生成）。
+共用レンタルサーバーや Wix では動作しません（Node.js 実行環境が必要）。
 
 ## 運用メモ
 
