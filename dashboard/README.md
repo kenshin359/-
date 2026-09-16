@@ -37,12 +37,11 @@ npm run build    # 型チェック込みのビルド
 - `data-contracts.md` — 統一CSVとDBの粒度規則
 - `progress.md` — 進捗・状態管理・判断記録
 
-## 本番DB（Postgres）への移行
+## 本番配置（VPS + Docker）
 
-1. `prisma/schema.prisma` の `provider = "sqlite"` を `postgresql` に変更
-2. `.env` の `DATABASE_URL` をPostgresの接続文字列へ
-3. `npx prisma migrate dev --name init-postgres` でマイグレーション再生成
-4. 金額は整数（円）・率はアプリ層計算のため、データ変換は不要
+手順は `docs/ops.md`。要点: `cp .env.production.example .env` → 値を設定 → `docker compose up -d --build`。
+Postgres用スキーマは `prisma/postgres/`（`scripts/sync-postgres-schema.sh` で開発用SQLiteスキーマから再生成）。
+共用レンタルサーバーでは動作しません（Node.js常駐が必要）。
 
 ## 運用メモ
 

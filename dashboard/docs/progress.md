@@ -31,6 +31,14 @@
 - 経営サマリー画面（Recharts。headless撮影時に系列が消えるため isAnimationActive=false を指定）
 - `npm run build` 成功、本番モードで起動し 1440px/390px スクリーンショット確認
 
+## 2026-09-16 配置準備（北野さん回答: レンタルサーバーで全員閲覧）
+- 判断: 共用レンタルサーバーはNode常駐不可のため **VPS + Docker（Postgres + Caddy自動HTTPS）** を標準構成に決定（docs/ops.md）
+- 追加: `output: standalone` / Dockerfile / docker-compose.yml / Caddyfile / .env.production.example / docker-entrypoint.sh（起動時に migrate deploy）
+- Postgres用スキーマ `prisma/postgres/schema.prisma` と初期マイグレーションSQL（23テーブル）を `scripts/sync-postgres-schema.sh` でオフライン生成
+- 公開運用対策: ログイン10回失敗で15分ロック（同一メール）
+- 検証: 検算17件成功 / standaloneビルドを本番同様に起動し、adminログイン→KPI表示・viewerのPOST 403・ロック動作をPlaywrightで確認
+- 未検証: Docker イメージのビルドはこの開発環境にDockerデーモンが無いため未実施（VPS上での初回 `docker compose up` で確認する）
+
 ## 次の作業
 1. CSV取込UI（マッピング→プレビュー→検証→確定、UPSERT・取込履歴・原本保持）
 2. 売上・利益／広告分析／商品分析画面（指標辞書ベース）
