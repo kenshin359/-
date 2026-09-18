@@ -283,6 +283,8 @@ model Document {
   department String? // 部署・チーム
   url        String
   note       String?
+  tags       String? // カンマ区切り（資料庫2.0の横断検索用）
+  docType    String? // manual | contract | product | ad | logistics | hr | other
   ownerId    String?
   ownerName  String?
   createdAt  DateTime @default(now())
