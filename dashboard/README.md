@@ -44,6 +44,11 @@ npm run build    # 型チェック込みのビルド
 代替として VPS + Docker の手順も同じ文書にある。Postgres用スキーマは `prisma/postgres/`（`scripts/sync-postgres-schema.sh` で開発用SQLiteスキーマから再生成）。
 共用レンタルサーバーや Wix では動作しません（Node.js 実行環境が必要）。
 
+## タスク管理と資料庫
+
+- `/tasks` は Kintone「タスク管理（チーム進捗）」(38) が正。`.env` に `KINTONE_BASE_URL` / `KINTONE_TASK_APP_ID` / `KINTONE_API_TOKEN_TASK` を設定すると直接読み書きし、未設定の間は「未接続」と表示してこのDBに保存する。
+- `/documents` は Googleドライブ等のリンクをカテゴリ付きで管理する（ファイル本体は保存しない）。登録・編集は editor 以上。
+
 ## 運用メモ
 
 - 実データ（demo=false）が1件でも入るとダッシュボードは自動で実データ表示へ切替わる（デモは常に集計から除外）

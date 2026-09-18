@@ -19,11 +19,11 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       <Sidebar />
       <div className="lg:pl-[220px]">
         <header className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white px-4 py-2.5 pl-14 lg:px-6 lg:pl-6">
-          <div>
-            <h1 className="text-sm font-bold text-slate-800">Libetee 経営AIダッシュボード</h1>
+          <div className="min-w-0">
+            <h1 className="truncate text-sm font-bold text-slate-800">Libetee 経営AIダッシュボード</h1>
           </div>
-          <div className="flex items-center gap-3 text-xs text-slate-600">
-            <span>
+          <div className="flex shrink-0 items-center gap-3 text-xs text-slate-600">
+            <span className="hidden sm:inline">
               {session.user.name}（{ROLE_JA[session.user.role] ?? session.user.role}）
             </span>
             <SignOutButton />

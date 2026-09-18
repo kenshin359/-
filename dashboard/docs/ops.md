@@ -22,6 +22,7 @@
    | `DATABASE_URL` | Neon の Pooled connection string。末尾に `?sslmode=require&pgbouncer=true&connection_limit=1` を付ける |
    | `DIRECT_URL` | Neon の Direct connection string（末尾 `?sslmode=require`） |
    | `NEXTAUTH_SECRET` | `openssl rand -base64 32` の出力（Macのターミナルか https://generate-secret.vercel.app/32 で生成） |
+   | `KINTONE_BASE_URL` / `KINTONE_TASK_APP_ID` / `KINTONE_API_TOKEN_TASK` | 任意。タスク管理画面をKintone「タスク管理（チーム進捗）」(38)と同期するとき。トークンはそのアプリで「レコード閲覧・追加・編集」権限で発行。未設定の間は画面に「未接続」と出てダッシュボード内DBに保存 |
    | `NEXTAUTH_URL` | `https://<プロジェクト名>.vercel.app`（独自ドメイン設定後はそのURLに変更） |
    | `INITIAL_ADMIN_EMAIL` | 最初の管理者のメール（例: 北野さん） |
    | `INITIAL_ADMIN_NAME` | 氏名 |

@@ -1,11 +1,35 @@
-export default function Page() {
+import type { Metadata } from 'next';
+import { getServerSession } from 'next-auth';
+import { authOptions, canWrite } from '@/lib/auth';
+import { computeBoardStats, listTasks } from '@/lib/tasks';
+import TaskBoard, { type BoardFilter } from './TaskBoard';
+
+export const dynamic = 'force-dynamic';
+export const metadata: Metadata = { title: 'タスク管理' };
+
+const FILTERS: BoardFilter[] = ['all', 'today', 'overdue', 'p1', 'open'];
+
+export default async function TasksPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ filter?: string }>;
+}) {
+  const [session, data, params] = await Promise.all([getServerSession(authOptions), listTasks(), searchParams]);
+  const stats = computeBoardStats(data.tasks);
+  const f = params.filter as BoardFilter | undefined;
+  const initialFilter: BoardFilter = f && FILTERS.includes(f) ? (f === 'open' ? 'all' : f) : 'all';
+
   return (
-    <div className="rounded-xl bg-white p-6 shadow-sm">
-      <h1 className="text-lg font-bold text-slate-800">タスク管理</h1>
-      <p className="mt-2 text-sm text-slate-500">
-        この画面は次工程で実装します（docs/progress.md の状態管理表を参照）。
-        集計はダッシュボードと同じ指標辞書（docs/metrics.md）を使用します。
-      </p>
-    </div>
+    <TaskBoard
+      tasks={data.tasks}
+      options={data.options}
+      stats={stats}
+      source={data.source}
+      notice={data.notice}
+      appId={data.appId}
+      canEdit={canWrite(session?.user.role)}
+      currentUserName={session?.user.name ?? ''}
+      initialFilter={initialFilter}
+    />
   );
 }

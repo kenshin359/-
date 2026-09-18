@@ -2,20 +2,105 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Libetee 経営AIダッシュボード — 共通トークン
+   濃紺サイドバー(#172554系) + 白カード + slate中立色 を継承。
+   アクセントは選択・主要操作・状態表示だけに使う。 */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f1f5f9; /* slate-100 */
+  --foreground: #0f172a; /* slate-900 */
+  --surface: #ffffff;
+  --line: #e2e8f0; /* slate-200 */
+  --accent: #1e3a8a; /* blue-900 */
+  --accent-strong: #172554; /* blue-950 */
+  --selection: #dbeafe;
+  --ring: #2563eb;
+  --danger: #dc2626;
+  --warn: #d97706;
+  --ok: #059669;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  color-scheme: light;
 }
 
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic', Meiryo,
+    system-ui, sans-serif;
+  font-feature-settings: 'palt' 1;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--selection);
+  color: var(--accent-strong);
+}
+
+:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+input,
+select,
+textarea,
+button {
+  font: inherit;
+  accent-color: var(--accent);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #64748b; /* slate-500: 4.6:1 on white */
+}
+
+/* 数字は等幅で桁を揃える（表・期限・件数） */
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* 横スクロールするボード・表のスクロールバーを世界観に合わせる */
+.scroll-x {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+.scroll-x::-webkit-scrollbar {
+  height: 8px;
+  width: 8px;
+}
+.scroll-x::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 999px;
+}
+.scroll-x::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+.scroll-x::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* カードの入場: 状態変化のときだけ、ごく短く */
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.rise-in {
+  animation: rise-in 180ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rise-in {
+    animation: none;
+  }
+  * {
+    transition-duration: 0.01ms !important;
+  }
 }
