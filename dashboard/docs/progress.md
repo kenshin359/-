@@ -114,3 +114,10 @@
 4. 提案ルールの閾値設定画面＋提案→タスク化ボタン
 5. Playwright E2E（ログイン→取込→ダッシュボード反映の主要導線）
 6. 合算CPA: GitHub Actions（大怪獣ワチソンCPA）から `/ads/cpa` へ自動投入するAPI（トークン認証）・ダッシュボードKPIへの合算CPA表示
+
+## 2026-09-18 本番に実数を表示（Kintone トークン無しで動く取込経路）
+- 北野さん指摘「数値が記載されていない」→ 本番は Kintone KPI トークン未設定のため 売上・広告費が「未接続」だった
+- 対応: 日次KPIキャッシュ `KpiDaily`（Postgres 差分マイグレーション `20260918120000_kpi_daily`）＋ `/api/pro/ingest`（Bearer INGEST_SECRET／CRON_SECRET、UPSERT）＋ `kpi-kintone.ts` の「Kintone → 取込キャッシュ → 未接続」フォールバック。/pro では「売上・広告費: 取込データ（最終 …）」と出所を明示
+- 取込元: 既存の GitHub Actions（月次SKU別まとめ＝`===DAILY_CH_B===`、広告費レポート dump＝`===ADCOST_DAILY_B===`）の A-J ログを `scripts/ingest-from-dumps.mjs` で復号（当日分と未来日は除外）
+- 不具合: 初回の送信が 405 → 原因は Vercel の WAF ではなく `src/middleware.ts` が `/api/pro/ingest` をログイン画面へ 307 していたため。認証除外に追加（route 側で Bearer 検証）
+- 自動化: `.github/workflows/dashboard-ingest.yml`（毎朝 11:20 JST＝広告費レポート 11:02 の後／手動可）。GitHub Secrets に `INGEST_SECRET`（Vercel と同じ値）が必要。値はチャット・リポジトリに置かない

@@ -1,0 +1,77 @@
+# ============================================================
+#  経営ダッシュボードへ日次データ取込（毎朝11:20 JST／手動）
+# ------------------------------------------------------------
+#  キントーンの売上明細・KPIアプリ添付から「日別×媒体の売上」と
+#  「日別×媒体の広告費」を集計し、本番ダッシュボード
+#  （https://libetee-dashboard.vercel.app）の /api/pro/ingest へ送ります。
+#  ★キントーンは読むだけ。書き込みは一切しません。
+#  ★広告費レポート（11:02）の後に走らせる（角南さんの朝のCSV添付を反映するため）。
+#  必要なSecrets: INGEST_SECRET（Vercelの INGEST_SECRET と同じ値）
+#  任意のSecrets: DASHBOARD_URL（空なら本番URL）
+# ============================================================
+name: ダッシュボード取込（毎朝11:20）
+
+on:
+  schedule:
+    # 日本時間 11:20 = 02:20 UTC
+    - cron: '20 2 * * *'
+  workflow_dispatch:
+    inputs:
+      month:
+        description: '対象月（YYYY-MM・空なら当月）'
+        required: false
+        default: ''
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 対象月を決める（JST）
+        id: m
+        run: |
+          if [ -n "${{ inputs.month }}" ]; then m="${{ inputs.month }}"; else m=$(TZ=Asia/Tokyo date +%Y-%m); fi
+          echo "month=$m" >> "$GITHUB_OUTPUT"
+          echo "対象月: $m"
+
+      - name: 日別×媒体の売上を集計（売上明細）
+        working-directory: daily-report-system
+        env:
+          KINTONE_BASE_URL: ${{ secrets.KINTONE_BASE_URL }}
+          KINTONE_USER: ${{ secrets.KINTONE_USER }}
+          KINTONE_PASSWORD: ${{ secrets.KINTONE_PASSWORD }}
+          KINTONE_SALES_DETAIL_APP_ID: ${{ secrets.KINTONE_SALES_DETAIL_APP_ID }}
+          APP_ENV: production
+          REPORT_TIMEZONE: Asia/Tokyo
+        run: node scripts/monthlySkuDaily.js --month=${{ steps.m.outputs.month }} | tee "$RUNNER_TEMP/sku.log"
+
+      - name: 日別×媒体の広告費を集計（KPIアプリ添付）
+        working-directory: daily-report-system
+        env:
+          KINTONE_BASE_URL: ${{ secrets.KINTONE_BASE_URL }}
+          KINTONE_USER: ${{ secrets.KINTONE_USER }}
+          KINTONE_PASSWORD: ${{ secrets.KINTONE_PASSWORD }}
+          KINTONE_KPI_APP_ID: ${{ secrets.KINTONE_KPI_APP_ID }}
+        run: |
+          pip install --quiet openpyxl
+          python3 scripts/adCostReport.py --dump --month=${{ steps.m.outputs.month }} | tee "$RUNNER_TEMP/ad.log"
+
+      - name: ダッシュボードへ送信
+        working-directory: dashboard
+        env:
+          INGEST_SECRET: ${{ secrets.INGEST_SECRET }}
+          DASHBOARD_URL: ${{ secrets.DASHBOARD_URL }}
+        run: |
+          if [ -z "$INGEST_SECRET" ]; then
+            echo "::error::GitHub Secrets に INGEST_SECRET がありません（Vercel の INGEST_SECRET と同じ値を登録してください）"; exit 1
+          fi
+          node scripts/ingest-from-dumps.mjs \
+            --sku="$RUNNER_TEMP/sku.log" --ad="$RUNNER_TEMP/ad.log" \
+            --url="${DASHBOARD_URL:-https://libetee-dashboard.vercel.app}" --secret="$INGEST_SECRET"
