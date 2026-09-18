@@ -5,6 +5,7 @@ import { buildSystemPrompt, generateAnswer } from '../answer';
 import { splitForLine } from '../client';
 import { checkEscalation } from '../escalation';
 import { loadKnowledge } from '../knowledge';
+import { GROUP_HELP, parseGroupCommand } from '../groupCommands';
 import { formatStaffNotice } from '../notify';
 import { computeLineSignature, verifyLineSignature } from '../signature';
 
@@ -125,10 +126,50 @@ describe('LINEの文字数制限と通知文', () => {
     for (const p of parts) expect(p.length).toBeLessThanOrEqual(4800);
   });
 
-  it('スタッフ通知にお客様の発言・AI回答・理由が入る', () => {
-    const s = formatStaffNotice({ lineUserId: 'Uxxx', userText: '返品したい', reply: '担当が確認します', reason: '注意語: 返品' });
+  it('スタッフ通知に案件番号・お客様の発言・AI回答・理由・返信方法が入る', () => {
+    const s = formatStaffNotice({ caseNo: 12, lineUserId: 'Uxxx', userText: '返品したい', reply: '担当が確認します', reason: '注意語: 返品' });
+    expect(s).toContain('#12');
     expect(s).toContain('返品したい');
     expect(s).toContain('担当が確認します');
     expect(s).toContain('注意語: 返品');
+    expect(s).toContain('「#12 返信文」');
+    expect(s).toContain('完了 #12');
+  });
+
+  it('進行中案件への追加メッセージは「追加」と分かる文面でAI回答を含まない', () => {
+    const s = formatStaffNotice({ caseNo: 3, lineUserId: 'U', userText: '注文番号は123です', reply: null, reason: '', followUp: true });
+    expect(s).toContain('#3 追加メッセージ');
+    expect(s).toContain('注文番号は123です');
+    expect(s).not.toContain('AIが送った一次回答');
+  });
+});
+
+describe('スタッフグループのコマンド解釈', () => {
+  it('「#番号 返信文」を返信コマンドにする（全角#・全角数字・改行込みも可）', () => {
+    expect(parseGroupCommand('#12 ご注文を確認しました。明日発送します')).toEqual({ kind: 'reply', no: 12, text: 'ご注文を確認しました。明日発送します' });
+    expect(parseGroupCommand('＃１２　ありがとうございます')).toEqual({ kind: 'reply', no: 12, text: 'ありがとうございます' });
+    expect(parseGroupCommand('#5\n1行目\n2行目')).toEqual({ kind: 'reply', no: 5, text: '1行目\n2行目' });
+  });
+
+  it('完了・一覧・登録・ヘルプ', () => {
+    expect(parseGroupCommand('完了 #12')).toEqual({ kind: 'close', no: 12 });
+    expect(parseGroupCommand('完了12')).toEqual({ kind: 'close', no: 12 });
+    expect(parseGroupCommand('#12 完了')).toEqual({ kind: 'close', no: 12 });
+    expect(parseGroupCommand('一覧')).toEqual({ kind: 'list' });
+    expect(parseGroupCommand('スタッフ登録')).toEqual({ kind: 'register' });
+    expect(parseGroupCommand('ヘルプ')).toEqual({ kind: 'help' });
+  });
+
+  it('雑談やコマンドでない文には反応しない', () => {
+    expect(parseGroupCommand('今日の売上どうでした？')).toEqual({ kind: 'none' });
+    expect(parseGroupCommand('#12')).toEqual({ kind: 'none' });
+    expect(parseGroupCommand('')).toEqual({ kind: 'none' });
+    expect(parseGroupCommand('案件#12は対応済みです')).toEqual({ kind: 'none' });
+  });
+
+  it('ヘルプに主要コマンドが載っている', () => {
+    expect(GROUP_HELP).toContain('#番号 返信文');
+    expect(GROUP_HELP).toContain('完了 #番号');
+    expect(GROUP_HELP).toContain('一覧');
   });
 });

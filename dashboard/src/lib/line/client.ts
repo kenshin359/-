@@ -5,7 +5,8 @@
  * 1メッセージ5000文字・1回5吹き出しの制限に合わせて自動分割する。
  */
 
-const API_BASE = 'https://api.line.me/v2/bot';
+// テスト時だけ LINE_API_BASE でモックサーバーに向けられる（本番では設定しない）
+const API_BASE = (process.env.LINE_API_BASE || '').trim() || 'https://api.line.me/v2/bot';
 const MAX_CHARS = 4800;
 const MAX_BUBBLES = 5;
 

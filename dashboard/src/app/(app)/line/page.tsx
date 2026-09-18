@@ -1,8 +1,11 @@
 import Link from 'next/link';
 import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
-import { authOptions } from '@/lib/auth';
+import { authOptions, canWrite } from '@/lib/auth';
+import { listOpenCases } from '@/lib/line/cases';
+import { getStaffGroupId } from '@/lib/line/settings';
 import { prisma } from '@/lib/prisma';
+import { closeCaseAction } from './actions';
 
 export const dynamic = 'force-dynamic';
 
@@ -28,13 +31,16 @@ export default async function LinePage({
   const filter = sp.filter === 'human' ? 'human' : 'all';
   const user = (sp.user ?? '').trim();
 
+  const staffGroup = await getStaffGroupId();
   const configured = {
     channelSecret: Boolean((process.env.LINE_CHANNEL_SECRET || '').trim()),
     accessToken: Boolean((process.env.LINE_CHANNEL_ACCESS_TOKEN || '').trim()),
     anthropic: Boolean((process.env.ANTHROPIC_API_KEY || '').trim()),
-    staffNotify: Boolean((process.env.LINE_STAFF_GROUP_ID || process.env.CHATWORK_API_TOKEN || '').trim()),
+    staffNotify: Boolean(staffGroup || (process.env.CHATWORK_API_TOKEN || '').trim()),
   };
   const connected = configured.channelSecret && configured.accessToken;
+  const openCases = await listOpenCases(50);
+  const writable = canWrite(session.user.role);
 
   let rows: Awaited<ReturnType<typeof prisma.lineChatLog.findMany>> = [];
   let dbError: string | null = null;
@@ -86,13 +92,17 @@ export default async function LinePage({
         </div>
         <p className="mt-1 text-xs text-slate-500">
           お客様からのLINEメッセージにAIが事実カード（config/line-ai-knowledge.json）の範囲で自動返信します。
-          要対応のやり取りはスタッフに通知され、ここで確認できます。返信の続きはLINE公式アカウントマネージャーのチャット画面から行ってください。
+          要対応は案件番号（#番号）付きでスタッフのLINEグループに届き、グループで「#番号 返信文」と送るとお客様に届きます。
+          「完了 #番号」でAIの自動返信が再開します。
         </p>
         <div className="mt-3 grid grid-cols-2 gap-2 text-xs sm:grid-cols-4">
           <Status label="チャネルシークレット" ok={configured.channelSecret} />
           <Status label="アクセストークン" ok={configured.accessToken} />
           <Status label="AI（Anthropic APIキー）" ok={configured.anthropic} />
-          <Status label="スタッフ通知先" ok={configured.staffNotify} />
+          <Status
+            label={staffGroup ? `スタッフグループ（${staffGroup.slice(0, 6)}…）` : 'スタッフグループ（公式LINEをグループに招待すると自動登録）'}
+            ok={configured.staffNotify}
+          />
         </div>
         <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
           <Stat label="受信（7日）" value={stats.in} />
@@ -100,6 +110,56 @@ export default async function LinePage({
           <Stat label="要対応（7日）" value={stats.human} accent />
           <Stat label="会話したお客様（7日）" value={stats.users} />
         </div>
+      </div>
+
+      <div className="rounded-xl bg-white p-6 shadow-sm">
+        <h2 className="text-sm font-bold text-slate-800">進行中の案件（スタッフ対応中・AI自動返信は停止中）</h2>
+        {openCases.length === 0 ? (
+          <p className="mt-2 text-sm text-slate-500">進行中の案件はありません。</p>
+        ) : (
+          <div className="mt-3 overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b text-left text-xs text-slate-500">
+                  <th className="py-2 pr-3 whitespace-nowrap">案件</th>
+                  <th className="py-2 pr-3 whitespace-nowrap">最終更新</th>
+                  <th className="py-2 pr-3">お客様の最新メッセージ</th>
+                  <th className="py-2 pr-3">理由</th>
+                  <th className="py-2 whitespace-nowrap">操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                {openCases.map((c) => (
+                  <tr key={c.no} className="border-b border-slate-100 align-top bg-amber-50/60">
+                    <td className="py-2 pr-3 font-medium whitespace-nowrap">
+                      <Link href={`/line?user=${encodeURIComponent(c.lineUserId)}`} className="text-blue-700 underline">
+                        #{c.no}
+                      </Link>
+                    </td>
+                    <td className="py-2 pr-3 text-xs text-slate-500 whitespace-nowrap">{fmt(c.updatedAt)}</td>
+                    <td className="py-2 pr-3 whitespace-pre-wrap text-slate-800">{c.lastUserText}</td>
+                    <td className="py-2 pr-3 text-xs text-slate-500">{c.reason}</td>
+                    <td className="py-2 whitespace-nowrap">
+                      {writable ? (
+                        <form action={closeCaseAction}>
+                          <input type="hidden" name="no" value={c.no} />
+                          <button className="rounded border border-slate-300 bg-white px-2 py-0.5 text-xs text-slate-700 hover:bg-slate-50">
+                            完了にする
+                          </button>
+                        </form>
+                      ) : (
+                        <span className="text-xs text-slate-400">閲覧のみ</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <p className="mt-2 text-[11px] text-slate-400">
+              お客様への返信はスタッフのLINEグループから「#番号 返信文」で送れます。48時間動きが無い案件は自動的に閉じたものとして扱います。
+            </p>
+          </div>
+        )}
       </div>
 
       <div className="rounded-xl bg-white p-6 shadow-sm">
@@ -156,6 +216,8 @@ export default async function LinePage({
                     <td className="py-2 pr-3 text-xs whitespace-nowrap">
                       {r.direction === 'in' ? (
                         <span className="rounded bg-slate-100 px-1.5 py-0.5 text-slate-700">お客様</span>
+                      ) : r.reason?.startsWith('スタッフ返信') ? (
+                        <span className="rounded bg-green-50 px-1.5 py-0.5 text-green-700">スタッフ</span>
                       ) : (
                         <span className="rounded bg-blue-50 px-1.5 py-0.5 text-blue-700">AI</span>
                       )}

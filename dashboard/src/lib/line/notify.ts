@@ -1,38 +1,45 @@
 import { pushText } from './client';
+import { getStaffGroupId } from './settings';
 
 /**
  * 要対応の会話をスタッフに知らせる。
- * 送り先は設定があるものすべて（LINE_STAFF_GROUP_ID への push / Chatwork）。どちらも無ければ何もしない。
- * 通知の失敗でお客様への返信を止めないよう、呼び出し側は await しつつ例外は握りつぶす。
+ * 送り先は設定があるものすべて（スタッフLINEグループへの push / Chatwork）。どちらも無ければ何もしない。
+ * スタッフグループは、環境変数 LINE_STAFF_GROUP_ID か、公式アカウントをグループに招待したときの自動登録。
+ * 通知の失敗でお客様への返信を止めないよう、例外は内部で握りつぶす。
  */
 export type StaffNotice = {
+  caseNo: number | null;
   lineUserId: string;
   userText: string;
-  reply: string;
+  /** AIの一次回答。進行中案件への追加メッセージ（AI返信なし）のときは null */
+  reply: string | null;
   reason: string;
+  /** 同じ案件への追加メッセージか（新規通知か） */
+  followUp?: boolean;
 };
 
 export function formatStaffNotice(n: StaffNotice): string {
-  return [
-    '【LINE要対応】お客様への確認・返信をお願いします',
-    `理由: ${n.reason || '（AI判断）'}`,
-    `ユーザーID: ${n.lineUserId}`,
-    '',
-    '▼お客様のメッセージ',
-    n.userText,
-    '',
-    '▼AIが送った一次回答',
-    n.reply,
-    '',
-    '※LINE公式アカウントマネージャーのチャット画面から続きを返信できます。',
-  ].join('\n');
+  const tag = n.caseNo != null ? `#${n.caseNo}` : '';
+  const lines = [
+    n.followUp ? `【LINE ${tag} 追加メッセージ】お客様から続きが届きました` : `【LINE要対応 ${tag}】お客様への確認・返信をお願いします`,
+  ];
+  if (!n.followUp) lines.push(`理由: ${n.reason || '（AI判断）'}`);
+  lines.push('', '▼お客様のメッセージ', n.userText);
+  if (n.reply) lines.push('', '▼AIが送った一次回答', n.reply);
+  lines.push('');
+  if (n.caseNo != null) {
+    lines.push(`▼返信するには、このグループに「${tag} 返信文」と送ってください`, `　対応が終わったら「完了 ${tag}」`);
+  } else {
+    lines.push('※LINE公式アカウントマネージャーのチャット画面から返信できます。');
+  }
+  return lines.join('\n');
 }
 
 export async function notifyStaff(n: StaffNotice): Promise<{ line: boolean; chatwork: boolean }> {
   const text = formatStaffNotice(n);
   const result = { line: false, chatwork: false };
 
-  const staffGroup = (process.env.LINE_STAFF_GROUP_ID || '').trim();
+  const staffGroup = await getStaffGroupId();
   if (staffGroup) {
     try {
       await pushText(staffGroup, text);

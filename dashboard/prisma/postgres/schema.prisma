@@ -310,3 +310,19 @@ model LineChatLog {
   @@index([lineUserId, createdAt])
   @@index([needsHuman, createdAt])
 }
+
+// 要対応の案件。スタッフのLINEグループには「#番号」で通知し、グループから「#番号 返信文」で返信する。
+// open の間はAIの自動返信を止め、お客様のメッセージをグループへ転送する（「完了 #番号」で再開）。
+model LineCase {
+  no           Int      @id @default(autoincrement())
+  lineUserId   String
+  status       String   @default("open") // open / done
+  lastUserText String
+  reason       String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  closedAt     DateTime?
+
+  @@index([lineUserId, status])
+  @@index([status, updatedAt])
+}
