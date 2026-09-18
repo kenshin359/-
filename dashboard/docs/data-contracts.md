@@ -33,4 +33,17 @@
 - PurchaseOrder.received_at 確定時に InventoryMove(in) を1回だけ生成（二重確定防止に po_line毎の received フラグ）。
 - demo_flag=true のデータは実データ集計・レポートから常に除外。
 
-主要テーブル: users, sessions, channels, media, warehouses, suppliers, product_series, skus, sku_costs(有効期間付き), orders, order_items, refunds, ad_daily, access_daily, costs, inventory_moves, purchase_orders, po_lines, targets, tasks, proposals, import_batches, import_rows, audit_logs, settings。
+主要テーブル: cpa_daily（下記）, users, sessions, channels, media, warehouses, suppliers, product_series, skus, sku_costs(有効期間付き), orders, order_items, refunds, ad_daily, access_daily, costs, inventory_moves, purchase_orders, po_lines, targets, tasks, proposals, import_batches, import_rows, audit_logs, settings。
+
+## cpa_daily（合算CPA・スーツケース）
+| 列 | 内容 |
+|---|---|
+| date (PK) | JST暦日 YYYY-MM-DD |
+| suitcaseSales | スーツケース系売上（**税込**・全チャネル）。未取得は null（0で埋めない） |
+| meta / amazonAds / rpp / google / other | 媒体別広告費（円）。メタ＝トラベル＋カタログ（リベティ分） |
+| unitsAmazon / unitsRakuten / unitsOwn | スーツケース系販売個数（チャネル別） |
+| note / updatedBy / updatedAt | メモ（例: Amazon広告CSV未添付）・更新者・更新日時 |
+
+- 率・CPA・判定・7日移動は保存せず `src/lib/metrics/cpa.ts` で計算（この表は他テーブルと税区分が異なるため純売上とは合算しない）。
+- 取込: 画面「合算CPA管理」で (a) 合算CPA Excel「日次」シートの貼り付け（見出し名で対応付け・数式列は無視・同日付はUPSERT）、(b) `cpa_inputs.json` 形式の貼り付け、(c) 日別の手入力。取込・保存は監査ログに記録。
+- 判定基準: settings の `cpa.aov` / `cpa.targetRatio` / `cpa.limitRatio`（管理者のみ変更）。

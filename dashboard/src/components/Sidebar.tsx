@@ -20,6 +20,7 @@ import {
   Menu,
   X,
   ChevronDown,
+  Crosshair,
   type LucideIcon,
 } from 'lucide-react';
 import { PRO_NAV } from './pro-nav';
@@ -32,6 +33,7 @@ const MENU: Item[] = [
   { href: '/', label: 'ダッシュボード', icon: LayoutDashboard },
   { href: '/sales', label: '売上・利益', icon: CircleDollarSign },
   { href: '/ads', label: '広告分析', icon: Megaphone },
+  { href: '/ads/cpa', label: '合算CPA管理', icon: Crosshair },
   { href: '/products', label: '商品分析', icon: Package },
   { href: '/purchasing', label: '新商品・仕入れ', icon: Ship },
   { href: '/inventory', label: '在庫管理', icon: Warehouse },

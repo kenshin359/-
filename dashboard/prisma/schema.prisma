@@ -342,8 +342,7 @@ model LoginFailure {
   until DateTime
 }
 
-// ===================== PRO（経営・業務管理OS）追加モデル：既存テーブルは変更しない =====================
-
+// ===================== PRO（経営・業務管理OS）追加モデル：既存テーブルは変更しない ==============
 // 部署階層。Kintoneタスク管理の「チーム」選択肢と対応付ける
 model Team {
   code         String  @id // ec | ads | lp | sns | tiktok | cs | logistics | product | hr | finance | overseas | o2 | exec | ceo_office
@@ -501,4 +500,23 @@ model ScheduledPost {
   active    Boolean   @default(true)
   lastRunAt DateTime?
   createdAt DateTime  @default(now())
+}
+
+// 合算CPA（スーツケース）: 日別×媒体の広告費と日別×チャネルの販売個数・売上（税込）。
+// 元データはキントーン（月次SKU別まとめ／広告費レポート）または 合算CPA Excel の貼り付け取込。
+// 率・CPA・判定は保存せず src/lib/metrics/cpa.ts で計算する（docs/metrics.md）。
+model CpaDaily {
+  date          String   @id // JST暦日 YYYY-MM-DD
+  suitcaseSales Int? // スーツケース系売上（税込・全チャネル）。未取得は null
+  meta          Int      @default(0) // トラベル+カタログ（リベティ分）
+  amazonAds     Int      @default(0)
+  rpp           Int      @default(0)
+  google        Int      @default(0)
+  other         Int      @default(0) // TDA/TikTok等の手動値
+  unitsAmazon   Int      @default(0)
+  unitsRakuten  Int      @default(0)
+  unitsOwn      Int      @default(0)
+  note          String?
+  updatedBy     String?
+  updatedAt     DateTime @updatedAt
 }
