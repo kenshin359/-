@@ -218,6 +218,22 @@ p-o2gym.com（省略時の既定URL）の弱点指摘と修正案を、**Excel�
 - APIのフィールド名がMicrosoft側で変わると「不明」だらけになる → JSONの `raw` を見て読み取りキーを合わせる。
 - ワチソンA欄「予約獲得単価」・D欄「転換率」と並べて読み、LP修正日の前後でスクロール到達・クイックバックを比較する。
 
+## ［HP流入］Cloudflare Web Analytics → kintone 自動取込（2026-09-18 BOSS「このリンクからキントーンに流入経路を抽出できる？」）
+
+- p-o2gym.com（Wix）には Cloudflare Web Analytics の beacon（`data-cf-beacon` token 7ac8be40…）が入っており、ダッシュボード
+  `dash.cloudflare.com/bade2223bf7e0babc3bccd545e8a63c0/web-analytics/…siteTag=fc1a30d23f3d4c48ab8400def4db3c53` は要ログインで直接は読めない。
+  代わりに **GraphQL Analytics API**（`rumPageloadEventsAdaptiveGroups`・dimensions datetimeHour×refererHost・count＝PV・sum.visits＝訪問）で取得する。
+- 実装（o2gym-kpi main）: `src/fetchCloudflare.js`＋`.github/workflows/kpi-cloudflare.yml`（毎朝07:40 JST＋手動 since/until/dry_run）＋`docs/CLOUDFLARE_SETUP.md`。
+  JST日別に 訪問／Google流入（google.*・googleadservices・googlesyndication・doubleclick）／Meta流入（facebook・instagram・l.facebook・l.instagram・fb.com・messenger）を集計し、
+  kintone KPIアプリの `access`（＝訪問）・`access_google`・`access_meta` を `upsertDaily` で書く → ワチソンA欄HP閲覧数／Google流入／Meta流入／オーガニック等・D欄転換率が自動化（Wix CSV手動取込 `ingestWix*.js` の置き換え）。
+  出力ブロック `【HP流入｜Cloudflare Web Analytics …】` はジョブログ／Summary。生データ `data/cloudflare/*.json` 自動コミット。
+- **必要Secret: `CLOUDFLARE_API_TOKEN`**（My Profile→API Tokens→Custom Token→**Account Analytics: Read** のみ・BOSS登録・チャットに貼らない）。
+  `CLOUDFLARE_ACCOUNT_ID`／`CLOUDFLARE_SITE_TAG` は任意（既定＝共有URLの値）。未登録のうちは exit 2「CLOUDFLARE_API_TOKEN が未設定」。
+  初回は dry_run=true で数字確認 → since=2026-09-12 until=昨日 dry_run=false で未入力分をバックフィル。
+- 注意: Cloudflareは直近7日のみ非サンプリング（以前は約10%サンプル＝推定値）／Metaアプリ内ブラウザは参照元なし→「直接」に混ざるので**Meta流入は下限値**／
+  「HP閲覧数」の定義がWixセッション→Cloudflare訪問（外部リファラー起点のPV）に変わる（近いが同一ではない。切替日を月累計の注記に残す）／
+  スキーマ差異（bot フィルタ・datetimeHour）は自動フォールバック（UTC日別になった時は見出しに明記）。書き込み先はkintone KPIアプリ3フィールドのみ。
+
 ## シャンクス（AI右腕・AI MANAGEMENT OS・2026-09-18 BOSS「全て自動で管理できるように 優秀な右腕をつけて」）
 
 - **名前はシャンクス**。BOSSの右腕。性格＝Apple・Amazon・Shopify級の社内管理システムを設計するシニアプロダクトエンジニア。
