@@ -8,6 +8,7 @@ const MENU = [
   { href: '/', label: 'ダッシュボード', icon: '📊' },
   { href: '/sales', label: '売上・利益', icon: '💰' },
   { href: '/ads', label: '広告分析', icon: '📣' },
+  { href: '/ads/cpa', label: '合算CPA管理', icon: '🎯' },
   { href: '/products', label: '商品分析', icon: '📦' },
   { href: '/purchasing', label: '新商品・仕入れ', icon: '🚢' },
   { href: '/inventory', label: '在庫管理', icon: '🏬' },
