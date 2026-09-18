@@ -508,7 +508,7 @@ model ScheduledPost {
 // 率・CPA・判定は保存せず src/lib/metrics/cpa.ts で計算する（docs/metrics.md）。
 model CpaDaily {
   date          String   @id // JST暦日 YYYY-MM-DD
-  suitcaseSales Int?     // スーツケース系売上（税込・全チャネル）。未取得は null
+  suitcaseSales Int? // スーツケース系売上（税込・全チャネル）。未取得は null
   meta          Int      @default(0) // トラベル+カタログ（リベティ分）
   amazonAds     Int      @default(0)
   rpp           Int      @default(0)
@@ -520,4 +520,21 @@ model CpaDaily {
   note          String?
   updatedBy     String?
   updatedAt     DateTime @updatedAt
+}
+
+// 毎朝KPI報告(30) と同じ粒度の日次キャッシュ。Kintone未接続時の表示元／GitHub Actions からの取込先。
+// 数字はKintone由来のみ（推測で埋めない）。source に取込元を記録する。
+model KpiDaily {
+  date         String   @id // YYYY-MM-DD（JST）
+  salesRakuten Int      @default(0)
+  salesAmazon  Int      @default(0)
+  salesOwn     Int      @default(0)
+  target       Int?
+  adGoogle     Int      @default(0)
+  adRakuten    Int      @default(0)
+  adAmazon     Int      @default(0)
+  adMeta       Int      @default(0)
+  source       String   @default("ingest") // ingest | kintone
+  note         String?
+  updatedAt    DateTime @updatedAt
 }

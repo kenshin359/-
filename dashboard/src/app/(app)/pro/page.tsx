@@ -113,7 +113,7 @@ export default async function ProHomePage() {
         <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
           <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 ${kpiConnected ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-200 text-slate-600'}`}>
             <Database size={11} aria-hidden />
-            KPI報告({d.kpi.appId}) {kpiConnected ? '接続中' : '未接続'}
+            {d.kpi.status === 'ok' && d.kpi.source === 'cache' ? `売上・広告費: 取込データ（最終 ${d.kpi.cachedAt ? new Date(d.kpi.cachedAt).toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'}）` : `KPI報告(${d.kpi.appId}) ${kpiConnected ? '接続中' : '未接続'}`}
           </span>
           <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 ${d.tasks.source === 'kintone' ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-200 text-slate-600'}`}>
             <Database size={11} aria-hidden />

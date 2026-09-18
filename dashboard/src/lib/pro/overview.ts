@@ -108,7 +108,7 @@ export interface CompanyOverview {
   month: string;
   today: string;
   kpi:
-    | { status: 'ok'; appId: string; latestDate: string | null; dataDays: number }
+    | { status: 'ok'; appId: string; latestDate: string | null; dataDays: number; source: 'kintone' | 'cache'; cachedAt: string | null }
     | { status: 'unavailable'; appId: string; reason: string };
   monthly: MonthlyOverview | null;
   tasks: { source: 'kintone' | 'local'; notice: string | null; open: number; overdue: number; waitingStale: number };
@@ -447,7 +447,7 @@ export async function getCompanyOverview(actor: Actor, now = new Date()): Promis
     today,
     kpi:
       kpiRes.status === 'ok'
-        ? { status: 'ok', appId: kpiRes.appId, latestDate: monthly?.latestDate ?? null, dataDays: monthly?.dataDays ?? 0 }
+        ? { status: 'ok', appId: kpiRes.appId, latestDate: monthly?.latestDate ?? null, dataDays: monthly?.dataDays ?? 0, source: kpiRes.source, cachedAt: kpiRes.cachedAt ?? null }
         : { status: 'unavailable', appId: kpiRes.appId, reason: kpiRes.reason },
     monthly,
     tasks: { source: taskList.source, notice: taskList.notice, open: stats.open, overdue: stats.overdue, waitingStale: waitingStale.length },

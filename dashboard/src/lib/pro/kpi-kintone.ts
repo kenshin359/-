@@ -8,6 +8,7 @@
 //
 // 数字は一切作らない。未接続・失敗時は {status:'unavailable', reason} を返し、画面は「未接続」「未取得」を出す。
 import { kintoneApi, KintoneError, type KintoneRecord } from '../kintone';
+import { prisma } from '../prisma';
 import type { MetricValue } from '../metrics/types';
 
 export interface KpiDailyRow {
@@ -30,7 +31,18 @@ export interface KpiDailyRow {
 }
 
 export type KpiFetchResult =
-  | { status: 'ok'; appId: string; month: string; rows: KpiDailyRow[]; prevMonth: string; prevRows: KpiDailyRow[] }
+  | {
+      status: 'ok';
+      appId: string;
+      month: string;
+      rows: KpiDailyRow[];
+      prevMonth: string;
+      prevRows: KpiDailyRow[];
+      /** kintone=直接読み取り / cache=GitHub Actions 等から取り込んだ日次キャッシュ（KpiDaily） */
+      source: 'kintone' | 'cache';
+      /** cache のとき: 最終取込日時 */
+      cachedAt?: string | null;
+    }
   | { status: 'unavailable'; appId: string; reason: string };
 
 function kpiToken(): string {
@@ -132,19 +144,59 @@ function describeError(e: unknown): string {
   return e instanceof Error ? e.message : String(e);
 }
 
-/** 当月と前月を取得（前月同期間比のため）。未接続・失敗は unavailable */
+/** 日次キャッシュ（KpiDaily）から月を読む。無ければ空配列 */
+async function cachedDailyKpi(month: string): Promise<{ rows: KpiDailyRow[]; cachedAt: Date | null }> {
+  const list = await prisma.kpiDaily.findMany({ where: { date: { startsWith: month + '-' } }, orderBy: { date: 'asc' } });
+  let cachedAt: Date | null = null;
+  const rows = list.map((r) => {
+    if (!cachedAt || r.updatedAt > cachedAt) cachedAt = r.updatedAt;
+    const salesTotal = r.salesRakuten + r.salesAmazon + r.salesOwn;
+    const adTotal = r.adGoogle + r.adRakuten + r.adAmazon + r.adMeta;
+    return {
+      date: r.date,
+      salesRakuten: r.salesRakuten,
+      salesAmazon: r.salesAmazon,
+      salesOwn: r.salesOwn,
+      salesTotal,
+      target: r.target,
+      adGoogle: r.adGoogle,
+      adRakuten: r.adRakuten,
+      adAmazon: r.adAmazon,
+      adMeta: r.adMeta,
+      adTotal,
+      adRatio: salesTotal > 0 ? Math.round((adTotal / salesTotal) * 1000) / 10 : null,
+    } satisfies KpiDailyRow;
+  });
+  return { rows, cachedAt };
+}
+
+/**
+ * 当月と前月を取得（前月同期間比のため）。
+ * Kintone が使えれば直接読み、未接続・失敗時は日次キャッシュ（/api/pro/ingest で取り込んだ値）にフォールバック。
+ * どちらも無ければ unavailable（画面は「未接続」「未取得」を出す。推測で埋めない）。
+ */
 export async function fetchKpiMonths(month: string): Promise<KpiFetchResult> {
   const appId = kpiKintoneAppId();
-  if (!kpiKintoneConfigured()) {
-    return { status: 'unavailable', appId, reason: 'Kintone未接続（KINTONE_BASE_URL / KINTONE_API_TOKEN_KPI が未設定）' };
-  }
   const prevMonth = prevMonthOf(month);
-  try {
-    const [rows, prevRows] = await Promise.all([fetchDailyKpi(month), fetchDailyKpi(prevMonth)]);
-    return { status: 'ok', appId, month, rows, prevMonth, prevRows };
-  } catch (e) {
-    return { status: 'unavailable', appId, reason: describeError(e) };
+  let reason = 'Kintone未接続（KINTONE_BASE_URL / KINTONE_API_TOKEN_KPI が未設定）';
+  if (kpiKintoneConfigured()) {
+    try {
+      const [rows, prevRows] = await Promise.all([fetchDailyKpi(month), fetchDailyKpi(prevMonth)]);
+      return { status: 'ok', appId, month, rows, prevMonth, prevRows, source: 'kintone' };
+    } catch (e) {
+      reason = describeError(e);
+    }
   }
+  try {
+    const [cur, prev] = await Promise.all([cachedDailyKpi(month), cachedDailyKpi(prevMonth)]);
+    if (cur.rows.length || prev.rows.length) {
+      const cachedAt = [cur.cachedAt, prev.cachedAt].filter((d): d is Date => !!d).sort((a, b) => b.getTime() - a.getTime())[0] ?? null;
+      return { status: 'ok', appId, month, rows: cur.rows, prevMonth, prevRows: prev.rows, source: 'cache', cachedAt: cachedAt ? cachedAt.toISOString() : null };
+    }
+  } catch {
+    /* キャッシュ読み取り失敗は unavailable として扱う */
+  }
+  return { status: 'unavailable', appId, reason: `${reason}。取込済みの日次データもありません` };
 }
 
 // ───────────────────────── 純関数（テスト対象） ─────────────────────────
