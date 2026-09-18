@@ -1,0 +1,34 @@
+# ============================================================
+#  レビュー集計ダンプ（手動実行）— 経営ボード用
+# ------------------------------------------------------------
+#  楽天の公開レビュー（ショップ＋設定済み商品）の件数・平均★・
+#  分布・部位別の不満件数をログに出します。本文は出しません。
+#  ★楽天へは読み取りだけ。キントーンには触りません。
+# ============================================================
+name: レビュー集計ダンプ（手動）
+
+on:
+  workflow_dispatch:
+    inputs:
+      pages:
+        description: 'ショップレビューを何ページ読むか（1ページ30件）'
+        required: false
+        default: '10'
+
+jobs:
+  dump:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: daily-report-system
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: 集計してログに出す
+        env:
+          RAKUTEN_SHOP_ID: '407466'
+          RAKUTEN_SHOP_CODE: libetee
+          APP_ENV: production
+        run: node scripts/reviewSummaryDump.js --pages=${{ inputs.pages || '10' }}
