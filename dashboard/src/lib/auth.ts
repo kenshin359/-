@@ -2,6 +2,7 @@ import type { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import bcrypt from 'bcryptjs';
 import { prisma } from './prisma';
+import { resolveAuthSecret } from './auth-secret';
 
 export type Role = 'admin' | 'editor' | 'viewer';
 
@@ -38,6 +39,7 @@ async function clearFailures(email: string): Promise<void> {
 }
 
 export const authOptions: NextAuthOptions = {
+  secret: resolveAuthSecret(),
   session: { strategy: 'jwt' },
   pages: { signIn: '/login' },
   providers: [
