@@ -1,0 +1,110 @@
+# Vercel の環境変数設定と本番デプロイを、GitHub の「Run workflow」ボタン1つで行う（北野さん用）
+#
+# 事前に GitHub → Settings → Secrets and variables → Actions に以下を登録する（値はここに書かない）:
+#   VERCEL_TOKEN            Vercel → 右上アイコン → Account Settings → Tokens → Create（Scope: libetee, Expiration: 任意）
+#   SUPABASE_DATABASE_URL   Supabase → Connect → Transaction pooler（…pooler.supabase.com:6543）の文字列（パスワード置換済み）
+#   SUPABASE_DIRECT_URL     Supabase → Connect → Session pooler（…pooler.supabase.com:5432）の文字列（パスワード置換済み）
+#   ADMIN_EMAIL             最初の管理者（北野さん）のメール
+#   ADMIN_PASSWORD          初期パスワード（10文字以上）
+#   （任意）KINTONE_BASE_URL / KINTONE_API_TOKEN_TASK / KINTONE_API_TOKEN_KPI
+#   （任意）LINE_CHANNEL_SECRET / LINE_CHANNEL_ACCESS_TOKEN
+#
+# NEXTAUTH_SECRET と CRON_SECRET は未設定なら自動生成して Vercel に保存する（値はログに出ない）。
+name: Vercel 設定＆本番デプロイ（ボタン1つ）
+
+on:
+  workflow_dispatch:
+    inputs:
+      deploy:
+        description: '環境変数の設定後に本番デプロイも行う'
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+env:
+  VERCEL_SCOPE: libetee
+  VERCEL_PROJECT: libetee-dashboard
+  SITE_URL: https://libetee-dashboard.vercel.app
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Vercel CLI
+        run: npm i -g vercel@latest
+      - name: トークン確認
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          if [ -z "$VERCEL_TOKEN" ]; then
+            echo "::error::GitHub Secrets に VERCEL_TOKEN がありません（Vercel → Account Settings → Tokens で作成して登録）"; exit 1; fi
+          vercel whoami --token "$VERCEL_TOKEN"
+      - name: プロジェクトに接続
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: vercel link --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_SCOPE" --project "$VERCEL_PROJECT"
+      - name: 環境変数を設定（Production）
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          SUPABASE_DATABASE_URL: ${{ secrets.SUPABASE_DATABASE_URL }}
+          SUPABASE_DIRECT_URL: ${{ secrets.SUPABASE_DIRECT_URL }}
+          ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+          KINTONE_BASE_URL: ${{ secrets.KINTONE_BASE_URL }}
+          KINTONE_API_TOKEN_TASK: ${{ secrets.KINTONE_API_TOKEN_TASK }}
+          KINTONE_API_TOKEN_KPI: ${{ secrets.KINTONE_API_TOKEN_KPI }}
+          LINE_CHANNEL_SECRET: ${{ secrets.LINE_CHANNEL_SECRET }}
+          LINE_CHANNEL_ACCESS_TOKEN: ${{ secrets.LINE_CHANNEL_ACCESS_TOKEN }}
+        run: |
+          set -e
+          existing="$(vercel env ls production --token "$VERCEL_TOKEN" 2>/dev/null || true)"
+          has() { printf '%s\n' "$existing" | grep -qE "^\s*$1\s"; }
+          set_env() {
+            name="$1"; value="$2"
+            if [ -z "$value" ]; then echo "SKIP  $name（Secret が空）"; return; fi
+            vercel env rm "$name" production --yes --token "$VERCEL_TOKEN" >/dev/null 2>&1 || true
+            printf '%s' "$value" | vercel env add "$name" production --token "$VERCEL_TOKEN" >/dev/null
+            echo "SET   $name"
+          }
+          set_env DATABASE_URL "$SUPABASE_DATABASE_URL"
+          set_env DIRECT_URL "$SUPABASE_DIRECT_URL"
+          set_env NEXTAUTH_URL "$SITE_URL"
+          set_env INITIAL_ADMIN_EMAIL "$ADMIN_EMAIL"
+          set_env INITIAL_ADMIN_NAME "北野 拳慎"
+          set_env INITIAL_ADMIN_PASSWORD "$ADMIN_PASSWORD"
+          set_env KINTONE_BASE_URL "$KINTONE_BASE_URL"
+          set_env KINTONE_TASK_APP_ID "38"
+          set_env KINTONE_API_TOKEN_TASK "$KINTONE_API_TOKEN_TASK"
+          set_env KINTONE_KPI_APP_ID "30"
+          set_env KINTONE_API_TOKEN_KPI "$KINTONE_API_TOKEN_KPI"
+          set_env LINE_CHANNEL_SECRET "$LINE_CHANNEL_SECRET"
+          set_env LINE_CHANNEL_ACCESS_TOKEN "$LINE_CHANNEL_ACCESS_TOKEN"
+          # 自動生成（既にあれば触らない: 変えると全員のログインが切れる）
+          if has NEXTAUTH_SECRET; then echo "KEEP  NEXTAUTH_SECRET"; else set_env NEXTAUTH_SECRET "$(openssl rand -base64 32)"; fi
+          if has CRON_SECRET; then echo "KEEP  CRON_SECRET"; else set_env CRON_SECRET "$(openssl rand -hex 24)"; fi
+          # 接続先ホストだけ表示（パスワードは出さない）
+          for u in "$SUPABASE_DATABASE_URL" "$SUPABASE_DIRECT_URL"; do
+            [ -n "$u" ] && echo "DB host: $(printf '%s' "$u" | sed -E 's#^[a-z]+://[^@]*@##; s#[/?].*$##')"
+          done
+          case "$(printf '%s' "$SUPABASE_DIRECT_URL" | sed -E 's#^[a-z]+://[^@]*@##; s#[/?].*$##')" in
+            db.*.supabase.co*) echo "::warning::SUPABASE_DIRECT_URL が Direct connection（IPv6専用）です。Session pooler（…pooler.supabase.com:5432）に変えてください";;
+          esac
+      - name: 本番デプロイ
+        if: ${{ inputs.deploy }}
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: vercel deploy --prod --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_SCOPE" 2>&1 | tail -20
+      - name: 稼働確認
+        if: ${{ inputs.deploy }}
+        run: |
+          sleep 20
+          echo "GET $SITE_URL/api/health"
+          curl -s -m 30 "$SITE_URL/api/health" || true
+          echo
+          echo "→ \"db\":\"ok\" なら成功。ログイン: $SITE_URL/login（ADMIN_EMAIL / ADMIN_PASSWORD）"

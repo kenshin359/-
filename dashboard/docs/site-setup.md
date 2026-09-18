@@ -2,6 +2,24 @@
 
 所要: 30〜40分。すべてブラウザ上で完結します。値（パスワード・トークン）はチャットに貼らず、Vercel の環境変数にだけ入れてください。
 
+
+## ★ 最短ルート（Vercelの画面を触らない）: GitHub のボタン1つで設定＋デプロイ
+Vercel の環境変数設定は GitHub Actions の `vercel-setup.yml` が代行します。北野さんがやるのは「Secrets に5つ貼る → Run workflow」だけです。
+1. Vercel → 右上アイコン → Account Settings → **Tokens** → Create（Scope: libetee）→ 出た文字列をコピー
+2. Supabase → プロジェクト → 上部 **Connect** → Connection string で **Transaction pooler**（:6543）と **Session pooler**（:5432）の2本をコピーし、`[YOUR-PASSWORD]` を実際のDBパスワードに置換
+3. GitHub → リポジトリ → Settings → Secrets and variables → Actions → **New repository secret** で登録:
+   | Name | Value |
+   |---|---|
+   | `VERCEL_TOKEN` | 手順1の文字列 |
+   | `SUPABASE_DATABASE_URL` | Transaction pooler の文字列 |
+   | `SUPABASE_DIRECT_URL` | Session pooler の文字列 |
+   | `ADMIN_EMAIL` | 北野さんのメール |
+   | `ADMIN_PASSWORD` | 初期パスワード（10文字以上） |
+   任意: `KINTONE_BASE_URL` / `KINTONE_API_TOKEN_TASK` / `KINTONE_API_TOKEN_KPI` / `LINE_CHANNEL_SECRET` / `LINE_CHANNEL_ACCESS_TOKEN`（あとから追加して再実行してもよい）
+4. GitHub → **Actions** → 左の「Vercel 設定＆本番デプロイ（ボタン1つ）」→ **Run workflow** → 緑になるまで待つ（2〜4分）
+5. 実行ログの最後に `"db":"ok"` が出れば完了。https://libetee-dashboard.vercel.app/login で ADMIN_EMAIL / ADMIN_PASSWORD でログイン
+うまくいかないときは、そのログの赤い行を貼ってください（パスワードやトークンはログに出ません）。
+
 ## 0. 先に決めること
 - 公開URL: `https://libetee-dashboard.vercel.app`（Vercelのプロジェクト名）。独自ドメイン（例 dashboard.libetee.net）は後から追加可。
 - DB: Neon か Supabase のどちらか1つ（今は両方の手順が docs/ops.md にあります。**現在の失敗はDB接続が原因なので、ここを先に直します**）。
