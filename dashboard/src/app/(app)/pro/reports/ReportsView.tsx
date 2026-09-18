@@ -109,7 +109,7 @@ export default function ReportsView(props: Props) {
     });
   };
 
-  const sel = `${inputCls.replace("w-full", "")} w-auto min-w-[11rem]`;
+  const sel = `${inputCls.replace("w-full", "")} w-full sm:w-auto sm:min-w-[11rem]`;
   return (
     <div className="space-y-4">
       <header className="flex flex-wrap items-end justify-between gap-3">
