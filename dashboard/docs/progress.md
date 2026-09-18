@@ -121,3 +121,5 @@
 - 取込元: 既存の GitHub Actions（月次SKU別まとめ＝`===DAILY_CH_B===`、広告費レポート dump＝`===ADCOST_DAILY_B===`）の A-J ログを `scripts/ingest-from-dumps.mjs` で復号（当日分と未来日は除外）
 - 不具合: 初回の送信が 405 → 原因は Vercel の WAF ではなく `src/middleware.ts` が `/api/pro/ingest` をログイン画面へ 307 していたため。認証除外に追加（route 側で Bearer 検証）
 - 自動化: `.github/workflows/dashboard-ingest.yml`（毎朝 11:20 JST＝広告費レポート 11:02 の後／手動可）。GitHub Secrets に `INGEST_SECRET`（Vercel と同じ値）が必要。値はチャット・リポジトリに置かない
+- 追加: PRO「KPI」画面が取込済みでも「未取得」だったため、`src/lib/pro/kpi.ts` に取込データからの自動算出を追加（手入力 KpiValue が無い KPI のみ。月間売上=当月累計、合算CPA=累計広告費÷累計個数、広告比率=累計広告費÷累計スーツケース売上。ROAS は帰属売上が無いので算出しない）。検算2件追加（vitest 116件）
+- 本番確認（7e17212）: `/api/pro/ingest` へ 9/1〜9/17 の17日分を投入 → `/pro` に 今月売上 ¥50,577,130・広告費率 12.8%・本日売上（9/17）¥1,613,388、`/ads/cpa` に 月間合算CPA ¥4,387・広告比率 13.3% が表示

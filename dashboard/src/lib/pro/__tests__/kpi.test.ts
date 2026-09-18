@@ -67,3 +67,32 @@ describe('表示と前後比較の補助', () => {
     expect(valueAt(s, '2026-12-01')).toBe(4400);
   });
 });
+
+describe('取込データからのKPI自動算出（当月累計）', () => {
+  it('月間売上は日別売上の累計、合算CPA/広告比率は累計広告費÷累計個数/累計スーツケース売上', async () => {
+    const { deriveKpiSeries, DERIVED_NOTE } = await import('../kpi');
+    const sales = [
+      { date: '2026-09-02', salesRakuten: 200, salesAmazon: 100, salesOwn: 50 },
+      { date: '2026-09-01', salesRakuten: 1000, salesAmazon: 500, salesOwn: 100 },
+    ];
+    const cpa = [
+      { date: '2026-09-01', suitcaseSales: 100000, meta: 3000, amazonAds: 1000, rpp: 500, google: 500, other: 0, unitsAmazon: 1, unitsRakuten: 1, unitsOwn: 0 },
+      { date: '2026-09-02', suitcaseSales: null, meta: 4000, amazonAds: 0, rpp: 0, google: 1000, other: 0, unitsAmazon: 0, unitsRakuten: 2, unitsOwn: 1 },
+    ];
+    const s = deriveKpiSeries(sales, cpa);
+    expect(s.get('sales_month')?.map((p) => [p.date, p.value])).toEqual([
+      ['2026-09-01', 1600],
+      ['2026-09-02', 1950],
+    ]);
+    // 9/1: 5000÷2=2500、9/2: (5000+5000)÷(2+3)=2000
+    expect(s.get('suitcase_cpa')?.map((p) => p.value)).toEqual([2500, 2000]);
+    // 広告比率: 9/1 5000÷100000=5%、9/2 は売上未取得のため累計売上据え置きで 10000÷100000=10%
+    expect(s.get('ad_ratio')?.map((p) => p.value)).toEqual([5, 10]);
+    expect(s.get('sales_month')?.[0].note).toBe(DERIVED_NOTE);
+    expect(s.has('roas')).toBe(false); // 帰属売上が無いので算出しない
+  });
+  it('行が無ければ何も算出しない（未取得のまま）', async () => {
+    const { deriveKpiSeries } = await import('../kpi');
+    expect(deriveKpiSeries([], []).size).toBe(0);
+  });
+});

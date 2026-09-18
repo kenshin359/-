@@ -2,6 +2,7 @@
 // 値は KpiValue（手入力 or 将来の自動連携）。値が無い KPI は「未取得」として扱い、推測で埋めない。
 import { prisma } from '../prisma';
 import { jstDateKey } from '../metrics/format';
+import { adTotalOf, unitsOf } from '../metrics/cpa';
 import { listTasks2, type Task2Item } from './tasks2';
 
 export type KpiDirection = 'up' | 'down';
@@ -189,12 +190,61 @@ function daysAgo(n: number, now: Date): Date {
   return new Date(now.getTime() - n * 86_400_000);
 }
 
+// ---------- 取込データからの自動算出 ----------
+// KpiValue（手入力）が無い KPI は、取込済みの日次キャッシュ（KpiDaily / CpaDaily）から「当月累計」で算出する。
+//   sales_month  = 当月売上累計（楽天+Amazon+自社）
+//   suitcase_cpa = 当月累計の合算広告費 ÷ 当月累計のスーツケース販売個数
+//   ad_ratio     = 当月累計の合算広告費 ÷ 当月累計のスーツケース売上（税込）× 100
+// ROAS は帰属売上が無いので算出しない（総売上÷広告費で代用しない）。数字は Kintone 由来の取込値のみ。
+export const DERIVED_NOTE = '取込データから自動算出（当月累計）';
+
+export type DailySalesRow = { date: string; salesRakuten: number; salesAmazon: number; salesOwn: number };
+export type DailyCpaRow = { date: string; suitcaseSales: number | null; meta: number; amazonAds: number; rpp: number; google: number; other: number; unitsAmazon: number; unitsRakuten: number; unitsOwn: number };
+
+/** 純粋関数（検算用）。行は同じ月のものだけを渡す。返り値は KPIコード → 日付昇順の累計系列 */
+export function deriveKpiSeries(sales: DailySalesRow[], cpa: DailyCpaRow[]): Map<string, KpiPoint[]> {
+  const out = new Map<string, KpiPoint[]>();
+  const salesSeries: KpiPoint[] = [];
+  let cum = 0;
+  for (const r of [...sales].sort((a, b) => a.date.localeCompare(b.date))) {
+    cum += (r.salesRakuten || 0) + (r.salesAmazon || 0) + (r.salesOwn || 0);
+    salesSeries.push({ date: r.date, value: cum, note: DERIVED_NOTE });
+  }
+  if (salesSeries.length) out.set('sales_month', salesSeries);
+
+  const cpaSeries: KpiPoint[] = [];
+  const ratioSeries: KpiPoint[] = [];
+  let ad = 0;
+  let units = 0;
+  let scSales = 0;
+  for (const r of [...cpa].sort((a, b) => a.date.localeCompare(b.date))) {
+    ad += adTotalOf(r);
+    units += unitsOf(r);
+    scSales += r.suitcaseSales ?? 0;
+    if (units > 0) cpaSeries.push({ date: r.date, value: ad / units, note: DERIVED_NOTE });
+    if (scSales > 0) ratioSeries.push({ date: r.date, value: (ad / scSales) * 100, note: DERIVED_NOTE });
+  }
+  if (cpaSeries.length) out.set('suitcase_cpa', cpaSeries);
+  if (ratioSeries.length) out.set('ad_ratio', ratioSeries);
+  return out;
+}
+
+async function derivedSeriesForMonth(now: Date): Promise<Map<string, KpiPoint[]>> {
+  const month = jstDateKey(now).slice(0, 7);
+  const [sales, cpa] = await Promise.all([
+    prisma.kpiDaily.findMany({ where: { date: { startsWith: month } }, orderBy: { date: 'asc' } }),
+    prisma.cpaDaily.findMany({ where: { date: { startsWith: month } }, orderBy: { date: 'asc' } }),
+  ]).catch(() => [[], []] as [DailySalesRow[], DailyCpaRow[]]);
+  return deriveKpiSeries(sales, cpa);
+}
+
 export async function listKpis(now = new Date()): Promise<KpiSummary[]> {
   await ensureKpiDefaults();
-  const [kpis, values, linked] = await Promise.all([
+  const [kpis, values, linked, derived] = await Promise.all([
     prisma.kpi.findMany({ where: { active: true }, orderBy: { code: 'asc' } }),
     prisma.kpiValue.findMany({ where: { demo: false }, orderBy: { date: 'asc' } }),
     prisma.task.findMany({ where: { kpiCode: { not: null }, status: { not: 'done' } }, select: { kpiCode: true } }),
+    derivedSeriesForMonth(now),
   ]);
   const since30 = jstDateKey(daysAgo(30, now));
   const linkedCount = new Map<string, number>();
@@ -202,7 +252,8 @@ export async function listKpis(now = new Date()): Promise<KpiSummary[]> {
   const order = new Map(KPI_DEFAULTS.map((d, i) => [d.code, i]));
   return kpis
     .map((k) => {
-      const all = values.filter((v) => v.kpiCode === k.code).map(toPoint);
+      const manual = values.filter((v) => v.kpiCode === k.code).map(toPoint);
+      const all = manual.length ? manual : (derived.get(k.code) ?? []);
       const latest = all.length ? all[all.length - 1] : null;
       const prev = all.length > 1 ? all[all.length - 2] : null;
       const def: KpiDef = {
@@ -252,11 +303,13 @@ export async function getKpi(code: string, now = new Date()): Promise<KpiDetail 
   const list = await listKpis(now);
   const summary = list.find((k) => k.code === code);
   if (!summary) return null;
-  const [values, tasksRes] = await Promise.all([
+  const [values, tasksRes, derived] = await Promise.all([
     prisma.kpiValue.findMany({ where: { kpiCode: code, demo: false }, orderBy: { date: 'asc' } }),
     listTasks2(),
+    derivedSeriesForMonth(now),
   ]);
-  const all = values.map(toPoint);
+  const manual = values.map(toPoint);
+  const all = manual.length ? manual : (derived.get(code) ?? []);
   const since90 = jstDateKey(daysAgo(90, now));
   const latest = summary.latest?.value ?? null;
   const tasks: KpiLinkedTask[] = tasksRes.tasks
