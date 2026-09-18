@@ -197,6 +197,27 @@ p-o2gym.com（省略時の既定URL）の弱点指摘と修正案を、**Excel�
 競合3社に共通してO2に無いもの: LINE導線／特商法・プライバシーポリシー／事例の期間・測定日注記／トレーナー歴表示。
 既知: フッター運営会社が「株式会社リベティ」表記（O2ジムとの法人名混在・要確認）。HTMLコメント内にBEFORE/AFTERテンプレ（「見出しが入ります」）が残存。
 
+## ［LP行動］コマンド（Clarityヒートマップの自動分析・2026-09-18 BOSS「ヒートマップを自動で分析できる形に変えて」）
+
+ユーザーが「LP行動」（または「ヒートマップ」「Clarity」で分析を求める文脈）と言ったら、
+**Microsoft Clarity（p-o2gym.com・プロジェクトID `yignk2t2rf`）の行動データをワチソン形式で出力する**。
+
+手順:
+1. `kenshin359/o2gym-kpi`（main）の `kpi-clarity.yml` を workflow_dispatch（input `days` 1〜3・既定3）。
+   毎朝 08:20 JST に自動実行もされる（cron `20 23 * * *`）。**Clarity APIは10リクエスト/日・1実行で2消費 → 手動は1日4回まで。**
+2. ジョブ `clarity` のログ（またはActions Summary）から `【LP行動｜Clarity 直近N日】` 〜 末尾の「※ヒートマップ画像…」までを**そのまま貼る**。
+3. 続けて「▶︎ 読み方」を3行以内（スクロール到達 vs 料金位置65%／クイックバックの流入元／デッドクリック）。数字はブロック内のみ使う。
+
+実体: `o2gym-kpi/src/fetchClarity.js`（Data Export API `project-live-insights` を Device / Source の2ディメンションで取得 →
+セッション・デバイス比・平均スクロール到達・滞在（合計/アクティブ）・デッド/レイジ/クイックバック/過剰スクロール発生率・流入元別スクロール&クイックバック・閲覧ページ →
+【自動判定】（しきい値は仮定: 料金到達65%／低スクロール45%／デッド5%／レイジ2%／クイックバック10%／アクティブ30秒／モバイル比70%）→
+`data/clarity/YYYY-MM-DD.json` を自動コミットし前日ファイルと「前回比」）。手順書 `o2gym-kpi/docs/CLARITY_SETUP.md`。
+- **必要Secret: `CLARITY_API_TOKEN`**（Clarity Settings→Data Export→Generate new API token・管理者のみ・BOSSがGitHub Secretsに登録。チャットに貼らない）。
+  未登録のうちはジョブが「CLARITY_API_TOKEN が未設定です」で終了（exit 2）。書式確認は `CLARITY_SAMPLE=1 node src/fetchClarity.js`。
+- APIで取れないもの: ヒートマップ画像（クリック位置図）・録画・過去3日より前 → 位置の確認はClarity画面、履歴は毎日のJSONを貯めて比較。
+- APIのフィールド名がMicrosoft側で変わると「不明」だらけになる → JSONの `raw` を見て読み取りキーを合わせる。
+- ワチソンA欄「予約獲得単価」・D欄「転換率」と並べて読み、LP修正日の前後でスクロール到達・クイックバックを比較する。
+
 ## 会社の絶対ルール
 
 - このプロジェクトは **株式会社O2ジム専用**。リベティ（Libetee/LUCIO）とは完全分離。
