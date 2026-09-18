@@ -6,5 +6,5 @@ import { resolveAuthSecret } from '@/lib/auth-secret';
 export default withAuth({ secret: resolveAuthSecret(), pages: { signIn: '/login' } });
 
 export const config = {
-  matcher: ['/((?!api/auth|login|_next/static|_next/image|favicon.ico).*)'],
+  matcher: ['/((?!api/auth|api/health|login|_next/static|_next/image|favicon.ico).*)'],
 };
