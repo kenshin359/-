@@ -35,6 +35,7 @@ interface Props {
   canEdit: boolean;
   currentUserName: string;
   initialFilter: BoardFilter;
+  initialQuery?: string;
 }
 
 const WEEK = ['日', '月', '火', '水', '木', '金', '土'];
@@ -99,11 +100,11 @@ function columnLoad(open: number, overdue: number): Load {
 }
 
 export default function TaskBoard(props: Props) {
-  const { options, stats, source, notice, appId, canEdit, currentUserName, initialFilter } = props;
+  const { options, stats, source, notice, appId, canEdit, currentUserName, initialFilter, initialQuery = '' } = props;
   const [tab, setTab] = useState<'open' | 'done'>('open');
   const [team, setTeam] = useState<string>('all');
   const [filter, setFilter] = useState<BoardFilter>(initialFilter);
-  const [q, setQ] = useState('');
+  const [q, setQ] = useState(initialQuery);
   const [editing, setEditing] = useState<TaskItem | null>(null);
   const [flash, setFlash] = useState<ActionResult | null>(null);
   const [, startTransition] = useTransition();
@@ -200,7 +201,7 @@ export default function TaskBoard(props: Props) {
           </div>
           <label className="inline-flex items-center gap-1.5 text-xs text-slate-600">
             <Users size={13} aria-hidden />
-            <select value={team} onChange={(e) => setTeam(e.target.value)} className={`${inputCls} w-auto py-1`} aria-label="チームで絞り込む">
+            <select value={team} onChange={(e) => setTeam(e.target.value)} className={`${inputCls.replace("w-full", "")} w-auto py-1`} aria-label="チームで絞り込む">
               <option value="all">すべてのチーム</option>
               {options.teams.map((t) => (
                 <option key={t} value={t}>

@@ -34,11 +34,16 @@ export default function ModeSwitch({ mode }: { mode: UiMode }) {
             disabled={pending}
             onClick={() => go(m)}
             title={m === 'pro' ? '経営・管理職向けの高機能表示' : '現在のシンプルな表示'}
-            className={`rounded px-2.5 py-1 transition-colors ${
+            className={`rounded px-2 py-1 transition-colors sm:px-2.5 ${
               on ? (m === 'pro' ? 'bg-blue-900 text-white shadow-sm' : 'bg-white text-slate-900 shadow-sm') : 'text-slate-500 hover:text-slate-800'
             } disabled:opacity-60`}
           >
-            {m === 'pro' ? 'PRO' : 'STANDARD'}
+            {m === 'pro' ? 'PRO' : (
+              <>
+                <span className="sm:hidden">STD</span>
+                <span className="hidden sm:inline">STANDARD</span>
+              </>
+            )}
           </button>
         );
       })}

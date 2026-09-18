@@ -71,6 +71,28 @@
 - 検証: 検算17件成功・tsc・lint・`next build` 成功。Playwright（1440/390）で /tasks /documents のスクリーンショット、資料登録→表示、タスク完了→件数減、viewer で編集ボタン非表示、ページ横スクロール無し、コンソールエラー無しを確認。Kintone実接続は認証情報未受領のため未検証
 - 未確定（要確認）: 資料庫のカテゴリ初期値、Kintone APIトークンの発行（アプリ38・閲覧/追加/編集）
 
+## 2026-09-18 PRO版（経営・業務管理OS）着手（北野さん指示: STANDARDを残しPROを追加、承認待ちにせず並列で進める）
+- 設計書 `docs/pro-plan.md`（現状構成・機能一覧・不足点12・STANDARD維持範囲・PRO機能14・IA/画面遷移・DB/API追加・セキュリティ・優先順位・4週ロードマップ）、リーダー向け `docs/reports/2026-09-18-中間報告.md`
+- 土台（P0）: 権限5段階（User.level: ceo/director/manager/leader/staff ＋ teamCode/title/kintoneName/lineUserId/skills、`src/lib/rbac.ts` requireLevel・機密redact）／STANDARD⇄PRO切替（Cookie・ヘッダー）／PRO用サイドバー（既存12メニューは折りたたみで温存）／⌘K横断検索（画面・社員・タスク・資料・部署、一般社員は自チームのみ）／クイックアクション（＋タスク／＋資料／＋メモ／＋報告）／PROモバイル下部ナビ
+- モデル追加（差分マイグレーション3本、既存列は無変更）: Team / Project / Kpi / KpiValue / Report / Alert / Note / LineGroup / LineMessage / FollowUp / ScheduledPost、Task に projectCode/kpiCode/progress/requestedByUserId/holdReason/lastActivityAt、Document に tags/docType
+- セキュリティ: `/api/health` の接続先ホスト・ユーザー数を非公開化。Vercel cron `/api/line/cron`（10分ごと）を vercel.json に追加
+- 並列実装（6エージェント・担当ファイル分離）: ①経営ダッシュボード＋アラートセンター（Kintone KPI(30)読み取り含む） ②今日やること＋部署ダッシュボード ③社員・組織＋PRO設定 ④タスク2.0＋KPI×タスク＋報告 ⑤LINE監査役（Webhook・追いかけ・定時投稿・監査ログ） ⑥資料庫2.0（タグ横断検索・Drive任意）
+- 判断: 既存画面・API・DB列は削除も改名もしない。売上系の実データはKintone KPI(30)からの読み取りで先に出し、CSV取込UIは後回し。LINEは招待後のメッセージのみ対象（過去ログ不可）と明記
+
+## 2026-09-18 PRO ④ タスク2.0・KPI×タスク・報告（並列実装の担当分）
+- タスク2.0 `/pro/tasks`（`src/lib/pro/tasks2.ts`）: listTasks() に PRO 項目（進捗率・プロジェクト・KPI・保留理由・依頼元）をローカル Task 行から重ねる。Kintone 由来は kintoneId で紐づく「影の行」に保存（Kintone には書かない）。状態「保留」= Kintone は確認待ちのまま＋ローカル holdReason（Kintone 備考に【保留】理由 を追記、解除で除去）。優先度 緊急/高/中/低 ⇄ P1〜P4 を併記。タブ: ボトルネック（止まっている仕事=期限超過∪確認待ち滞留(3日超)∪保留、担当者別/部署別の負荷バー）／部署×状態（クリックで一覧へ絞り込み）／プロジェクト（進捗=紐づくタスク平均、＋新規はコード自動）／一覧（部署・担当・優先度・状態・期限・プロジェクトで絞り込み、進捗スライダー、右パネルで TaskForm＋PRO項目）
+- KPI `/pro/kpi`・`/pro/kpi/[code]`（`src/lib/pro/kpi.ts`）: 初期6件（月間売上・広告比率・合算CPA・ROAS・低評価レビュー・期限超過タスク）を空のときだけ投入、全て source=manual・出典 business.md §6。判定は down=「超えたら」注意/危険（¥4,500以下🟢・¥6,000以下🟡・超🔴＝buildCpaSheet.py と同じ）、up=「下回ったら」。値が無ければ「未取得」（推測で埋めない）。素の SVG スパークライン（30/90日）、値の記録（リーダー以上）、定義編集（管理職以上）、「改善タスクを作る」（createTask→kpiCode 紐づけ・依頼元記録）、完了タスクの作成時→最新の前後比較
+- 報告 `/pro/reports`（`src/lib/pro/reports.ts`）: 日報/週報/中間報告、本文JSON {数字・学び・次・課題・依頼}（朝礼の順）。一覧（部署/種類/期間）・詳細パネル・作成/編集（作成者自動、下書き/提出）・確認済み（リーダー以上）。「リーダー向け中間報告を生成」（管理職以上）はタスク状況＋未解決アラートから決定的テンプレートで下書き（LLM不使用、売上は「未取得」と明記）。一般社員は自分と自チームの報告のみ（サーバー側で絞る）。`?new=1` でフォームを開く（クイックアクション連携）
+- 検証: vitest 25件追加（優先度変換・保留表示・ボトルネック・マトリクス・プロジェクト進捗/コード・中間報告・KPI判定/書式/valueAt）→ 全105件成功。tsc・lint クリーン。dev DB（ローカル21件）で listTasks2→hold→resume の往復、KPI 前後比較、中間報告生成を確認
+- 判断: overdue_tasks の閾値は「1件で注意・3件で危険」を「超えたら」判定に合わせて warn=0 / danger=2 で登録。進捗100%でも状態は自動で完了にしない（完了は Kintone 側の状態が正）
+
+## 2026-09-18 PRO版 第1回統合（並列6エージェントの成果を統合）
+- 実装: 経営ダッシュボード／今日やること／アラートセンター／部署／タスク2.0／KPI／報告／資料庫2.0／社員・組織／PRO設定／LINE監査役（Webhook・追いかけ・定時投稿・監査ログ）。詳細と自己採点は `docs/pro-plan.md` §11
+- 統合検証: tsc・lint クリーン、vitest 105件成功、`next build` 成功。Playwright で STANDARD 5画面＋PRO 15画面を 1440/390 で撮影（プレースホルダ無し・横スクロール無し・コンソールエラー無し）、⌘K 検索ヒット、クイックメモ保存、閲覧者(staff)の /pro → /pro/today リダイレクトと制限画面を確認
+- 統合時の修正: 閲覧者で /pro/line が500 → 権限通知の表示に変更／報告フィルタの幅／スマホのモード切替を短縮／Target のデモ値は実データが無い間は使わない／タスク状態変更で PRO 画面も再検証／`?q=` でタスク検索を初期化
+- LINE用に `src/middleware.ts` の認証除外へ `api/line` を追加（署名／Bearer で自己認証）。`vercel.json` に cron（10分ごと）
+- 未接続（認証情報待ち）: Kintone KPI(30) / タスク(38) トークン、LINE チャネルシークレット／アクセストークン／CRON_SECRET、Google Drive サービスアカウント（任意）
+
 ## 次の作業
 1. CSV取込UI（マッピング→プレビュー→検証→確定、UPSERT・取込履歴・原本保持）
 2. 売上・利益／広告分析／商品分析画面（指標辞書ベース）

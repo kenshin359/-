@@ -1,14 +1,25 @@
-// PRO: 実装中のプレースホルダ（各画面は個別に実装して置き換える）
-import { requireActor } from '@/lib/rbac';
+// PRO ⑥ 資料庫2.0（横断検索・タグ・Drive任意）。初回表示はサーバーで検索し、以後は /api/pro/library を叩く。
+import { canWrite } from '@/lib/auth';
+import { canSeeConfidential, requireActor } from '@/lib/rbac';
+import { driveConfigured, searchLibrary } from '@/lib/pro/library';
+import LibraryView from './LibraryView';
 
 export const dynamic = 'force-dynamic';
 
-export default async function Page() {
-  await requireActor();
+export default async function Page({ searchParams }: { searchParams: Promise<{ q?: string; tag?: string }> }) {
+  const actor = await requireActor();
+  const sp = await searchParams;
+  const q = typeof sp.q === 'string' ? sp.q.slice(0, 200) : '';
+  const tag = typeof sp.tag === 'string' ? sp.tag.slice(0, 30) : '';
+  const initial = await searchLibrary({ q, tag }, actor);
   return (
-    <div className="rounded-xl bg-white p-6 shadow-sm">
-      <h1 className="text-lg font-bold text-slate-900">library</h1>
-      <p className="mt-2 text-sm text-slate-500">この画面は実装中です（PRO版 設計書 docs/pro-plan.md）。</p>
-    </div>
+    <LibraryView
+      initial={initial}
+      initialQuery={q}
+      initialTag={tag}
+      canEdit={canWrite(actor.role)}
+      canConfidential={canSeeConfidential(actor.level)}
+      driveOn={driveConfigured()}
+    />
   );
 }

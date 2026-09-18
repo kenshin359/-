@@ -12,7 +12,7 @@ const FILTERS: BoardFilter[] = ['all', 'today', 'overdue', 'p1', 'open'];
 export default async function TasksPage({
   searchParams,
 }: {
-  searchParams: Promise<{ filter?: string }>;
+  searchParams: Promise<{ filter?: string; q?: string }>;
 }) {
   const [session, data, params] = await Promise.all([getServerSession(authOptions), listTasks(), searchParams]);
   const stats = computeBoardStats(data.tasks);
@@ -30,6 +30,7 @@ export default async function TasksPage({
       canEdit={canWrite(session?.user.role)}
       currentUserName={session?.user.name ?? ''}
       initialFilter={initialFilter}
+      initialQuery={params.q ?? ''}
     />
   );
 }

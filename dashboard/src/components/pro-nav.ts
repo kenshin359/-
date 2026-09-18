@@ -36,7 +36,7 @@ export const PRO_NAV: ProNavItem[] = [
   { href: '/pro/library', label: '資料庫2.0', icon: FolderSearch, staff: true, keywords: ['検索', 'ドライブ'] },
   { href: '/pro/people', label: '社員・組織', icon: Users, staff: false, keywords: ['名簿', '権限'] },
   { href: '/pro/line', label: 'LINE監査役', icon: MessageSquare, staff: false, keywords: ['追いかけ', 'スケジュール'] },
-  { href: '/pro/settings', label: 'PRO設定', icon: Settings2, staff: false, keywords: ['閾値', '通知'] },
+  { href: '/pro/settings', label: 'PRO設定', icon: Settings2, staff: true, keywords: ['閾値', '通知'] },
 ];
 
 export const STANDARD_LINKS = [

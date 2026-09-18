@@ -44,6 +44,7 @@ export async function createTaskAction(_: ActionResult | null, form: FormData): 
     const t = await createTask(parsed.data);
     await audit(session.user.id, 'task.create', `${t.source}:${t.id} ${t.assignee} / ${t.title}`);
     revalidatePath('/tasks');
+    revalidatePath('/pro', 'layout');
     return { ok: true, message: `「${t.title}」を ${t.assignee} さんに登録しました` };
   } catch (e) {
     return { ok: false, message: e instanceof Error ? e.message : '登録に失敗しました' };
@@ -60,6 +61,7 @@ export async function updateTaskAction(_: ActionResult | null, form: FormData): 
     await updateTask(id, parsed.data);
     await audit(session.user.id, 'task.update', `${id} ${parsed.data.assignee} / ${parsed.data.title}`);
     revalidatePath('/tasks');
+    revalidatePath('/pro', 'layout');
     return { ok: true, message: '保存しました' };
   } catch (e) {
     return { ok: false, message: e instanceof Error ? e.message : '保存に失敗しました' };
@@ -75,6 +77,7 @@ export async function setTaskStatusAction(id: string, status: string): Promise<A
     await updateTask(id, { status: status as TaskStatus });
     await audit(session.user.id, 'task.status', `${id} → ${status}`);
     revalidatePath('/tasks');
+    revalidatePath('/pro', 'layout');
     return { ok: true, message: `状態を「${status}」にしました` };
   } catch (e) {
     return { ok: false, message: e instanceof Error ? e.message : '更新に失敗しました' };

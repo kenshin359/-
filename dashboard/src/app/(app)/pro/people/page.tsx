@@ -1,14 +1,24 @@
-// PRO: 実装中のプレースホルダ（各画面は個別に実装して置き換える）
-import { requireActor } from '@/lib/rbac';
+// PRO ⑨ 社員・組織: 部署ごとの一覧。閲覧範囲（一般社員は自チームのみ）は listPeople がサーバー側で絞る。
+import { canSeeConfidential, requireActor } from '@/lib/rbac';
+import { listPeople, teamOptions } from '@/lib/pro/people';
+import { teamByCode } from '@/lib/pro/teams';
+import PeopleDirectory from './PeopleDirectory';
 
 export const dynamic = 'force-dynamic';
 
 export default async function Page() {
-  await requireActor();
+  const actor = await requireActor();
+  const res = await listPeople(actor);
   return (
-    <div className="rounded-xl bg-white p-6 shadow-sm">
-      <h1 className="text-lg font-bold text-slate-900">people</h1>
-      <p className="mt-2 text-sm text-slate-500">この画面は実装中です（PRO版 設計書 docs/pro-plan.md）。</p>
-    </div>
+    <PeopleDirectory
+      people={res.people}
+      today={res.today}
+      teams={teamOptions()}
+      taskSource={res.taskSource}
+      taskNotice={res.taskNotice}
+      companyWide={res.companyWide}
+      scopedTeamName={res.scopedTeamCode ? (teamByCode(res.scopedTeamCode)?.name ?? res.scopedTeamCode) : null}
+      canSeeConfidential={canSeeConfidential(actor.level)}
+    />
   );
 }

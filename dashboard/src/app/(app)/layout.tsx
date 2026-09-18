@@ -6,6 +6,7 @@ import SignOutButton from '@/components/SignOutButton';
 import ModeSwitch from '@/components/ModeSwitch';
 import CommandPalette from '@/components/CommandPalette';
 import QuickActions from '@/components/QuickActions';
+import MobileNav from '@/components/MobileNav';
 import { currentActor, canSeeCompanyWide, LEVEL_JA } from '@/lib/rbac';
 import { getUiMode } from '@/lib/ui-mode';
 
@@ -49,8 +50,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             <SignOutButton />
           </div>
         </header>
-        <main className="p-4 lg:p-6">{children}</main>
+        <main className={`p-4 lg:p-6 ${mode === 'pro' ? 'pb-20 lg:pb-6' : ''}`}>{children}</main>
       </div>
+      {mode === 'pro' && <MobileNav />}
     </div>
   );
 }

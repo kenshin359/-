@@ -1,14 +1,15 @@
-// PRO: 実装中のプレースホルダ（各画面は個別に実装して置き換える）
-import { requireActor } from '@/lib/rbac';
+// PRO KPI一覧: 判定（🟢🟡🔴）・最新値・推移・改善タスク数。閾値は docs/business.md §6 の現場基準。
+import type { Metadata } from 'next';
+import { canWrite } from '@/lib/auth';
+import { atLeast, requireActor } from '@/lib/rbac';
+import { listKpis } from '@/lib/pro/kpi';
+import { KpiList } from './KpiView';
 
 export const dynamic = 'force-dynamic';
+export const metadata: Metadata = { title: 'KPI' };
 
 export default async function Page() {
-  await requireActor();
-  return (
-    <div className="rounded-xl bg-white p-6 shadow-sm">
-      <h1 className="text-lg font-bold text-slate-900">kpi</h1>
-      <p className="mt-2 text-sm text-slate-500">この画面は実装中です（PRO版 設計書 docs/pro-plan.md）。</p>
-    </div>
-  );
+  const actor = await requireActor();
+  const kpis = await listKpis();
+  return <KpiList kpis={kpis} canManage={atLeast(actor.level, 'manager') && canWrite(actor.role)} />;
 }
