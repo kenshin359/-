@@ -4,6 +4,7 @@
 
 `dashboard/` はNext.js+Prisma(SQLite)の業務ダッシュボード。開発時は必ず以下を守る:
 - 仕様は `dashboard/docs/spec.md`、指標定義は `dashboard/docs/metrics.md`、CSV/DB粒度は `dashboard/docs/data-contracts.md` が正。進捗・判断記録は `dashboard/docs/progress.md` を更新する。
+- 業務の実態（商品・チャネル・媒体・KPI閾値・Kintoneアプリ・運用時刻）とダッシュボードとのギャップは `dashboard/docs/business.md`。画面や取込を作る前に該当節を読み、新しく分かった業務知識はここに追記する（出典付き・推測禁止）。
 - 集計は必ず `src/lib/metrics/` を通す（画面ごとの独自計算・数値のハードコード禁止）。変更したら `npm run test`（検算17件）と `npm run build` を通してからコミット。
 - demo=true のデータは実データ集計から常に排他。未接続の外部連携は「未接続」表示（成功と偽らない）。ROASは帰属売上未取得なら「未取得」（総売上÷広告費で代用しない）。
 - `.env` と `*.db` はコミットしない（`.env.example` のみ可・本物の秘密を入れない）。

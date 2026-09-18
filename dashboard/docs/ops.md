@@ -34,8 +34,9 @@
 1. https://supabase.com に会社メールで登録 → 「New project」（Organization: Libetee、Region: **Northeast Asia (Tokyo)**、Database Password は生成ボタンで作り控える）
 2. プロジェクト画面上部の **「Connect」** → 「Connection string」で2本コピー:
    - **Transaction pooler**（ホストが `*.pooler.supabase.com`、ポート **6543**）→ Vercel の `DATABASE_URL`
-   - **Direct connection**（ポート **5432**）→ Vercel の `DIRECT_URL`
-   - どちらも `[YOUR-PASSWORD]` の部分を手順1のパスワードに置き換える
+   - **Session pooler**（ホストが `*.pooler.supabase.com`、ポート **5432**）→ Vercel の `DIRECT_URL`
+     ※「Direct connection」（ホストが `db.<ref>.supabase.co`）は **IPv6 専用**のため、Vercel のビルド環境からは届かず `prisma migrate deploy` が「Can't reach database server」で10秒ほどで失敗する。`DIRECT_URL` には必ず pooler ホストの 5432 を使う
+   - どちらも `[YOUR-PASSWORD]` の部分を手順1のパスワードに置き換える（記号を含む場合はURLエンコードする）
 3. Vercel → Settings → Environment Variables で `DATABASE_URL` / `DIRECT_URL` を上書き → Deployments → Redeploy
 4. 起動時に `prisma migrate deploy` が走り、Supabase側にテーブルが作られる。ユーザーが0人なら `INITIAL_ADMIN_*` から管理者が自動作成される
 - アプリ側は `src/lib/prisma.ts` が Supabase のプーリングURLに必要な `pgbouncer=true&connection_limit=1` を自動付与するため、URLはそのまま貼ればよい
