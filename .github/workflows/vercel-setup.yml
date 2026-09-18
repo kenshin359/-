@@ -45,10 +45,20 @@ jobs:
           if [ -z "$VERCEL_TOKEN" ]; then
             echo "::error::GitHub Secrets に VERCEL_TOKEN がありません（Vercel → Account Settings → Tokens で作成して登録）"; exit 1; fi
           vercel whoami --token "$VERCEL_TOKEN"
+      - name: 見えているチームとプロジェクトを表示（診断用）
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          echo "== teams"; vercel teams ls --token "$VERCEL_TOKEN" 2>&1 | tail -20 || true
+          echo "== projects (scope $VERCEL_SCOPE)"; vercel project ls --token "$VERCEL_TOKEN" --scope "$VERCEL_SCOPE" 2>&1 | tail -20 || true
       - name: プロジェクトに接続
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-        run: vercel link --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_SCOPE" --project "$VERCEL_PROJECT"
+        run: |
+          if ! vercel link --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_SCOPE" --project "$VERCEL_PROJECT"; then
+            echo "::error::プロジェクト $VERCEL_PROJECT がチーム $VERCEL_SCOPE で見つかりません。VERCEL_TOKEN の Scope が個人ではなくチーム『リベティー』になっているか確認してください（上の teams 一覧に libetee が無ければトークンの権限不足）"
+            exit 1
+          fi
       - name: 環境変数を設定（Production）
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
