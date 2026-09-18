@@ -30,6 +30,18 @@
 5. ログインできたら Vercel の環境変数から `INITIAL_ADMIN_*` の3つを削除（以降のユーザー追加は画面の「各種マスター管理 > ユーザー管理」で行う）。
 6. Settings > Git > **Production Branch** を `claude/kintone-daily-report-system-f8migr`（ダッシュボードのコードがあるブランチ）にする。以後このブランチへの push で自動更新。
 
+### データベースを Supabase にする場合（Neon の代わり・コード変更なし）
+1. https://supabase.com に会社メールで登録 → 「New project」（Organization: Libetee、Region: **Northeast Asia (Tokyo)**、Database Password は生成ボタンで作り控える）
+2. プロジェクト画面上部の **「Connect」** → 「Connection string」で2本コピー:
+   - **Transaction pooler**（ホストが `*.pooler.supabase.com`、ポート **6543**）→ Vercel の `DATABASE_URL`
+   - **Direct connection**（ポート **5432**）→ Vercel の `DIRECT_URL`
+   - どちらも `[YOUR-PASSWORD]` の部分を手順1のパスワードに置き換える
+3. Vercel → Settings → Environment Variables で `DATABASE_URL` / `DIRECT_URL` を上書き → Deployments → Redeploy
+4. 起動時に `prisma migrate deploy` が走り、Supabase側にテーブルが作られる。ユーザーが0人なら `INITIAL_ADMIN_*` から管理者が自動作成される
+- アプリ側は `src/lib/prisma.ts` が Supabase のプーリングURLに必要な `pgbouncer=true&connection_limit=1` を自動付与するため、URLはそのまま貼ればよい
+- Supabase の Free プランはプロジェクトが1週間無アクセスで一時停止する。安定運用に入ったら Pro（$25/月）へ
+- 既存データを Neon から移す場合: Neon で `pg_dump`、Supabase で `psql` 復元（docs のバックアップ手順と同じ）
+
 ### 独自ドメイン（例 dashboard.libetee.net）
 Vercel の Settings > Domains にドメインを追加すると CNAME の値が表示される。Wix のドメイン管理（DNSレコード）で `dashboard` の CNAME をその値に向ける。反映後、`NEXTAUTH_URL` を `https://dashboard.libetee.net` に変更して Redeploy。
 
