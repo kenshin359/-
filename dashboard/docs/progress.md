@@ -55,6 +55,16 @@
 - docs/ops.md にVercel手順（料金注意: Hobbyは商用不可→Pro必須）を追記
 - 未検証: Vercel上での実デプロイ（アカウント作成待ち）。ローカルでは検算・ビルド・ロック動作を再確認
 
+## 2026-09-18 AI公式ライン（LINE公式アカウントのAI自動応答）
+- 北野さん依頼「AI公式ライン作成したい」。ダッシュボード（Vercel公開済み・HTTPSあり）に Webhook を載せる構成にした（ngrok や別サーバー不要）
+- 追加: `POST /api/line/webhook`（X-Line-Signature 検証・ログイン不要）→ 会話ログ保存 → Claude（`claude-opus-5`、構造化出力）で事実カードの範囲で回答 → reply → 要対応ならスタッフ通知（LINE push / Chatwork）
+- 事実カードは `config/line-ai-knowledge.json`（reply-blocks.json の事実＋sku-names.json の商品群から作成）。送料・返品条件・在庫・寸法は「要データ」としてAIに答えさせない
+- 要対応はAI判断＋コード側の注意語判定の二重チェック。APIキー未設定・障害時は固定案内文＋要対応（成功と偽らない）
+- DB: `LineChatLog` 追加（SQLite/Postgres 両マイグレーション。直近24h・10往復を文脈に使用、webhookEventId で二重配信防止）
+- 画面: 「LINE対応」（会話ログ・要対応フィルタ・7日集計・設定状態）。サイドバーとショートカットに追加
+- 検証: 検算31件成功（既存17＋LINE14）/ lint / tsc / build。実LINE・実Claudeへの疎通は鍵未提供のため未検証（手順は docs/line-ai-setup.md）
+- 未実装（次の候補）: 画像メッセージの読み取り、事実カードのGUI編集、要対応の「対応済み」チェック
+
 ## 次の作業
 1. CSV取込UI（マッピング→プレビュー→検証→確定、UPSERT・取込履歴・原本保持）
 2. 売上・利益／広告分析／商品分析画面（指標辞書ベース）

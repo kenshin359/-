@@ -292,3 +292,20 @@ model LoginFailure {
   count Int      @default(0)
   until DateTime
 }
+
+// LINE公式アカウント（AI自動応答）の会話ログ。
+// お客様の発言と AI の返信を1行ずつ保存し、要対応（needsHuman）の確認と、直近の文脈を AI に渡すために使う。
+model LineChatLog {
+  id         String   @id @default(cuid())
+  eventId    String?  @unique // LINE の webhookEventId（再送の二重処理防止）
+  lineUserId String
+  direction  String   // in=お客様→AI / out=AI→お客様
+  text       String
+  needsHuman Boolean  @default(false)
+  reason     String?
+  topics     String?  // カンマ区切り
+  createdAt  DateTime @default(now())
+
+  @@index([lineUserId, createdAt])
+  @@index([needsHuman, createdAt])
+}

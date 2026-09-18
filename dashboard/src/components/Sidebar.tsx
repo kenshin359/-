@@ -15,6 +15,7 @@ const MENU = [
   { href: '/tasks', label: 'タスク管理', icon: '✅' },
   { href: '/proposals', label: 'AI改善提案', icon: '💡' },
   { href: '/reports', label: 'レポート', icon: '🧾' },
+  { href: '/line', label: 'LINE対応', icon: '💬' },
   { href: '/integrations', label: 'データ連携設定', icon: '🔌' },
   { href: '/masters', label: '各種マスター管理', icon: '⚙️' },
 ];
@@ -23,6 +24,7 @@ const SHORTCUTS = [
   { href: '/tasks?filter=today', label: '今日のToDo' },
   { href: '/tasks?filter=open', label: '未完了タスク' },
   { href: '/proposals?tab=alerts', label: 'アラート一覧' },
+  { href: '/line?filter=human', label: 'LINE要対応' },
   { href: '/integrations#llm', label: 'AIに質問する（未接続）' },
 ];
 

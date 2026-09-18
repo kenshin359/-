@@ -7,6 +7,7 @@
 - 集計は必ず `src/lib/metrics/` を通す（画面ごとの独自計算・数値のハードコード禁止）。変更したら `npm run test`（検算17件）と `npm run build` を通してからコミット。
 - demo=true のデータは実データ集計から常に排他。未接続の外部連携は「未接続」表示（成功と偽らない）。ROASは帰属売上未取得なら「未取得」（総売上÷広告費で代用しない）。
 - `.env` と `*.db` はコミットしない（`.env.example` のみ可・本物の秘密を入れない）。
+- AI公式ライン（LINE公式アカウントのAI自動応答）は `dashboard/src/app/api/line/webhook` と `dashboard/src/lib/line/`。AIが答えてよい事実は `dashboard/config/line-ai-knowledge.json` が正で、ここに無いこと（送料・返品条件・在庫など）は答えさせず要対応に回す。手順は `dashboard/docs/line-ai-setup.md`。
 
 ## 合言葉コマンド
 
