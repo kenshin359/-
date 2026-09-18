@@ -100,6 +100,13 @@
 - Excelの数値は公開リポジトリのためコミットしない（画面から貼り付けて取り込む運用）
 - Vercel: Next.js 15.5.25 へ更新（脆弱バージョン検出でデプロイ停止していた）、NEXTAUTH_SECRET 未設定時のフォールバック、`/api/health` 追加
 
+## 2026-09-18 本番公開（Vercel + Supabase）
+- 原因: Vercel の DIRECT_URL/DATABASE_URL のユーザー名が `postgres`（pooler では `postgres.<project-ref>` が必要）かつパスワード不一致 → P1000。北野さんから受領した Vercel トークンで環境変数を API から書き換え（DATABASE_URL=Transaction pooler 6543 + pgbouncer、DIRECT_URL=Session pooler 5432、NEXTAUTH_SECRET/CRON_SECRET 自動生成、NEXTAUTH_URL、KINTONE_*_APP_ID、INITIAL_ADMIN_*）し、API から本番デプロイを起動
+- Vercel Hobby は cron が1日1回までのため `/api/line/cron` を `0 1 * * *`（10:00 JST）に変更
+- 結果: https://libetee-dashboard.vercel.app `/api/health` = `{"ok":true,"db":"ok","secretSource":"env","commit":"2d59710"}`。初回管理者（北野さん）でログイン成功（セッション発行を確認）。INITIAL_ADMIN_* は作成後に削除
+- 補足: GitHub からの push で Vercel の自動デプロイが 09:00 UTC 以降動いていない（Hobby の日次デプロイ上限か Webhook 不達の可能性）。本番反映は当面 API からの手動起動（`scratchpad/setdb.sh` 相当）か Vercel 画面の Redeploy で行う
+- 要対応: チャットに貼られた Vercel トークンと DB パスワードは作り直す（トークンは Vercel → Tokens で削除、DB は Supabase で Reset）
+
 ## 次の作業
 1. CSV取込UI（マッピング→プレビュー→検証→確定、UPSERT・取込履歴・原本保持）
 2. 売上・利益／広告分析／商品分析画面（指標辞書ベース）
