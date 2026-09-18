@@ -13,29 +13,20 @@ export async function GET() {
   const secretSource = explicit ? 'env' : hasDb ? 'derived' : 'none';
   let db: 'ok' | 'error' = 'error';
   let dbError: string | undefined;
-  let users: number | undefined;
   try {
-    users = await prisma.user.count();
+    await prisma.user.count();
     db = 'ok';
   } catch (e) {
-    dbError = e instanceof Error ? e.message.split('\n')[0].slice(0, 200) : String(e);
+    // 接続先やユーザー数など内部情報はログイン不要APIでは返さない（分類だけ返す）
+    const m = e instanceof Error ? e.message : String(e);
+    dbError = /P1001|reach/i.test(m) ? 'unreachable' : /P1000|auth|password/i.test(m) ? 'auth' : 'error';
   }
   return NextResponse.json({
     ok: db === 'ok' && secretSource !== 'none',
     db,
     dbError,
-    users,
     secretSource,
-    dbHost: hasDb ? safeHost(process.env.DATABASE_URL as string) : null,
     commit: (process.env.VERCEL_GIT_COMMIT_SHA || '').slice(0, 7) || null,
     time: new Date().toISOString(),
   });
-}
-
-function safeHost(url: string): string | null {
-  try {
-    return new URL(url).hostname;
-  } catch {
-    return null;
-  }
 }

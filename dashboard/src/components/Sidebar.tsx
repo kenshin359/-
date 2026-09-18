@@ -19,11 +19,15 @@ import {
   Settings,
   Menu,
   X,
+  ChevronDown,
   type LucideIcon,
 } from 'lucide-react';
+import { PRO_NAV } from './pro-nav';
+import type { UiMode } from '@/lib/ui-mode';
 
 type Item = { href: string; label: string; icon: LucideIcon };
 
+// STANDARD（現行のまま。変更しない）
 const MENU: Item[] = [
   { href: '/', label: 'ダッシュボード', icon: LayoutDashboard },
   { href: '/sales', label: '売上・利益', icon: CircleDollarSign },
@@ -47,12 +51,36 @@ const SHORTCUTS = [
   { href: '/integrations#llm', label: 'AIに質問する（未接続）' },
 ];
 
-export default function Sidebar() {
+function NavLink({ item, active, strong }: { item: Item; active: boolean; strong?: boolean }) {
+  const Icon = item.icon;
+  return (
+    <Link
+      href={item.href}
+      aria-current={active ? 'page' : undefined}
+      className={`flex items-center gap-2.5 rounded-md px-3 py-2 text-[13px] transition-colors ${
+        active
+          ? 'bg-blue-800 font-medium text-white shadow-sm shadow-blue-950/40'
+          : strong
+            ? 'text-blue-100/90 hover:bg-blue-900 hover:text-white'
+            : 'text-blue-100/70 hover:bg-blue-900 hover:text-white'
+      }`}
+    >
+      <Icon size={15} strokeWidth={active ? 2.25 : 1.75} aria-hidden className="shrink-0" />
+      {item.label}
+    </Link>
+  );
+}
+
+export default function Sidebar({ mode = 'standard', staffOnly = false }: { mode?: UiMode; staffOnly?: boolean }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const [showStandard, setShowStandard] = useState(false);
 
   // 画面遷移で自動的に閉じる（モバイル）
   useEffect(() => setOpen(false), [pathname]);
+
+  const isActive = (href: string) => pathname === href || (href !== '/' && href !== '/pro' && pathname.startsWith(href + '/'));
+  const proItems = PRO_NAV.filter((i) => !staffOnly || i.staff);
 
   return (
     <>
@@ -82,41 +110,41 @@ export default function Sidebar() {
       >
         <div className="border-b border-blue-900 px-4 py-4">
           <p className="text-sm font-bold tracking-wide text-white">Libetee</p>
-          <p className="text-[11px] text-blue-200/80">経営AIダッシュボード</p>
+          <p className="text-[11px] text-blue-200/80">
+            経営AIダッシュボード{mode === 'pro' && <span className="ml-1 rounded bg-blue-800 px-1 py-px text-[10px] font-semibold text-white">PRO</span>}
+          </p>
         </div>
         <nav aria-label="メインメニュー" className="mt-2 flex-1 space-y-0.5 overflow-y-auto px-2 pb-2">
-          {MENU.map((m) => {
-            const active = pathname === m.href || (m.href !== '/' && pathname.startsWith(m.href + '/'));
-            const Icon = m.icon;
-            return (
-              <Link
-                key={m.href}
-                href={m.href}
-                aria-current={active ? 'page' : undefined}
-                className={`flex items-center gap-2.5 rounded-md px-3 py-2 text-[13px] transition-colors ${
-                  active
-                    ? 'bg-blue-800 font-medium text-white shadow-sm shadow-blue-950/40'
-                    : 'text-blue-100/90 hover:bg-blue-900 hover:text-white'
-                }`}
+          {mode === 'pro' ? (
+            <>
+              {proItems.map((m) => (
+                <NavLink key={m.href} item={m} active={isActive(m.href)} strong />
+              ))}
+              <button
+                type="button"
+                onClick={() => setShowStandard(!showStandard)}
+                aria-expanded={showStandard}
+                className="mt-3 flex w-full items-center justify-between rounded-md px-3 py-1.5 text-[11px] font-medium text-blue-200/70 hover:text-white"
               >
-                <Icon size={15} strokeWidth={active ? 2.25 : 1.75} aria-hidden className="shrink-0" />
-                {m.label}
-              </Link>
-            );
-          })}
+                STANDARD の画面
+                <ChevronDown size={13} aria-hidden className={`transition-transform ${showStandard ? 'rotate-180' : ''}`} />
+              </button>
+              {showStandard && MENU.map((m) => <NavLink key={m.href} item={m} active={isActive(m.href)} />)}
+            </>
+          ) : (
+            MENU.map((m) => <NavLink key={m.href} item={m} active={isActive(m.href)} strong />)
+          )}
         </nav>
-        <div className="border-t border-blue-900 px-4 py-3">
-          <p className="mb-1 text-[11px] font-medium text-blue-200/70">ショートカット</p>
-          {SHORTCUTS.map((s) => (
-            <Link
-              key={s.label}
-              href={s.href}
-              className="block rounded px-1 py-1 text-xs text-blue-100/80 hover:text-white"
-            >
-              {s.label}
-            </Link>
-          ))}
-        </div>
+        {mode === 'standard' && (
+          <div className="border-t border-blue-900 px-4 py-3">
+            <p className="mb-1 text-[11px] font-medium text-blue-200/70">ショートカット</p>
+            {SHORTCUTS.map((s) => (
+              <Link key={s.label} href={s.href} className="block rounded px-1 py-1 text-xs text-blue-100/80 hover:text-white">
+                {s.label}
+              </Link>
+            ))}
+          </div>
+        )}
       </aside>
     </>
   );

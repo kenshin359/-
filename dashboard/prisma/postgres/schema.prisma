@@ -17,6 +17,13 @@ model User {
   name         String
   passwordHash String
   role         String // admin | editor | viewer
+  // --- PRO: 5段階の権限と組織 ---
+  level        String     @default("staff") // ceo | director | manager | leader | staff
+  teamCode     String? // Team.code
+  title        String? // 役職・担当業務
+  kintoneName  String? // Kintoneタスク管理の担当者名（例: 北野）
+  lineUserId   String? // LINE userId（監査役ボットの紐づけ）
+  skills       String? // カンマ区切り
   createdAt    DateTime   @default(now())
   auditLogs    AuditLog[]
   tasks        Task[]     @relation("assignee")
@@ -238,27 +245,34 @@ model Target {
 }
 
 model Task {
-  id           String    @id @default(cuid())
-  title        String
-  assigneeId   String?
-  assignee     User?     @relation("assignee", fields: [assigneeId], references: [id])
-  dueDate      DateTime?
-  priority     String    @default("mid") // high | mid | low（旧）。Kintone同期後は P1〜P4 を kPriority に持つ
-  status       String    @default("todo") // todo | doing | waiting | done
-  relation     String? // 関連商品・媒体
-  proposalId   String?   @unique // 提案からの二重タスク化防止
-  doneMemo     String?
+  id                String    @id @default(cuid())
+  title             String
+  assigneeId        String?
+  assignee          User?     @relation("assignee", fields: [assigneeId], references: [id])
+  dueDate           DateTime?
+  priority          String    @default("mid") // high | mid | low（旧）。Kintone同期後は P1〜P4 を kPriority に持つ
+  status            String    @default("todo") // todo | doing | waiting | done
+  relation          String? // 関連商品・媒体
+  proposalId        String?   @unique // 提案からの二重タスク化防止
+  doneMemo          String?
   // --- Kintone タスク管理(38) と同じ項目（未接続時のローカル保存用）---
-  team         String? // CS | 広告 | LP | SNS | TikTok | O2 | 韓国 | ユニONA | 社長室 | 人事・管理 | 経営
-  assigneeName String? // 担当者名（Kintoneの tantou）
-  doneDef      String? // 完了の定義（数字で）
-  kPriority    String? // P1 | P2 | P3 | P4
-  impact       String? // ◎ 売上に直結 | ○ 間接（計測・基盤） | △ 体制づくり
-  yanai        String? // 柳井基準（撤退・判断ライン）
-  memo         String?
-  kintoneId    String?   @unique // Kintoneレコード番号（同期済みなら設定）
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  team              String? // CS | 広告 | LP | SNS | TikTok | O2 | 韓国 | ユニONA | 社長室 | 人事・管理 | 経営
+  assigneeName      String? // 担当者名（Kintoneの tantou）
+  doneDef           String? // 完了の定義（数字で）
+  kPriority         String? // P1 | P2 | P3 | P4
+  impact            String? // ◎ 売上に直結 | ○ 間接（計測・基盤） | △ 体制づくり
+  yanai             String? // 柳井基準（撤退・判断ライン）
+  memo              String?
+  kintoneId         String?   @unique // Kintoneレコード番号（同期済みなら設定）
+  // --- PRO: プロジェクト・KPI・進捗・依頼元・保留 ---
+  projectCode       String?
+  kpiCode           String?
+  progress          Int       @default(0) // 0-100
+  requestedByUserId String?
+  holdReason        String?
+  lastActivityAt    DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 }
 
 // 資料庫: Googleドライブ等の資料リンクをカテゴリ付きで管理（本文は保存しない）
@@ -325,4 +339,165 @@ model LoginFailure {
   email String   @id
   count Int      @default(0)
   until DateTime
+}
+
+// ===================== PRO（経営・業務管理OS）追加モデル：既存テーブルは変更しない =====================
+
+// 部署階層。Kintoneタスク管理の「チーム」選択肢と対応付ける
+model Team {
+  code         String  @id // ec | ads | lp | sns | tiktok | cs | logistics | product | hr | finance | overseas | o2 | exec | ceo_office
+  name         String
+  parentCode   String?
+  leaderUserId String?
+  kintoneLabel String? // Kintone team ドロップダウンの表記（例: 広告）
+  sortOrder    Int     @default(0)
+  active       Boolean @default(true)
+}
+
+model Project {
+  id          String    @id @default(cuid())
+  code        String    @unique
+  name        String
+  teamCode    String?
+  ownerUserId String?
+  status      String    @default("active") // planned | active | hold | done | archived
+  goal        String?
+  kpiCode     String?
+  startDate   DateTime?
+  dueDate     DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+// KPI定義（判定閾値つき）。値は KpiValue に日次で持つ
+model Kpi {
+  code            String     @id // 例: sales_month, ad_ratio, suitcase_cpa, cs_low_reviews
+  name            String
+  unit            String // 円 | % | 件 | 倍 | 個
+  direction       String     @default("up") // up=大きいほど良い | down=小さいほど良い
+  targetValue     Float?
+  warnThreshold   Float? // 注意
+  dangerThreshold Float? // 危険
+  source          String     @default("manual") // metrics | kintone | manual
+  teamCode        String?
+  ownerUserId     String?
+  note            String?
+  active          Boolean    @default(true)
+  values          KpiValue[]
+}
+
+model KpiValue {
+  id      String   @id @default(cuid())
+  kpiCode String
+  kpi     Kpi      @relation(fields: [kpiCode], references: [code])
+  date    DateTime
+  value   Float
+  note    String?
+  demo    Boolean  @default(false)
+
+  @@unique([kpiCode, date])
+}
+
+// 報告（日報 / 週報 / 中間報告）
+model Report {
+  id               String    @id @default(cuid())
+  type             String // daily | weekly | interim
+  teamCode         String?
+  authorUserId     String?
+  authorName       String?
+  periodFrom       DateTime
+  periodTo         DateTime
+  title            String
+  body             String // 構造化JSON（数字・学び・今日/今週・課題・依頼）
+  status           String    @default("submitted") // draft | submitted | reviewed
+  reviewedByUserId String?
+  reviewedAt       DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+}
+
+// アラート（ルールで生成。同じ code+entity は1件に集約し、解消でクローズ）
+model Alert {
+  id          String    @id @default(cuid())
+  code        String // task_overdue | waiting_stale | no_assignee | stale_update | sales_pace | ad_ratio | cpa_spike | stock_out | stock_excess | task_concentration
+  level       String // red | yellow
+  title       String
+  detail      String?
+  entityType  String? // task | kpi | sku | user | team
+  entityId    String?
+  teamCode    String?
+  firstSeenAt DateTime  @default(now())
+  lastSeenAt  DateTime  @default(now())
+  resolvedAt  DateTime?
+  mutedUntil  DateTime?
+
+  @@unique([code, entityType, entityId])
+}
+
+// クイックメモ（どの画面からでも）
+model Note {
+  id           String   @id @default(cuid())
+  authorUserId String?
+  authorName   String?
+  body         String
+  entityType   String?
+  entityId     String?
+  createdAt    DateTime @default(now())
+}
+
+// ===== LINE 監査役ボット =====
+model LineGroup {
+  groupId  String        @id
+  name     String?
+  teamCode String?
+  active   Boolean       @default(true)
+  joinedAt DateTime      @default(now())
+  messages LineMessage[]
+}
+
+model LineMessage {
+  id            String     @id @default(cuid())
+  groupId       String
+  group         LineGroup  @relation(fields: [groupId], references: [groupId])
+  lineMessageId String     @unique
+  userId        String?
+  displayName   String?
+  kind          String     @default("text") // text | image | file | sticker | other
+  text          String?
+  ts            DateTime
+  extractedJson String? // AI/ルールで抽出した依頼・期限・約束（JSON）
+  processedAt   DateTime?
+  createdAt     DateTime   @default(now())
+  followUps     FollowUp[]
+}
+
+// 追いかけ（依頼・約束の未完了をリマインド）
+model FollowUp {
+  id              String       @id @default(cuid())
+  sourceMessageId String?
+  source          LineMessage? @relation(fields: [sourceMessageId], references: [id])
+  groupId         String?
+  title           String
+  assigneeName    String?
+  due             DateTime?
+  status          String       @default("open") // open | done | dropped
+  taskId          String? // タスク化した場合
+  remindAt        DateTime?
+  remindedCount   Int          @default(0)
+  lastRemindedAt  DateTime?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+}
+
+// 定時投稿（朝の予定・夕方のまとめ・期限リマインド）
+model ScheduledPost {
+  id        String    @id @default(cuid())
+  groupId   String
+  name      String
+  cron      String // 5フィールド（JST）
+  template  String // daily_summary | due_reminder | custom
+  body      String?
+  active    Boolean   @default(true)
+  lastRunAt DateTime?
+  createdAt DateTime  @default(now())
 }
