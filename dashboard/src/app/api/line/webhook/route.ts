@@ -91,8 +91,10 @@ async function handleEvent(ev: LineEvent): Promise<void> {
   const userId = ev.source?.userId ?? '';
   const k = loadKnowledge();
 
-  if (ev.type === 'follow' && ev.replyToken) {
-    await replyText(ev.replyToken, k.bot.greeting);
+  if (ev.type === 'follow') {
+    // 友だち追加時の挨拶は既定で LINE 公式アカウント側の「あいさつメッセージ」に任せる（二重送信を防ぐ）。
+    // LINE側をオフにして AI 側の文面（bot.greeting）を使う場合だけ greeting_by_bot を true にする。
+    if (k.bot.greeting_by_bot && ev.replyToken) await replyText(ev.replyToken, k.bot.greeting);
     return;
   }
 

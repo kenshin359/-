@@ -2,7 +2,7 @@ import knowledgeJson from '../../../config/line-ai-knowledge.json';
 
 export type Knowledge = {
   company: { name: string; brand: string; channels: string[] };
-  bot: { name: string; greeting: string; fallback: string; handoff: string };
+  bot: { name: string; greeting: string; greeting_by_bot?: boolean; fallback: string; handoff: string };
   facts: Record<string, string>;
   products: { group: string; sizes: string[]; colors: string[]; note?: string }[];
   unknown: Record<string, string>;
