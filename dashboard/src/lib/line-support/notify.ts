@@ -16,18 +16,37 @@ export type StaffNotice = {
   reason: string;
   /** 同じ案件への追加メッセージか（新規通知か） */
   followUp?: boolean;
+  /** 承認待ちの回答案（APPROVAL）。reply とは別に「未送信の案」として見せる */
+  draft?: string | null;
+  /** 分類の表示（例: 商品仕様（L1・確信度92）） */
+  classification?: string | null;
+  /** 根拠となった事実カードのキー */
+  kbRefs?: string[];
+  /** レベル2で不足している情報 */
+  missingInfo?: string[];
 };
 
 export function formatStaffNotice(n: StaffNotice): string {
   const tag = n.caseNo != null ? `#${n.caseNo}` : '';
-  const lines = [
-    n.followUp ? `【LINE ${tag} 追加メッセージ】お客様から続きが届きました` : `【LINE要対応 ${tag}】お客様への確認・返信をお願いします`,
-  ];
+  const head = n.followUp
+    ? `【LINE ${tag} 追加メッセージ】お客様から続きが届きました`
+    : n.draft
+      ? `【LINE ${tag} 回答案】承認をお願いします`
+      : `【LINE要対応 ${tag}】お客様への確認・返信をお願いします`;
+  const lines = [head];
+  if (!n.followUp && n.classification) lines.push(`分類: ${n.classification}`);
   if (!n.followUp) lines.push(`理由: ${n.reason || '（AI判断）'}`);
   lines.push('', '▼お客様のメッセージ', n.userText);
   if (n.reply) lines.push('', '▼AIが送った一次回答', n.reply);
+  if (n.draft) {
+    lines.push('', '▼AIの回答案（未送信）', n.draft);
+    if (n.kbRefs?.length) lines.push(`根拠: ${n.kbRefs.join('、')}`);
+    if (n.missingInfo?.length) lines.push(`不足情報: ${n.missingInfo.join('、')}`);
+  }
   lines.push('');
-  if (n.caseNo != null) {
+  if (n.caseNo != null && n.draft) {
+    lines.push(`▼このまま送る: 「${tag} 送信」／書き換えて送る: 「${tag} 返信文」／対応不要: 「完了 ${tag}」`);
+  } else if (n.caseNo != null) {
     lines.push(`▼返信するには、このグループに「${tag} 返信文」と送ってください`, `　対応が終わったら「完了 ${tag}」`);
   } else {
     lines.push('※LINE公式アカウントマネージャーのチャット画面から返信できます。');
