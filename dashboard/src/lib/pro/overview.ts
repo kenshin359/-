@@ -12,6 +12,8 @@ import { canSeeConfidential, redactConfidential, type Actor } from '../rbac';
 import { TEAM_DEFS, teamByKintoneLabel } from './teams';
 import { computeMonthlyOverview, fetchKpiMonths, type MonthlyOverview, type MonthTargets } from './kpi-kintone';
 import { evaluateAlerts, listOpenAlerts, type AlertItem } from './alerts';
+import { getEventCalendar } from '../events-calendar';
+import { dailyTargetMap } from '../metrics/daily-target';
 
 /**
  * 判定の閾値（現場基準）。出典は docs/business.md §6「KPIと判定基準」と docs/pro-plan.md §5⑧。
@@ -220,7 +222,11 @@ export async function getCompanyOverview(actor: Actor, now = new Date()): Promis
     getSnsData(now).catch(() => null),
   ]);
 
-  const monthly = kpiRes.status === 'ok' ? computeMonthlyOverview(month, kpiRes.rows, kpiRes.prevRows, targets) : null;
+  // 日別目標はイベントカレンダー（朝礼と同じ加重）で補完する。KPI報告に日別目標が入っていればそちらが優先
+  const calendar = getEventCalendar(month);
+  const dailyTargets = calendar ? dailyTargetMap(calendar) : undefined;
+  const monthly =
+    kpiRes.status === 'ok' ? computeMonthlyOverview(month, kpiRes.rows, kpiRes.prevRows, targets, dailyTargets) : null;
   const tasks = taskList.tasks;
   const stats = computeBoardStats(tasks, now);
   const waitingStale = waitingStaleTasks(tasks, now);

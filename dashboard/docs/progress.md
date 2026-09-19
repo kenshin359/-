@@ -107,6 +107,16 @@
 - 補足: GitHub からの push で Vercel の自動デプロイが 09:00 UTC 以降動いていない（Hobby の日次デプロイ上限か Webhook 不達の可能性）。本番反映は当面 API からの手動起動（`scratchpad/setdb.sh` 相当）か Vercel 画面の Redeploy で行う
 - 要対応: チャットに貼られた Vercel トークンと DB パスワードは作り直す（トークンは Vercel → Tokens で削除、DB は Supabase で Reset）
 
+## 2026-09-19 目標・予実管理（/targets）— イベント加重の日別目標（A8）
+- 朝礼（`daily-report-system/scripts/newsDaily.py` / `buildChoreiSheet.py`）と同じ式を実装: **日次目標 = 月間目標 × その日の重み ÷ 月内の重みの合計**
+- 判定も朝礼と同一しきい値: 達成率100%以上=好調／70%以上=まずまず／未満=要改善（`GOOD_RATE` / `FAIR_RATE`）
+- `src/lib/metrics/daily-target.ts`（純関数・検算10件）＋ `src/lib/target-data.ts`（実績との突合）＋ `/targets` 画面
+- イベントカレンダーは `src/data/events/` にコピーして持つ（Vercelは dashboard/ だけをビルドするため）。更新は `sh scripts/sync-events.sh`（目録 `index.ts` も自動生成）
+- `/pro` の本日売上の判定色も、KPI報告に日別目標が無ければカレンダー配分で判定するようにした（`computeMonthlyOverview` に `dailyTargets` を追加、`todayTargetSource` で出どころを明示）
+- 月間目標は Target テーブルの登録値が最優先、無ければカレンダーの値（デモデータしか無い間は Target を使わない）
+- 未来日・未取込の日は空欄のまま（0で埋めない）。カレンダー未設定の月は「未設定」を表示
+- 検証: 検算158件成功、本番ビルド成功、ダミー実績を入れて /targets を描画確認（9/1の重み2.0→目標¥5,000,000＝1.1億×2÷44.0 を確認）後にダミーは削除
+
 ## 次の作業
 1. CSV取込UI（マッピング→プレビュー→検証→確定、UPSERT・取込履歴・原本保持）
 2. 売上・利益／広告分析／商品分析画面（指標辞書ベース）
