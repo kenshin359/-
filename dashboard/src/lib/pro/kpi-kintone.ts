@@ -223,6 +223,8 @@ export interface MonthlyOverview {
   /** 本日（＝最新日）の売上 */
   todaySales: number | null;
   todayTarget: number | null;
+  /** 本日の目標の出どころ。kintone=KPI報告の入力値 / calendar=イベントカレンダーの加重配分 */
+  todayTargetSource: 'kintone' | 'calendar' | null;
   /** 最新日の媒体別 */
   todayByChannel: { rakuten: number; amazon: number; own: number } | null;
   monthToDate: number;
@@ -278,6 +280,8 @@ export function computeMonthlyOverview(
   rows: KpiDailyRow[],
   prevRows: KpiDailyRow[],
   targets: MonthTargets,
+  /** 日付→日別目標（イベント加重）。KPI報告に日別目標が入っていない日の補完に使う */
+  dailyTargets?: Map<string, number>,
 ): MonthlyOverview {
   const daysInMonth = daysInMonthOf(month);
   const sorted = [...rows].sort((a, b) => (a.date < b.date ? -1 : 1));
@@ -321,7 +325,14 @@ export function computeMonthlyOverview(
     elapsedDays,
     remainingDays,
     todaySales: latest ? latest.salesTotal : null,
-    todayTarget: latest?.target ?? null,
+    todayTarget: latest ? (latest.target ?? dailyTargets?.get(latest.date) ?? null) : null,
+    todayTargetSource: latest
+      ? latest.target != null
+        ? 'kintone'
+        : dailyTargets?.get(latest.date) != null
+          ? 'calendar'
+          : null
+      : null,
     todayByChannel: latest ? { rakuten: latest.salesRakuten, amazon: latest.salesAmazon, own: latest.salesOwn } : null,
     monthToDate,
     byChannel,

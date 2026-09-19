@@ -107,6 +107,16 @@
 - 補足: GitHub からの push で Vercel の自動デプロイが 09:00 UTC 以降動いていない（Hobby の日次デプロイ上限か Webhook 不達の可能性）。本番反映は当面 API からの手動起動（`scratchpad/setdb.sh` 相当）か Vercel 画面の Redeploy で行う
 - 要対応: チャットに貼られた Vercel トークンと DB パスワードは作り直す（トークンは Vercel → Tokens で削除、DB は Supabase で Reset）
 
+## 2026-09-19 目標・予実管理（/targets）— イベント加重の日別目標（A8）
+- 朝礼（`daily-report-system/scripts/newsDaily.py` / `buildChoreiSheet.py`）と同じ式を実装: **日次目標 = 月間目標 × その日の重み ÷ 月内の重みの合計**
+- 判定も朝礼と同一しきい値: 達成率100%以上=好調／70%以上=まずまず／未満=要改善（`GOOD_RATE` / `FAIR_RATE`）
+- `src/lib/metrics/daily-target.ts`（純関数・検算10件）＋ `src/lib/target-data.ts`（実績との突合）＋ `/targets` 画面
+- イベントカレンダーは `src/data/events/` にコピーして持つ（Vercelは dashboard/ だけをビルドするため）。更新は `sh scripts/sync-events.sh`（目録 `index.ts` も自動生成）
+- `/pro` の本日売上の判定色も、KPI報告に日別目標が無ければカレンダー配分で判定するようにした（`computeMonthlyOverview` に `dailyTargets` を追加、`todayTargetSource` で出どころを明示）
+- 月間目標は Target テーブルの登録値が最優先、無ければカレンダーの値（デモデータしか無い間は Target を使わない）
+- 未来日・未取込の日は空欄のまま（0で埋めない）。カレンダー未設定の月は「未設定」を表示
+- 検証: 検算158件成功、本番ビルド成功、ダミー実績を入れて /targets を描画確認（9/1の重み2.0→目標¥5,000,000＝1.1億×2÷44.0 を確認）後にダミーは削除
+
 ## 次の作業
 1. CSV取込UI（マッピング→プレビュー→検証→確定、UPSERT・取込履歴・原本保持）
 2. 売上・利益／広告分析／商品分析画面（指標辞書ベース）
@@ -154,6 +164,13 @@
 - 画面: PRO「LINE顧客対応」`/pro/line-support`（進行中案件＋完了・会話ログ・要対応フィルタ・7日集計・設定状態）
 - 検証: 検算19件追加（署名・要対応・プロンプト・フォールバック・グループコマンド）、tsc・lint・build、モックLINE APIで招待→要対応→#返信→完了の全経路。実LINE・実Claudeは設定作業中（手順 `docs/line-ai-setup.md`）
 
+## 2026-09-19 STANDARD 残画面の実装・使える範囲マップ・社内アンケート・AIアシスタント（エンジニアAI5名並列）
+- 北野取締役「サイトの改良をして現状どこまで触れるかみたい」→ 作業指示書 `docs/briefs/2026-09-19-STANDARD残画面.md`。プレースホルダ 7 → 0
+- /sales（月サマリー・チャネル別・前月同期間比・日別表に日別目標と判定）、/targets（月間目標の編集、イベント日加重の日別目標: 重みは Setting `targets.weights.YYYY-MM`、カレンダー読込）、/ads（媒体別・広告費率15%/20%判定・7日移動、閾値は合算CPAと共用）、/proposals（提案の状態変更・アラートタブ・LLM未接続明記）、/reports（日別売上CSV `/api/reports/daily-sales.csv`・報告一覧・定時レポート表）、/inventory・/purchasing（実データ無しは未接続＋必要な紐付け）、/masters（実／デモ内訳）、/guide（全画面の状態一覧 `src/lib/site-map.ts`）
+- PRO: /pro/survey（匿名アンケート・本文非表示・管理職以上）、AIアシスタント（`src/lib/ai/context.ts`・`/api/ai/ask`・`AiAssistant.tsx`、モデル既定 claude-sonnet-5、キー未設定は未接続）
+- シート連携: `GOOGLE_SHEETS_SA_JSON` があればサービスアカウント（Drive API）で読む両対応（`src/lib/sheets/service-account.ts`、JWT RS256 を node:crypto で署名）。手順書 `docs/sheets-setup.md`
+- 検算: vitest 216件・tsc 0・eslint 0・`next build` 成功。本番反映は Supabase 新パスワード（A1）待ち。Vercel の Git 自動デプロイは動作（C2 済）
+- 判断: Target の updatedBy 無し行はデモシードとして集計に使わない。Proposal の demo は「（デモ）」接頭辞で判定（demo 列なし）。PRO トップの月間目標タイルは loadTargets の仕様で仮置きのまま（次回 /targets の保存値を使うよう統合）
 ## 2026-09-19 AI公式ライン Phase 4: 承認フロー・分類・台帳（北野さん「難しいことは先進めといて」）
 - 依頼書（AI業務基盤・設計書 `docs/briefs/2026-09-19-AI業務基盤（LINE×Claude）設計.md`）の §5〜6・§22 に従い、**Phase 1 は全件「AI回答案 → スタッフ承認 → 送信」** に切替。自動返信は AUTO モードのカテゴリで レベル1・確信度≥しきい値（既定85）・根拠あり のときだけ（`policy.ts` の純関数）
 - 分類17種（`InquiryCategory`・空なら初期投入）、レベル1〜3、確信度、根拠（kb_refs は事実カードのキーのみ採用）、不足情報（レベル2）を構造化出力で取得。カテゴリ既定・安全語との「厳しい方」をレベルにする
@@ -163,3 +180,4 @@
 - 画面 `/pro/line-support`: 承認待ち（編集して送信・対応不要）、CS集計7日（件数・AI自動・スタッフ送信・有人・未対応・自動解決率・平均初回応答・カテゴリ別）、カテゴリ運用モード（管理職以上）、しきい値（取締役以上）
 - 検証: 検算156件（LINE 27）・tsc・lint・build、モックLINE＋モックClaudeで 招待→承認待ち→#送信→完了→返品(不足情報)→書き換え送信→安全(有人) の全経路
 - 未着手: Knowledge Base のDB化（Phase 5）、社内グループのClaude解析（Phase 6〜7）、朝・退勤レポート（Phase 8〜9）
+- 2026-09-19 統合判断: 別セッションも /targets（A8）を実装していたため衝突。当方の「重み編集可（Setting）」版を残し、別セッションの同梱イベントカレンダー（`src/data/events/`・`scripts/sync-events.sh`）を重みの既定値に採用。日別目標の入口を `getEffectiveDailyTargetMap`（targets-data.ts）に一本化し、PRO 経営ダッシュボード（overview.ts）・/sales・/targets が同じ値を使う。重複していた `target-data.ts`／`events-calendar.ts`／`metrics/daily-target.ts` は削除
