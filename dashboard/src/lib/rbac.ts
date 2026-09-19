@@ -8,7 +8,7 @@ export const LEVELS = ['ceo', 'director', 'manager', 'leader', 'staff'] as const
 export type Level = (typeof LEVELS)[number];
 
 export const LEVEL_JA: Record<Level, string> = {
-  ceo: '経営者',
+  ceo: '代表',
   director: '取締役',
   manager: '管理職',
   leader: 'リーダー',

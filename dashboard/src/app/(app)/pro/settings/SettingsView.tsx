@@ -210,7 +210,7 @@ function AssignTable({ users, levels, teams, members }: { users: UserRowData[]; 
                 </td>
                 <td className="py-2 pr-3">
                   <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs text-blue-700">{u.roleJa}</span>
-                  {u.isAdminRole && <div className="mt-1 text-[10px] leading-tight text-slate-500">管理者は常に経営者相当</div>}
+                  {u.isAdminRole && <div className="mt-1 text-[10px] leading-tight text-slate-500">管理者は常に代表相当</div>}
                 </td>
                 <td className="py-2 pr-3">
                   <select
