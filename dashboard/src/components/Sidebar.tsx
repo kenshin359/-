@@ -47,6 +47,7 @@ const MENU: Item[] = [
 ];
 
 const SHORTCUTS = [
+  { href: '/guide', label: '使える範囲マップ（今どこまで動くか）' },
   { href: '/tasks?filter=today', label: '今日のToDo' },
   { href: '/tasks?filter=overdue', label: '期限超過のタスク' },
   { href: '/proposals?tab=alerts', label: 'アラート一覧' },

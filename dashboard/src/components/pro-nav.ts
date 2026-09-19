@@ -14,6 +14,7 @@ import {
   Palette,
   CalendarDays,
   Settings2,
+  Map,
   Sun,
   Users,
   type LucideIcon,
@@ -43,6 +44,7 @@ export const PRO_NAV: ProNavItem[] = [
   { href: '/pro/line', label: 'LINE監査役', icon: MessageSquare, staff: false, keywords: ['追いかけ', 'スケジュール'] },
   { href: '/pro/line-support', label: 'LINE顧客対応', icon: Headset, staff: true, keywords: ['公式LINE', 'AI', '問い合わせ', '要対応', 'お客様'] },
   { href: '/pro/settings', label: 'PRO設定', icon: Settings2, staff: true, keywords: ['閾値', '通知'] },
+  { href: '/guide', label: '使える範囲マップ', icon: Map, staff: true, keywords: ['ガイド', '状態', '未接続'] },
 ];
 
 export const STANDARD_LINKS = [
