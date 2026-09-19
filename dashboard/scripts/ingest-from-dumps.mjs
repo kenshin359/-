@@ -25,6 +25,7 @@ const CH = { 楽天: 'Rakuten', Amazon: 'Amazon', 自社サイト: 'Own' };
 
 const kpi = new Map();
 const cpa = new Map();
+const adDays = new Set(); // 主媒体（メタ/AZ/RPP）の広告費が揃っている日
 const row = (m, d, init) => m.get(d) ?? (m.set(d, init(d)), m.get(d));
 const kpiInit = (date) => ({ date, salesRakuten: 0, salesAmazon: 0, salesOwn: 0, adGoogle: 0, adRakuten: 0, adAmazon: 0, adMeta: 0 });
 const cpaInit = (date) => ({ date, suitcaseSales: null, meta: 0, amazonAds: 0, rpp: 0, google: 0, other: 0, unitsAmazon: 0, unitsRakuten: 0, unitsOwn: 0 });
@@ -69,9 +70,16 @@ if (args.ad) {
         const n = Math.round(Number(v) || 0);
         row(kpi, date, kpiInit)[KEY[media]] += n;
         row(cpa, date, cpaInit)[CKEY[media]] += n;
+        if (media !== 'google') adDays.add(date);
       }
     }
   }
+}
+// 広告費の主媒体（メタ/AZ/RPP）の CSV がまだ添付されていない日（Google の日別ファイルだけ月末まで行がある）は
+// 0円として扱わない: 合算CPA行は送らず「未入力」のままにし、売上行にはその旨をメモする。翌日の取込で上書きされる。
+if (args.ad) {
+  for (const [date, r] of kpi) if (!adDays.has(date)) r.note = '広告費（メタ/AZ/RPP）未添付・Google分のみ';
+  for (const date of [...cpa.keys()]) if (!adDays.has(date)) cpa.delete(date);
 }
 // 未来日（Google の日別ファイルは月末まで行がある）と存在しない日付（9/31 など）は捨てる。今日（JST）までだけ取り込む
 const todayJst = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
