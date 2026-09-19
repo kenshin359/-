@@ -181,3 +181,9 @@
 - 検証: 検算156件（LINE 27）・tsc・lint・build、モックLINE＋モックClaudeで 招待→承認待ち→#送信→完了→返品(不足情報)→書き換え送信→安全(有人) の全経路
 - 未着手: Knowledge Base のDB化（Phase 5）、社内グループのClaude解析（Phase 6〜7）、朝・退勤レポート（Phase 8〜9）
 - 2026-09-19 統合判断: 別セッションも /targets（A8）を実装していたため衝突。当方の「重み編集可（Setting）」版を残し、別セッションの同梱イベントカレンダー（`src/data/events/`・`scripts/sync-events.sh`）を重みの既定値に採用。日別目標の入口を `getEffectiveDailyTargetMap`（targets-data.ts）に一本化し、PRO 経営ダッシュボード（overview.ts）・/sales・/targets が同じ値を使う。重複していた `target-data.ts`／`events-calendar.ts`／`metrics/daily-target.ts` は削除
+
+## 2026-09-19 AI公式ライン 本番設定（北野取締役の操作）
+- 本番DB復旧: Supabase のパスワード再発行 → Vercel の `DIRECT_URL` / `DATABASE_URL` を更新 → Ready（`/api/health` db ok）
+- Vercel 環境変数（Production）に `LINE_SUPPORT_CHANNEL_SECRET` / `LINE_SUPPORT_CHANNEL_ACCESS_TOKEN` / `ANTHROPIC_API_KEY` を登録。反映のため再デプロイ
+- LINE Developers: Messaging API 有効化（プロバイダー Libetee・チャネルID 2011672006）、グループ参加許可=有効。応答設定は チャット=オン／あいさつ=オン（AI側は送らない）／応答方法=手動チャット・応答時間=オフ に変更
+- 残作業: Webhook URL 設定と「検証」、Webhook利用オン、スタッフグループへ招待、スマホでのテスト。チャットに貼られた秘密（DBパスワード・チャネルシークレット・APIキー）は稼働後に再発行する
