@@ -537,3 +537,21 @@ model KpiDaily {
   note         String?
   updatedAt    DateTime @updatedAt
 }
+
+// 商品別×チャネル別の日次売上（Kintone 売上明細(29) 由来）。チャネルは 楽天／Amazon／自社サイト／その他 に正規化し、元の表記は rawChannel に残す。
+// 率・構成比は保存せず src/lib/metrics/product-sales.ts で計算する。
+model ProductSalesDaily {
+  id         String   @id @default(cuid())
+  date       String // YYYY-MM-DD（JST）
+  channel    String // 楽天 | Amazon | 自社サイト | その他
+  rawChannel String // Kintone の s_channel 表記
+  product    String // Kintone の s_product（商品カテゴリ）
+  units      Int      @default(0)
+  amount     Int      @default(0) // 税込
+  source     String   @default("ingest")
+  updatedAt  DateTime @updatedAt
+
+  @@unique([date, channel, rawChannel, product])
+  @@index([date])
+  @@index([product])
+}

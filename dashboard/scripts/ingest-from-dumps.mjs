@@ -26,6 +26,15 @@ const CH = { 楽天: 'Rakuten', Amazon: 'Amazon', 自社サイト: 'Own' };
 const kpi = new Map();
 const cpa = new Map();
 const adDays = new Set(); // 主媒体（メタ/AZ/RPP）の広告費が揃っている日
+const productRows = []; // 商品別×チャネル別（日別）
+// src/lib/metrics/product-sales.ts の normalizeChannel と同じ規則（このスクリプトは Node 単体で動かすため複製）
+const normalizeChannel = (raw) => {
+  const s = String(raw || '').trim();
+  if (s === 'Amazon' || /^amazon$/i.test(s) || s === 'アマゾン') return 'Amazon';
+  if (s === '楽天' || /^rakuten$/i.test(s) || s.startsWith('楽天')) return '楽天';
+  if (s === '自社サイト' || s === '自社' || /^shopify$/i.test(s) || s === '自社EC') return '自社サイト';
+  return 'その他';
+};
 const row = (m, d, init) => m.get(d) ?? (m.set(d, init(d)), m.get(d));
 const kpiInit = (date) => ({ date, salesRakuten: 0, salesAmazon: 0, salesOwn: 0, adGoogle: 0, adRakuten: 0, adAmazon: 0, adMeta: 0 });
 const cpaInit = (date) => ({ date, suitcaseSales: null, meta: 0, amazonAds: 0, rpp: 0, google: 0, other: 0, unitsAmazon: 0, unitsRakuten: 0, unitsOwn: 0 });
@@ -44,6 +53,17 @@ if (args.sku) {
   }
   const sc = marker(t, 'DAILY_SC_SALES_B');
   if (sc?.dailyScSales) for (const [date, v] of Object.entries(sc.dailyScSales)) row(cpa, date, cpaInit).suitcaseSales = Math.round(Number(v) || 0);
+  // 商品別×チャネル別（日別）: {date: {channel: {product: {q, a}}}}。チャネルは4区分に正規化し、元表記は rawChannel に残す
+  const prod = marker(t, 'DAILY_CH_PROD_B');
+  if (prod?.dailyChProd) {
+    for (const [date, byCh] of Object.entries(prod.dailyChProd)) {
+      for (const [raw, byProd] of Object.entries(byCh)) {
+        for (const [product, qa] of Object.entries(byProd)) {
+          productRows.push({ date, channel: normalizeChannel(raw), rawChannel: raw, product, units: Math.round(Number(qa?.q) || 0), amount: Math.round(Number(qa?.a) || 0) });
+        }
+      }
+    }
+  }
   const units = marker(t, 'DAILY_CH_UNITS_B');
   if (units?.dailyChUnits) {
     for (const [date, byCh] of Object.entries(units.dailyChUnits)) {
@@ -92,8 +112,9 @@ const payload = {
   source: 'github-actions',
   kpiDaily: [...kpi.values()].filter((r) => validDate(r.date)).sort((a, b) => a.date.localeCompare(b.date)),
   cpaDaily: [...cpa.values()].filter((r) => validDate(r.date)).sort((a, b) => a.date.localeCompare(b.date)),
+  productDaily: productRows.filter((r) => validDate(r.date)).sort((a, b) => a.date.localeCompare(b.date) || a.product.localeCompare(b.product)),
 };
-console.error(`kpiDaily ${payload.kpiDaily.length}件 / cpaDaily ${payload.cpaDaily.length}件`);
+console.error(`kpiDaily ${payload.kpiDaily.length}件 / cpaDaily ${payload.cpaDaily.length}件 / productDaily ${payload.productDaily.length}件`);
 if (args.out) { const { writeFileSync } = await import('node:fs'); writeFileSync(args.out, JSON.stringify(payload)); }
 if (args.url && args.secret) {
   const res = await fetch(`${args.url.replace(/\/$/, '')}/api/pro/ingest`, { method: 'POST', headers: { 'content-type': 'application/json', authorization: `Bearer ${args.secret}` }, body: JSON.stringify(payload) });

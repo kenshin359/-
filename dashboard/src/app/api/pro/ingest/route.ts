@@ -38,10 +38,20 @@ const CpaRow = z.object({
   note: z.string().max(200).optional(),
 });
 
+const ProductRow = z.object({
+  date: Day,
+  channel: z.string().min(1).max(40), // 正規化済み（Amazon/楽天/自社サイト/その他）
+  rawChannel: z.string().max(80).optional(),
+  product: z.string().min(1).max(120),
+  units: Int.default(0),
+  amount: Int.default(0),
+});
+
 const Body = z.object({
   source: z.string().max(40).default('ingest'),
   kpiDaily: z.array(KpiRow).max(400).default([]),
   cpaDaily: z.array(CpaRow).max(400).default([]),
+  productDaily: z.array(ProductRow).max(20_000).default([]),
 });
 
 function authorized(req: Request): boolean {
@@ -60,7 +70,7 @@ export async function POST(req: Request) {
   if (!authorized(req)) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   const parsed = Body.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
-  const { source, kpiDaily, cpaDaily } = parsed.data;
+  const { source, kpiDaily, cpaDaily, productDaily } = parsed.data;
 
   let kpi = 0;
   for (const r of kpiDaily) {
@@ -97,8 +107,21 @@ export async function POST(req: Request) {
     await prisma.cpaDaily.upsert({ where: { date: r.date }, update: data, create: { date: r.date, ...data } });
     cpa++;
   }
-  await prisma.auditLog.create({ data: { action: 'ingest', detail: `${source}: kpiDaily ${kpi}件 / cpaDaily ${cpa}件` } }).catch(() => undefined);
-  return NextResponse.json({ ok: true, kpiDaily: kpi, cpaDaily: cpa });
+  // 商品別×チャネル別: 同じ日付の分は「その日の全行」を置き換える（Kintone側で明細が減った場合も追随させるため）
+  let prod = 0;
+  const byDate = new Map<string, typeof productDaily>();
+  for (const r of productDaily) byDate.set(r.date, [...(byDate.get(r.date) ?? []), r]);
+  for (const [date, rows] of byDate) {
+    await prisma.$transaction([
+      prisma.productSalesDaily.deleteMany({ where: { date } }),
+      prisma.productSalesDaily.createMany({
+        data: rows.map((r) => ({ date, channel: r.channel, rawChannel: r.rawChannel ?? r.channel, product: r.product, units: r.units, amount: r.amount, source })),
+      }),
+    ]);
+    prod += rows.length;
+  }
+  await prisma.auditLog.create({ data: { action: 'ingest', detail: `${source}: kpiDaily ${kpi}件 / cpaDaily ${cpa}件 / productDaily ${prod}件` } }).catch(() => undefined);
+  return NextResponse.json({ ok: true, kpiDaily: kpi, cpaDaily: cpa, productDaily: prod });
 }
 
 export async function GET() {

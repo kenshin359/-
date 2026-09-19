@@ -117,12 +117,14 @@ async function main() {
   const dailyScSales = {};
   const catMonth = {}; // 商品カテゴリ別の月間 個数q・売上a（媒体合算）
   const catMonthCh = {}; // 媒体別×商品カテゴリ別の月間 個数q・売上a
+  const dailyChProd = {}; // 日別×媒体別×商品カテゴリ別の 個数q・売上a（ダッシュボード「商品分析」用）
   for (const rec of records) {
     const d = rec.report_date?.value;
     if (!d) continue;
     const day = (daily[d] ??= {});
     const dayCh = (dailyCh[d] ??= {});
     const dayChU = (dailyChUnits[d] ??= {});
+    const dayChP = (dailyChProd[d] ??= {});
     for (const row of rec.detail?.value ?? []) {
       const v = row.value ?? {};
       const pr = v.s_product?.value ?? '不明';
@@ -131,6 +133,9 @@ async function main() {
       dayCh[ch] = (dayCh[ch] ?? 0) + Number(v.s_amount?.value ?? 0);
       const chU = (dayChU[ch] ??= {});
       chU[pr] = (chU[pr] ?? 0) + Number(v.s_qty?.value ?? 0);
+      const chP = ((dayChP[ch] ??= {})[pr] ??= { q: 0, a: 0 });
+      chP.q += Number(v.s_qty?.value ?? 0);
+      chP.a += Number(v.s_amount?.value ?? 0);
       if (SUITCASE.has(pr)) {
         dailyScSales[d] = (dailyScSales[d] ?? 0) + Number(v.s_amount?.value ?? 0);
       }
@@ -167,6 +172,8 @@ async function main() {
   console.log(encodeDigits(JSON.stringify({ month, dailyChUnits })));
   console.log('===DAILY_SC_SALES_B===');
   console.log(encodeDigits(JSON.stringify({ month, dailyScSales })));
+  console.log('===DAILY_CH_PROD_B===');
+  console.log(encodeDigits(JSON.stringify({ month, dailyChProd })));
   console.log('===CAT_MONTH_B===');
   console.log(encodeDigits(JSON.stringify({ month, catMonth })));
   console.log('===CAT_MONTH_CH_B===');
