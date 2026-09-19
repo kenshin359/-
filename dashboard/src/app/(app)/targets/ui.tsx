@@ -49,7 +49,7 @@ export interface WeightsTableProps {
   month: string;
   rows: DailyCompareRow[];
   canWrite: boolean;
-  /** 手元に events-<month>.json があるか（無ければ読み込みボタンを出さず手入力に案内） */
+  /** 同梱イベントカレンダーに <month> があるか（無ければ読み込みボタンを出さず手入力に案内） */
   calendarAvailable: boolean;
   /** 重みが Setting に保存済みか */
   weightsSaved: boolean;
@@ -146,7 +146,7 @@ export function WeightsTable({ month, rows, canWrite, calendarAvailable, weights
               {loading ? '読み込み中…' : 'イベントカレンダーから読み込む'}
             </button>
           ) : (
-            <span className="text-[11px] text-slate-400">events-{month}.json が手元に無いため、重みは下の表で手入力してください</span>
+            <span className="text-[11px] text-slate-400">events-{month}.json が同梱カレンダーに無いため、重みは下の表で手入力してください（月初に sync-events.sh で取り込み）</span>
           )}
           <button type="submit" disabled={saving} className="rounded-md bg-slate-900 px-3 py-1.5 text-xs text-white hover:bg-slate-700 disabled:opacity-50">
             {saving ? '保存中…' : '重みを保存'}

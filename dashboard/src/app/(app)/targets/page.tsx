@@ -155,7 +155,7 @@ export default async function TargetsPage({ searchParams }: { searchParams: Prom
       {/* ③ 日別目標 vs 実績（重み編集） */}
       <WeightsTable month={month} rows={compare.rows} canWrite={writer} calendarAvailable={calendarAvailable} weightsSaved={weights.exists} today={today} />
       <p className="text-[11px] text-slate-500">
-        重みの保存先: Setting「{weights.key}」。初期値は daily-report-system/config/chorei/events-{month}.json（楽天公式カレンダー・Amazon告知に基づく）。
+        重みの出どころ: {weights.source === 'setting' ? 'この画面で保存した値' : weights.source === 'calendar' ? '同梱イベントカレンダー（events-' + month + '.json・朝礼と同じ）' : '未設定のため全日1.0'}。保存先は Setting「{weights.key}」。PRO 経営ダッシュボードの本日判定も同じ値を使います。
         目標の保存先: Target（metric=sales／sales_stretch, scope=all）。日別目標の合計は月間目標にちょうど一致するよう円単位で配分しています。
       </p>
     </div>

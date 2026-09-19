@@ -119,7 +119,7 @@ export async function loadEventsCalendarAction(_: ActionResult | null, form: For
     if (res.status === 'missing') {
       return {
         ok: false,
-        message: `イベントカレンダーのファイルが見つかりません（events-${month}.json）。Vercel 上では手元ファイルを読めないため、下の表で重みを手入力して保存してください。`,
+        message: `イベントカレンダーに ${month} がありません（src/data/events/events-${month}.json）。月初に sh scripts/sync-events.sh で取り込むか、下の表で重みを手入力して保存してください。`,
       };
     }
     if (res.status === 'invalid') return { ok: false, message: `ファイルを読めませんでした: ${res.reason}` };

@@ -1,0 +1,24 @@
+{
+  "month": "2026-09",
+  "targets": { "main": 110000000, "stretch": 120000000 },
+  "note": "9月の売上目標は未設定のため8月と同額を仮置き。決まり次第 main/stretch を更新してください。イベントは楽天公式カレンダー(9月)とAmazon告知に基づく確定日程。9月下旬は未発表(発表があれば追記)。",
+  "events": {
+    "1": { "label": "Amazonスマイルセール", "weight": 2.0 },
+    "2": { "label": "Amazonスマイルセール", "weight": 2.0 },
+    "3": { "label": "Amazonスマイルセール最終(〜23:59)", "weight": 2.0 },
+    "4": { "label": "楽天スーパーSALE(20:00開始)", "weight": 2.0 },
+    "5": { "label": "楽天スーパーSALE", "weight": 2.0 },
+    "6": { "label": "楽天スーパーSALE", "weight": 2.0 },
+    "7": { "label": "楽天スーパーSALE", "weight": 2.0 },
+    "8": { "label": "楽天スーパーSALE", "weight": 2.0 },
+    "9": { "label": "楽天スーパーSALE", "weight": 2.0 },
+    "10": { "label": "楽天スーパーSALE", "weight": 2.0 },
+    "11": { "label": "楽天スーパーSALE最終(〜01:59)", "weight": 1.3 },
+    "19": { "label": "楽天マラソン(20:00開始)", "weight": 1.7 },
+    "20": { "label": "楽天マラソン", "weight": 1.7 },
+    "21": { "label": "楽天マラソン", "weight": 1.7 },
+    "22": { "label": "楽天マラソン", "weight": 1.7 },
+    "23": { "label": "楽天マラソン", "weight": 1.7 },
+    "24": { "label": "楽天マラソン最終(〜01:59)", "weight": 1.2 }
+  }
+}

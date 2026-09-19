@@ -2,13 +2,14 @@
 // - 月間目標: Target テーブル（month / scope='all' / scopeCode='all' / metric='sales'|'sales_stretch'）
 //   updatedBy が無い行は prisma/seed.ts のデモシード由来とみなし、集計には使わない（画面に「シード値・未確認」と出す）。
 //   未登録のときは現場の既定値 1.1億／1.2億（docs/business.md §6・仮置き）を isDefault=true で返す。
-// - 日別の重み: Setting `targets.weights.<YYYY-MM>`（JSON）。初期値は ../daily-report-system/config/chorei/events-<YYYY-MM>.json。
-import { promises as fs } from 'node:fs';
-import path from 'node:path';
+// - 日別の重み: Setting `targets.weights.<YYYY-MM>`（JSON）。未保存の月は同梱のイベントカレンダー
+//   `src/data/events/events-<YYYY-MM>.json`（朝礼の daily-report-system/config/chorei のコピー。`sh scripts/sync-events.sh` で更新）の重みを既定値にする。
+//   PRO 経営ダッシュボード（overview.ts）も getEffectiveDailyTargetMap を使うため、/targets・/sales・PRO トップの日別目標は常に同じ値になる。
 import { prisma } from './prisma';
 import { THRESHOLDS } from './pro/overview';
 import { daysInMonthOf, fetchKpiMonths, type KpiDailyRow, type KpiFetchResult, type MonthTargets } from './pro/kpi-kintone';
-import { parseEventsCalendar, parseWeights, type EventsCalendar, type WeightMap } from './metrics/daily-targets';
+import { buildDailyTargets, parseEventsCalendar, parseWeights, type EventsCalendar, type WeightMap } from './metrics/daily-targets';
+import { EVENT_CALENDARS } from '@/data/events';
 
 export const TARGET_METRIC = { main: 'sales', stretch: 'sales_stretch' } as const;
 
@@ -52,17 +53,22 @@ export interface WeightsDetail {
   /** Setting に保存済みか */
   exists: boolean;
   key: string;
+  /** 重みの出どころ: setting=画面で保存した値 / calendar=同梱イベントカレンダーの既定値 / default=どちらも無く全日1.0 */
+  source: 'setting' | 'calendar' | 'default';
 }
 
 export async function getWeights(month: string): Promise<WeightsDetail> {
   const key = weightsSettingKey(month);
   const row = await prisma.setting.findUnique({ where: { key } });
-  return { weights: parseWeights(row?.value ?? null), exists: Boolean(row), key };
+  if (row) return { weights: parseWeights(row.value), exists: true, key, source: 'setting' };
+  const cal = await readEventsCalendar(month);
+  if (cal.status === 'ok') return { weights: cal.calendar.weights, exists: false, key, source: 'calendar' };
+  return { weights: {}, exists: false, key, source: 'default' };
 }
 
-/** イベントカレンダーファイルの場所（Vercel 上には無いので、その場合は「手入力」に案内する） */
+/** 同梱イベントカレンダーの識別（画面表示用） */
 export function eventsCalendarPath(month: string): string {
-  return path.resolve(process.cwd(), '..', 'daily-report-system', 'config', 'chorei', `events-${month}.json`);
+  return `src/data/events/events-${month}.json`;
 }
 
 export type EventsCalendarResult =
@@ -70,33 +76,30 @@ export type EventsCalendarResult =
   | { status: 'missing'; path: string }
   | { status: 'invalid'; path: string; reason: string };
 
+/** 同梱のイベントカレンダー（朝礼と同じ JSON のコピー）を読む。月が無ければ missing */
 export async function readEventsCalendar(month: string): Promise<EventsCalendarResult> {
   if (!/^\d{4}-\d{2}$/.test(month)) return { status: 'invalid', path: '', reason: '月の形式が不正です' };
   const p = eventsCalendarPath(month);
-  let text: string;
-  try {
-    text = await fs.readFile(p, 'utf8');
-  } catch {
-    return { status: 'missing', path: p };
-  }
-  try {
-    const cal = parseEventsCalendar(JSON.parse(text));
-    if (!cal) return { status: 'invalid', path: p, reason: 'month / events の形が想定と違います' };
-    if (cal.month !== month) return { status: 'invalid', path: p, reason: `ファイルの month (${cal.month}) が対象月と一致しません` };
-    return { status: 'ok', path: p, calendar: cal };
-  } catch (e) {
-    return { status: 'invalid', path: p, reason: e instanceof Error ? e.message : 'JSONを読めません' };
-  }
+  const raw = EVENT_CALENDARS[month];
+  if (!raw) return { status: 'missing', path: p };
+  const cal = parseEventsCalendar(raw);
+  if (!cal) return { status: 'invalid', path: p, reason: 'month / events の形が想定と違います' };
+  if (cal.month !== month) return { status: 'invalid', path: p, reason: `ファイルの month (${cal.month}) が対象月と一致しません` };
+  return { status: 'ok', path: p, calendar: cal };
 }
 
-/** ファイルが手元にあるか（画面のボタン表示用。値は読まない） */
+/** 同梱カレンダーにその月があるか（画面のボタン表示用） */
 export async function eventsCalendarAvailable(month: string): Promise<boolean> {
-  try {
-    await fs.access(eventsCalendarPath(month));
-    return true;
-  } catch {
-    return false;
-  }
+  return Boolean(EVENT_CALENDARS[month]);
+}
+
+/**
+ * 日付 → 日別目標（円）。月間目標（保存値、無ければ既定 1.1億）× 重み（保存値、無ければカレンダー、無ければ全日1.0）。
+ * PRO 経営ダッシュボードと /sales・/targets で共通に使う唯一の入口。
+ */
+export async function getEffectiveDailyTargetMap(month: string): Promise<Map<string, number>> {
+  const [targets, w] = await Promise.all([getMonthTargets(month), getWeights(month)]);
+  return new Map(buildDailyTargets(month, targets.main, w.weights).map((d) => [d.date, d.target]));
 }
 
 /** YYYY-MM の翌月 */
