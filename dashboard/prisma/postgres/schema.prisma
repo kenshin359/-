@@ -556,3 +556,37 @@ model ProductSalesDaily {
   @@index([date])
   @@index([product])
 }
+
+// ===== LINE 顧客対応（AI公式ライン: お客様向け公式アカウント「リベティ公式」）=====
+// 監査役ボット（LineGroup/LineMessage）とは別の公式アカウント。Webhook は /api/line/support/webhook。
+// お客様の発言と AI／スタッフの返信を1行ずつ保存し、要対応の確認と、直近の文脈を AI に渡すために使う。
+model LineChatLog {
+  id         String   @id @default(cuid())
+  eventId    String?  @unique // LINE の webhookEventId（再送の二重処理防止）
+  lineUserId String
+  direction  String   // in=お客様→AI / out=AI・スタッフ→お客様
+  text       String
+  needsHuman Boolean  @default(false)
+  reason     String?
+  topics     String?  // カンマ区切り
+  createdAt  DateTime @default(now())
+
+  @@index([lineUserId, createdAt])
+  @@index([needsHuman, createdAt])
+}
+
+// 要対応の案件。スタッフのLINEグループには「#番号」で通知し、グループから「#番号 返信文」で返信する。
+// open の間はAIの自動返信を止め、お客様のメッセージをグループへ転送する（「完了 #番号」で再開）。
+model LineCase {
+  no           Int      @id @default(autoincrement())
+  lineUserId   String
+  status       String   @default("open") // open / done
+  lastUserText String
+  reason       String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  closedAt     DateTime?
+
+  @@index([lineUserId, status])
+  @@index([status, updatedAt])
+}

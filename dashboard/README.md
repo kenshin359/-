@@ -36,6 +36,7 @@ npm run build    # 型チェック込みのビルド
 - `metrics.md` — 指標辞書（全画面共通の計算定義。ここが正）
 - `data-contracts.md` — 統一CSVとDBの粒度規則
 - `progress.md` — 進捗・状態管理・判断記録
+- `line-ai-setup.md` — お客様向け公式LINEのAI自動応答（AI公式ライン）の設定手順
 - `business.md` — リベティの業務知識（商品・チャネル・広告媒体・運用サイクル・KPI閾値・Kintone）とダッシュボードとのギャップ
 
 ## 本番配置（Vercel + Neon Postgres）

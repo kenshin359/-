@@ -143,3 +143,13 @@
 - シート「SNS投稿スケジュール（Libetee）」を Google Drive に新規作成（見出し＋使い方行のみ。データは入れない）。集計 `src/lib/metrics/sns-schedule.ts`（予定日の解釈・状態4種・未投稿・7日先・承認待ち・3日先の空き・今月媒体別）＋検算4件。セル解釈の共通部を `sheet-cells.ts` に切り出し（制作依頼と共用）
 - 画面 `/pro/sns`（PROメニュー「SNS投稿」）: 14日カレンダー・未投稿・今後の予定・今月媒体別。アラート `sns_unposted`🔴／`sns_gap`🟡
 - 環境変数 `SHEET_SNS_SCHEDULE_ID`（Vercel設定済み）。シートが「制限付き」の間は画面に「未接続」と共有手順を表示
+
+## 2026-09-18〜19 AI公式ライン（お客様向け公式アカウント「リベティ公式」のAI自動応答）
+- 北野さん依頼「AI公式ライン作成したい」「グループチャットに公式ライン入ってもらい情報を連携」。ダッシュボード（Vercel）にWebhookを載せる構成（別サーバー不要）
+- 本番ブランチには別チャネル用の「LINE監査役ボット」（`/api/line/webhook`・`LINE_CHANNEL_*`）が先にあったため、衝突しないよう **`/api/line/support/webhook`・`LINE_SUPPORT_CHANNEL_*`・`src/lib/line-support/`** に分離して統合
+- 受信 → 署名検証 → 会話ログ保存 → Claude（`claude-opus-5`、構造化出力）が事実カード `config/line-ai-knowledge.json` の範囲で回答 → reply。送料・返品条件・在庫・寸法は「要データ」としてAIに答えさせない
+- 要対応はAI判断＋注意語の二重チェック。案件（`LineCase`・#番号）を作り、スタッフのLINEグループ（公式LINEを招待すると自動登録）へ通知。グループから「#番号 返信文」でお客様へ返信、「完了 #番号」でAI再開、進行中はAI停止＋続きを転送、48時間無反応で自動クローズ扱い。登録済みグループ以外のコマンドは拒否
+- APIキー未設定・障害・返信送信失敗時も固定案内文＋要対応（成功と偽らない）。友だち追加時の挨拶はLINE側の「あいさつメッセージ」に任せる（`greeting_by_bot` 既定 false）
+- DB: `LineChatLog` / `LineCase`（差分マイグレーション `20260919120000_line_support_chat_log` / `20260919120100_line_support_case`）
+- 画面: PRO「LINE顧客対応」`/pro/line-support`（進行中案件＋完了・会話ログ・要対応フィルタ・7日集計・設定状態）
+- 検証: 検算19件追加（署名・要対応・プロンプト・フォールバック・グループコマンド）、tsc・lint・build、モックLINE APIで招待→要対応→#返信→完了の全経路。実LINE・実Claudeは設定作業中（手順 `docs/line-ai-setup.md`）
