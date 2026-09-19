@@ -8,6 +8,7 @@ import { canSeeCompanyWide, type Actor } from '../rbac';
 import { teamByCode, teamByKintoneLabel } from './teams';
 import type { MonthlyOverview } from './kpi-kintone';
 import { THRESHOLDS, judgeAdRatio, judgePace } from './overview';
+import { isOverdue as isCreativeOverdue, type CreativeRequest } from '../metrics/creative-requests';
 
 export type AlertLevel = 'red' | 'yellow';
 
@@ -19,6 +20,7 @@ export const ALERT_CODES = [
   'task_concentration',
   'sales_pace',
   'ad_ratio',
+  'creative_overdue',
 ] as const;
 export type AlertCode = (typeof ALERT_CODES)[number];
 
@@ -26,13 +28,15 @@ export type AlertCode = (typeof ALERT_CODES)[number];
 const TASK_RULES: AlertCode[] = ['task_overdue', 'waiting_stale', 'no_assignee', 'stale_update', 'task_concentration'];
 /** KPI由来のルール（Kintone KPI(30) が取れたときだけ評価する。未接続時は触らない） */
 const KPI_RULES: AlertCode[] = ['sales_pace', 'ad_ratio'];
+/** 制作依頼シート由来のルール（シートが取れたときだけ評価する） */
+const CREATIVE_RULES: AlertCode[] = ['creative_overdue'];
 
 export interface AlertCandidate {
   code: AlertCode;
   level: AlertLevel;
   title: string;
   detail: string;
-  entityType: 'task' | 'kpi' | 'user';
+  entityType: 'task' | 'kpi' | 'user' | 'creative';
   entityId: string;
   teamCode: string | null;
 }
@@ -41,6 +45,8 @@ export interface AlertInputs {
   tasks: TaskItem[];
   /** null = KPI未取得（KPIルールは評価しない） */
   monthly: MonthlyOverview | null;
+  /** null = 制作依頼シート未取得（制作ルールは評価しない） */
+  creative?: CreativeRequest[] | null;
   now?: Date;
 }
 
@@ -170,6 +176,22 @@ export function buildAlertCandidates(inputs: AlertInputs): AlertCandidate[] {
     }
   }
 
+  // 制作依頼: 納期を過ぎて未完了（LP・広告の画像制作）。担当未定は詳細に明記
+  if (inputs.creative) {
+    for (const r of inputs.creative) {
+      if (!isCreativeOverdue(r, today)) continue;
+      const days = daysSince(r.dueDate, now) ?? 0;
+      out.push({
+        code: 'creative_overdue',
+        level: days >= 3 ? 'red' : 'yellow',
+        title: `制作依頼の納期超過: ${r.no || `行${r.rowNo}`} ${r.media} ${r.usage}`.trim(),
+        detail: `納期 ${r.dueDate}（${days}日超過）／依頼者 ${r.requester || '不明'}／作成者 ${r.designer || '未定'}／状態 ${r.statusRaw || '依頼'}`,
+        entityType: 'creative',
+        entityId: `${r.no || 'row'}-${r.rowNo}`,
+        teamCode: teamCodeOf('LP'),
+      });
+    }
+  }
   return out;
 }
 
@@ -190,9 +212,10 @@ export async function evaluateAlerts(inputs?: Partial<AlertInputs>): Promise<{ f
   const now = inputs?.now ?? new Date();
   const tasks = inputs?.tasks ?? (await listTasks()).tasks;
   const monthly = inputs?.monthly ?? null;
-  const candidates = buildAlertCandidates({ tasks, monthly, now });
+  const creative = inputs?.creative ?? null;
+  const candidates = buildAlertCandidates({ tasks, monthly, creative, now });
 
-  const activeCodes: AlertCode[] = monthly ? [...TASK_RULES, ...KPI_RULES] : TASK_RULES;
+  const activeCodes: AlertCode[] = [...TASK_RULES, ...(monthly ? KPI_RULES : []), ...(creative ? CREATIVE_RULES : [])];
   const existing = await prisma.alert.findMany({ where: { code: { in: activeCodes } } });
   const existingByKey = new Map(existing.map((e) => [keyOf(e), e] as const));
 
@@ -290,6 +313,7 @@ function hrefOf(a: { entityType: string | null; entityId: string | null; title: 
   }
   if (a.entityType === 'user' && a.entityId) return `/tasks?q=${encodeURIComponent(a.entityId)}`;
   if (a.code === 'ad_ratio') return '/ads';
+  if (a.entityType === 'creative') return '/pro/creative';
   return '/pro';
 }
 

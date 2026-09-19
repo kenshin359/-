@@ -2,6 +2,7 @@
 // 数字の出どころ: Kintone 毎朝KPI報告(30)（売上・広告費）、タスク管理(38)/ローカルDB（タスク）、Alert テーブル（ルール生成）。
 // 数字は作らない。未接続・未取込は「未接続」「未取得」を返し、判定は 'na' にする。
 import { prisma } from '../prisma';
+import { getCreativeData } from '../creative-data';
 import { jstDateKey, formatYen } from '../metrics/format';
 import { computePeriodMetrics } from '../metrics/compute';
 import type { MetricValue } from '../metrics/types';
@@ -209,11 +210,12 @@ export async function getCompanyOverview(actor: Actor, now = new Date()): Promis
   const today = jstDateKey(now);
   const month = today.slice(0, 7);
 
-  const [kpiRes, taskList, targets, profitRaw] = await Promise.all([
+  const [kpiRes, taskList, targets, profitRaw, creative] = await Promise.all([
     fetchKpiMonths(month),
     listTasks(),
     loadTargets(month),
     loadGrossProfit(month).catch(() => ({ value: null, note: '未取得（集計エラー）' })),
+    getCreativeData(now).catch(() => null),
   ]);
 
   const monthly = kpiRes.status === 'ok' ? computeMonthlyOverview(month, kpiRes.rows, kpiRes.prevRows, targets) : null;
@@ -222,7 +224,7 @@ export async function getCompanyOverview(actor: Actor, now = new Date()): Promis
   const waitingStale = waitingStaleTasks(tasks, now);
 
   // アラートはここで最新化してから読む（タスク数は数百件以下なので毎回評価してよい）
-  await evaluateAlerts({ tasks, monthly, now }).catch(() => undefined);
+  await evaluateAlerts({ tasks, monthly, creative: creative?.status === 'ok' ? creative.list : null, now }).catch(() => undefined);
   const alerts: AlertItem[] = await listOpenAlerts(actor).catch(() => []);
   const redAlerts = alerts.filter((a) => a.level === 'red');
   const yellowAlerts = alerts.filter((a) => a.level === 'yellow');
