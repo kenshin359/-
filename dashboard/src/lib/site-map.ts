@@ -66,7 +66,7 @@ export const SITE_MAP: readonly SiteMapEntry[] = [
   { href: '/pro/sns', label: 'SNS投稿', mode: 'pro', status: 'partial', source: 'Googleスプレッドシート「SNS投稿スケジュール（Libetee）」', needs: ['D3'] },
   { href: '/pro/reports', label: '報告', mode: 'pro', status: 'ok', source: 'Report（日報・週報・中間報告）', needs: [] },
   { href: '/pro/library', label: '資料庫2.0', mode: 'pro', status: 'ok', source: 'Document（リンク登録）', needs: ['C6'], note: 'Drive の名前検索は任意。無くてもリンク登録で運用可' },
-  { href: '/pro/survey', label: '社内アンケート', mode: 'pro', status: 'off', source: 'Googleスプレッドシート「社内アンケート」（回答本文は保存せずテーマ別件数のみ）', needs: ['D2'], note: '代表・取締役・管理職のみ' },
+  { href: '/pro/survey', label: '社内アンケート', mode: 'pro', status: 'ok', source: 'Googleスプレッドシート「社内アンケート」（回答本文は保存せずテーマ別件数のみ）', needs: [], note: '代表・取締役・管理職のみ。シート（リンク共有）を5分ごとに読み取り' },
   { href: '/pro/people', label: '社員・組織', mode: 'pro', status: 'partial', source: 'User・Team', needs: ['B3'] },
   { href: '/pro/line', label: 'LINE監査役', mode: 'pro', status: 'off', source: 'LineGroup・LineMessage（Webhook・抽出・追いかけは実装済み）', needs: ['C3'] },
   { href: '/pro/line-support', label: 'LINE顧客対応', mode: 'pro', status: 'partial', source: 'LINE公式アカウント（AI自動応答）の会話ログ。環境変数 LINE_SUPPORT_CHANNEL_SECRET／LINE_SUPPORT_CHANNEL_ACCESS_TOKEN・ANTHROPIC_API_KEY', needs: ['C5'], note: '接続状態はその画面の上部が環境変数から判定して表示（未設定は未接続）' },

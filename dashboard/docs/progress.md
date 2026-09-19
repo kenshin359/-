@@ -153,3 +153,11 @@
 - DB: `LineChatLog` / `LineCase`（差分マイグレーション `20260919120000_line_support_chat_log` / `20260919120100_line_support_case`）
 - 画面: PRO「LINE顧客対応」`/pro/line-support`（進行中案件＋完了・会話ログ・要対応フィルタ・7日集計・設定状態）
 - 検証: 検算19件追加（署名・要対応・プロンプト・フォールバック・グループコマンド）、tsc・lint・build、モックLINE APIで招待→要対応→#返信→完了の全経路。実LINE・実Claudeは設定作業中（手順 `docs/line-ai-setup.md`）
+
+## 2026-09-19 STANDARD 残画面の実装・使える範囲マップ・社内アンケート・AIアシスタント（エンジニアAI5名並列）
+- 北野取締役「サイトの改良をして現状どこまで触れるかみたい」→ 作業指示書 `docs/briefs/2026-09-19-STANDARD残画面.md`。プレースホルダ 7 → 0
+- /sales（月サマリー・チャネル別・前月同期間比・日別表に日別目標と判定）、/targets（月間目標の編集、イベント日加重の日別目標: 重みは Setting `targets.weights.YYYY-MM`、カレンダー読込）、/ads（媒体別・広告費率15%/20%判定・7日移動、閾値は合算CPAと共用）、/proposals（提案の状態変更・アラートタブ・LLM未接続明記）、/reports（日別売上CSV `/api/reports/daily-sales.csv`・報告一覧・定時レポート表）、/inventory・/purchasing（実データ無しは未接続＋必要な紐付け）、/masters（実／デモ内訳）、/guide（全画面の状態一覧 `src/lib/site-map.ts`）
+- PRO: /pro/survey（匿名アンケート・本文非表示・管理職以上）、AIアシスタント（`src/lib/ai/context.ts`・`/api/ai/ask`・`AiAssistant.tsx`、モデル既定 claude-sonnet-5、キー未設定は未接続）
+- シート連携: `GOOGLE_SHEETS_SA_JSON` があればサービスアカウント（Drive API）で読む両対応（`src/lib/sheets/service-account.ts`、JWT RS256 を node:crypto で署名）。手順書 `docs/sheets-setup.md`
+- 検算: vitest 216件・tsc 0・eslint 0・`next build` 成功。本番反映は Supabase 新パスワード（A1）待ち。Vercel の Git 自動デプロイは動作（C2 済）
+- 判断: Target の updatedBy 無し行はデモシードとして集計に使わない。Proposal の demo は「（デモ）」接頭辞で判定（demo 列なし）。PRO トップの月間目標タイルは loadTargets の仕様で仮置きのまま（次回 /targets の保存値を使うよう統合）
