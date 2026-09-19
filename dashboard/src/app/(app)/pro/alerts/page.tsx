@@ -8,6 +8,7 @@ import { THRESHOLDS } from '@/lib/pro/overview';
 import { prisma } from '@/lib/prisma';
 import { jstDateKey } from '@/lib/metrics/format';
 import { getCreativeData } from '@/lib/creative-data';
+import { getSnsData } from '@/lib/sns-data';
 import AlertCenter from './AlertCenter';
 
 export const dynamic = 'force-dynamic';
@@ -19,10 +20,11 @@ export default async function AlertsPage() {
   const month = jstDateKey(now).slice(0, 7);
 
   // KPI(30) が取れるときだけ売上ペース・広告費率のルールも評価する（未接続時はタスク系のみ）
-  const [kpi, targetRows, creative] = await Promise.all([
+  const [kpi, targetRows, creative, sns] = await Promise.all([
     fetchKpiMonths(month),
     prisma.target.findMany({ where: { month, scope: 'all', scopeCode: 'all', metric: { in: ['sales', 'sales_stretch'] } } }),
     getCreativeData(now).catch(() => null),
+    getSnsData(now).catch(() => null),
   ]);
   const main = targetRows.find((t) => t.metric === 'sales')?.amount ?? null;
   const stretch = targetRows.find((t) => t.metric === 'sales_stretch')?.amount ?? null;
@@ -37,7 +39,7 @@ export default async function AlertsPage() {
 
   let evalNotice: string | null = null;
   try {
-    await evaluateAlerts({ monthly, creative: creative?.status === 'ok' ? creative.list : null, now });
+    await evaluateAlerts({ monthly, creative: creative?.status === 'ok' ? creative.list : null, sns: sns?.status === 'ok' ? sns.posts : null, now });
   } catch (e) {
     evalNotice = `ルール評価に失敗しました: ${e instanceof Error ? e.message : String(e)}`;
   }

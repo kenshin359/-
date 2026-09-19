@@ -1,6 +1,9 @@
 // LP・広告の画像制作依頼（Google スプレッドシート「画像作成依頼シート」）の集計。docs/metrics.md「制作依頼」が正。
 // 画面はこのモジュールの結果だけを表示し、独自計算をしない。数字はシートの行から数え、推測で埋めない。
 import type { SheetCell } from '../sheets/google-sheet';
+import { cellStr, parseDateCell, shiftDate } from './sheet-cells';
+
+export { parseDateCell };
 
 export type CreativeStatus = 'requested' | 'in_progress' | 'review' | 'revise' | 'done';
 export const STATUS_JA: Record<CreativeStatus, string> = {
@@ -71,39 +74,7 @@ const HEADER_KEYS: { key: keyof CreativeRequest; match: (h: string) => boolean }
   { key: 'reference', match: (h) => h.startsWith('参考') },
 ];
 
-const str = (c: SheetCell): string => (c == null ? '' : c instanceof Date ? '' : String(c)).trim();
-
-function pad(n: number): string {
-  return String(n).padStart(2, '0');
-}
-function ymd(y: number, m: number, d: number): string | null {
-  if (m < 1 || m > 12 || d < 1 || d > 31) return null;
-  const t = new Date(Date.UTC(y, m - 1, d));
-  if (t.getUTCMonth() !== m - 1) return null;
-  return `${y}-${pad(m)}-${pad(d)}`;
-}
-function shift(date: string, days: number): string {
-  const [y, m, d] = date.split('-').map(Number);
-  return new Date(Date.UTC(y, m - 1, d + days)).toISOString().slice(0, 10);
-}
-
-/** セルの値を YYYY-MM-DD に。Date セル／"26/09/04(金)"／"2026/9/4"／"9/4"（年は baseYear） */
-export function parseDateCell(c: SheetCell, baseYear: number): string | null {
-  if (c instanceof Date) {
-    if (!Number.isFinite(c.getTime())) return null;
-    // xlsx の日付セルはローカル時刻の 0:00 として来る。日付部分だけ使う
-    return `${c.getFullYear()}-${pad(c.getMonth() + 1)}-${pad(c.getDate())}`;
-  }
-  const s = str(c);
-  if (!s) return null;
-  let m = s.match(/(\d{4})[\/.-](\d{1,2})[\/.-](\d{1,2})/);
-  if (m) return ymd(Number(m[1]), Number(m[2]), Number(m[3]));
-  m = s.match(/(?:^|[^\d])(\d{2})[\/.-](\d{1,2})[\/.-](\d{1,2})/);
-  if (m) return ymd(2000 + Number(m[1]), Number(m[2]), Number(m[3]));
-  m = s.match(/(?:^|[^\d])(\d{1,2})[\/.月](\d{1,2})/);
-  if (m) return ymd(baseYear, Number(m[1]), Number(m[2]));
-  return null;
-}
+const str = cellStr;
 
 /** 納期の自由記入を解釈する。基準日は依頼日（無ければ today） */
 export function parseDue(c: SheetCell, base: string | null, today: string): { dueDate: string | null; kind: DueKind } {
@@ -112,7 +83,7 @@ export function parseDue(c: SheetCell, base: string | null, today: string): { du
   const s = str(c);
   if (!s) return { dueDate: null, kind: 'none' };
   if (/本日|今日/.test(s)) return { dueDate: anchor, kind: 'today' };
-  if (/明日/.test(s)) return { dueDate: shift(anchor, 1), kind: 'tomorrow' };
+  if (/明日/.test(s)) return { dueDate: shiftDate(anchor, 1), kind: 'tomorrow' };
   const d = parseDateCell(s, Number(anchor.slice(0, 4)));
   if (d) return { dueDate: d, kind: 'date' };
   return { dueDate: null, kind: 'unknown' };

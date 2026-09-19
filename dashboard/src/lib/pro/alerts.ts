@@ -9,6 +9,7 @@ import { teamByCode, teamByKintoneLabel } from './teams';
 import type { MonthlyOverview } from './kpi-kintone';
 import { THRESHOLDS, judgeAdRatio, judgePace } from './overview';
 import { isOverdue as isCreativeOverdue, type CreativeRequest } from '../metrics/creative-requests';
+import { summarizeSns, type SnsPost } from '../metrics/sns-schedule';
 
 export type AlertLevel = 'red' | 'yellow';
 
@@ -21,6 +22,8 @@ export const ALERT_CODES = [
   'sales_pace',
   'ad_ratio',
   'creative_overdue',
+  'sns_unposted',
+  'sns_gap',
 ] as const;
 export type AlertCode = (typeof ALERT_CODES)[number];
 
@@ -30,13 +33,15 @@ const TASK_RULES: AlertCode[] = ['task_overdue', 'waiting_stale', 'no_assignee',
 const KPI_RULES: AlertCode[] = ['sales_pace', 'ad_ratio'];
 /** 制作依頼シート由来のルール（シートが取れたときだけ評価する） */
 const CREATIVE_RULES: AlertCode[] = ['creative_overdue'];
+/** SNS投稿スケジュール由来のルール（シートが取れたときだけ評価する） */
+const SNS_RULES: AlertCode[] = ['sns_unposted', 'sns_gap'];
 
 export interface AlertCandidate {
   code: AlertCode;
   level: AlertLevel;
   title: string;
   detail: string;
-  entityType: 'task' | 'kpi' | 'user' | 'creative';
+  entityType: 'task' | 'kpi' | 'user' | 'creative' | 'sns';
   entityId: string;
   teamCode: string | null;
 }
@@ -47,10 +52,17 @@ export interface AlertInputs {
   monthly: MonthlyOverview | null;
   /** null = 制作依頼シート未取得（制作ルールは評価しない） */
   creative?: CreativeRequest[] | null;
+  /** null = SNS投稿スケジュール未取得（SNSルールは評価しない） */
+  sns?: SnsPost[] | null;
   now?: Date;
 }
 
 const DAY = 86_400_000;
+
+function shiftDateKey(date: string, days: number): string {
+  const [y, m, d] = date.split('-').map(Number);
+  return new Date(Date.UTC(y, m - 1, d + days)).toISOString().slice(0, 10);
+}
 
 function daysSince(iso: string | null, now: Date): number | null {
   if (!iso) return null;
@@ -192,6 +204,32 @@ export function buildAlertCandidates(inputs: AlertInputs): AlertCandidate[] {
       });
     }
   }
+  // SNS投稿: 予定日を過ぎて投稿済でない（🔴）、明日〜3日先に予定が無い（🟡）
+  if (inputs.sns) {
+    const sum = summarizeSns(inputs.sns, today);
+    for (const p of sum.unposted) {
+      out.push({
+        code: 'sns_unposted',
+        level: 'red',
+        title: `SNS未投稿: ${p.date.slice(5).replace('-', '/')} ${p.media} ${p.content.slice(0, 30)}`.trim(),
+        detail: `予定 ${p.date}${p.time ? ` ${p.time}` : ''}／${p.account || '（アカウント未記入）'}／担当 ${p.owner || '未定'}／状態 ${p.statusRaw || '案'}`,
+        entityType: 'sns',
+        entityId: `row-${p.rowNo}`,
+        teamCode: teamCodeOf('SNS'),
+      });
+    }
+    if (sum.gap3 && inputs.sns.length > 0) {
+      out.push({
+        code: 'sns_gap',
+        level: 'yellow',
+        title: 'SNS投稿の予定が3日先まで入っていません',
+        detail: `明日〜${shiftDateKey(today, 3)} に予定なし。スケジュールシートに投稿予定を追加してください`,
+        entityType: 'sns',
+        entityId: 'gap3',
+        teamCode: teamCodeOf('SNS'),
+      });
+    }
+  }
   return out;
 }
 
@@ -213,9 +251,10 @@ export async function evaluateAlerts(inputs?: Partial<AlertInputs>): Promise<{ f
   const tasks = inputs?.tasks ?? (await listTasks()).tasks;
   const monthly = inputs?.monthly ?? null;
   const creative = inputs?.creative ?? null;
-  const candidates = buildAlertCandidates({ tasks, monthly, creative, now });
+  const sns = inputs?.sns ?? null;
+  const candidates = buildAlertCandidates({ tasks, monthly, creative, sns, now });
 
-  const activeCodes: AlertCode[] = [...TASK_RULES, ...(monthly ? KPI_RULES : []), ...(creative ? CREATIVE_RULES : [])];
+  const activeCodes: AlertCode[] = [...TASK_RULES, ...(monthly ? KPI_RULES : []), ...(creative ? CREATIVE_RULES : []), ...(sns ? SNS_RULES : [])];
   const existing = await prisma.alert.findMany({ where: { code: { in: activeCodes } } });
   const existingByKey = new Map(existing.map((e) => [keyOf(e), e] as const));
 
@@ -314,6 +353,7 @@ function hrefOf(a: { entityType: string | null; entityId: string | null; title: 
   if (a.entityType === 'user' && a.entityId) return `/tasks?q=${encodeURIComponent(a.entityId)}`;
   if (a.code === 'ad_ratio') return '/ads';
   if (a.entityType === 'creative') return '/pro/creative';
+  if (a.entityType === 'sns') return '/pro/sns';
   return '/pro';
 }
 
