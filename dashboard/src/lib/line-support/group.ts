@@ -1,6 +1,7 @@
 import { closeCase, getCase, listOpenCases, touchCase } from './cases';
 import { pushText, replyText } from './client';
 import { GROUP_HELP, parseGroupCommand } from './groupCommands';
+import { dismissPendingOfCase, findPendingByCase, markSent } from './inquiries';
 import { clearStaffGroupId, getStaffGroupId, setStaffGroupId } from './settings';
 import { saveReply } from './store';
 
@@ -103,7 +104,35 @@ export async function handleGroupEvent(ev: GroupEvent): Promise<void> {
       return;
     }
     await closeCase(cmd.no);
-    await replyText(ev.replyToken, `#${cmd.no} を完了にしました。このお客様へのAI自動返信を再開します。`);
+    const dismissed = await dismissPendingOfCase(cmd.no);
+    await replyText(
+      ev.replyToken,
+      `#${cmd.no} を完了にしました。このお客様へのAI自動返信を再開します。${dismissed ? `（未送信の回答案 ${dismissed}件は対応不要にしました）` : ''}`,
+    );
+    return;
+  }
+
+  if (cmd.kind === 'approve') {
+    const c = await getCase(cmd.no);
+    if (!c) {
+      await replyText(ev.replyToken, `#${cmd.no} は見つかりません。「一覧」で進行中の案件を確認できます。`);
+      return;
+    }
+    const pending = await findPendingByCase(cmd.no);
+    if (!pending?.draft) {
+      await replyText(ev.replyToken, `#${cmd.no} には送信できる回答案がありません。「#${cmd.no} 返信文」で本文を送ってください。`);
+      return;
+    }
+    try {
+      await pushText(c.lineUserId, pending.draft);
+    } catch (e) {
+      await replyText(ev.replyToken, `#${cmd.no} への送信に失敗しました: ${e instanceof Error ? e.message.slice(0, 120) : e}`);
+      return;
+    }
+    await markSent(pending, pending.draft, 'staff-line');
+    await saveReply(c.lineUserId, pending.draft, { needsHuman: false, reason: `スタッフ承認 #${c.no}`, topics: [] });
+    await touchCase(c.no);
+    await replyText(ev.replyToken, `#${c.no} のお客様にAIの回答案を送信しました。対応が終わったら「完了 #${c.no}」と送ってください。`);
     return;
   }
 
@@ -124,6 +153,9 @@ export async function handleGroupEvent(ev: GroupEvent): Promise<void> {
       return;
     }
     await saveReply(c.lineUserId, cmd.text, { needsHuman: false, reason: `スタッフ返信 #${c.no}`, topics: [] });
+    // 承認待ちの回答案があれば、書き換えて送ったものとして記録（修正データ）
+    const pending = await findPendingByCase(c.no);
+    if (pending) await markSent(pending, cmd.text, 'staff-line', { edited: true });
     await touchCase(c.no);
     const note = c.status === 'done' ? '（この案件は完了済みです。続けて対応する場合はそのまま返信できます）' : '';
     await replyText(ev.replyToken, `#${c.no} のお客様に送信しました。${note}`);

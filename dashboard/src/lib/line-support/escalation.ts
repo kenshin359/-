@@ -1,22 +1,31 @@
 import type { Knowledge } from './knowledge';
 
-/**
- * 「人の確認が必要か」をコード側でも機械的に判定する。
- * AIの needs_human 判定だけに頼らない（安全・不良・返金などの見落としは許容できないため二重に見る）。
- */
-export function checkEscalation(
-  text: string,
-  rules: Knowledge['always_human'],
-): { needed: boolean; reasons: string[] } {
+function hits(text: string, keywords: string[], patterns: string[]): string[] {
   const body = String(text ?? '');
-  const hits = rules.keywords.filter((k) => k && body.includes(k));
-  const patHits = rules.keyword_patterns.filter((p) => {
+  const k = keywords.filter((w) => w && body.includes(w));
+  const p = patterns.filter((re) => {
     try {
-      return new RegExp(p).test(body);
+      return new RegExp(re).test(body);
     } catch {
       return false;
     }
   });
-  const all = [...hits, ...patHits];
-  return { needed: all.length > 0, reasons: all.length ? [`注意語: ${all.join('・')}`] : [] };
+  return [...k, ...p];
+}
+
+/**
+ * コード側の二重チェック（AIの判定だけに頼らない）。
+ * - human: 安全・法的・強いクレームの語 → 必ず有人（AIは案も出さない）
+ * - staff: 注文・返品・不良など個別対応の語 → 自動返信はしない（承認以上）
+ */
+export function checkEscalation(
+  text: string,
+  rules: Knowledge['always_human'],
+): { needed: boolean; human: boolean; reasons: string[] } {
+  const human = hits(text, rules.keywords, rules.keyword_patterns);
+  const staff = hits(text, rules.staff_keywords ?? [], []);
+  const reasons: string[] = [];
+  if (human.length) reasons.push(`要有人語: ${human.join('・')}`);
+  if (staff.length) reasons.push(`注意語: ${staff.join('・')}`);
+  return { needed: reasons.length > 0, human: human.length > 0, reasons };
 }

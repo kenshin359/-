@@ -589,3 +589,73 @@ model LineCase {
   @@index([lineUserId, status])
   @@index([status, updatedAt])
 }
+
+// 問い合わせカテゴリ（17種を初期投入・管理画面で追加変更）。mode=AUTO/APPROVAL/HUMAN_ONLY、level=1..3 の既定
+model InquiryCategory {
+  code        String  @id
+  name        String
+  description String?
+  level       Int     @default(2)
+  mode        String  @default("APPROVAL")
+  sortOrder   Int     @default(100)
+  active      Boolean @default(true)
+}
+
+// 問い合わせ台帳（お客様メッセージ1件＝1行）。CS KPI（自動解決率・平均回答時間）の元
+model Inquiry {
+  id              String    @id @default(cuid())
+  lineUserId      String
+  caseNo          Int?
+  userText        String
+  categoryCode    String?
+  level           Int?
+  confidence      Int?
+  mode            String?   // 決定時の運用モード
+  action          String    // auto_reply / approval / human / forwarded
+  status          String    @default("pending") // pending / sent / auto_sent / dismissed / handed_off
+  draft           String?
+  sentText        String?
+  sentBy          String?   // ai / staff-line / staff-web:<userId>
+  kbRefs          String?   // カンマ区切り
+  reason          String?
+  receivedAt      DateTime  @default(now())
+  firstResponseAt DateTime?
+  resolvedAt      DateTime?
+
+  @@index([status, receivedAt])
+  @@index([caseNo])
+  @@index([lineUserId, receivedAt])
+}
+
+// AI判断ログ（なぜそう判断したか）。本文は保存せず要約・ID・文字数のみ
+model AiDecisionLog {
+  id           String   @id @default(cuid())
+  kind         String   // cs / extract / report
+  refId        String?  // Inquiry.id など
+  model        String?
+  inputSummary String?
+  outputJson   String?
+  confidence   Int?
+  reason       String?
+  latencyMs    Int?
+  tokensIn     Int?
+  tokensOut    Int?
+  createdAt    DateTime @default(now())
+
+  @@index([kind, createdAt])
+}
+
+// AI判断の人手修正（改善データ）
+model Correction {
+  id         String   @id @default(cuid())
+  targetType String   // inquiry / task / item
+  targetId   String
+  field      String
+  before     String?
+  after      String?
+  reason     String?
+  userId     String?
+  createdAt  DateTime @default(now())
+
+  @@index([targetType, createdAt])
+}

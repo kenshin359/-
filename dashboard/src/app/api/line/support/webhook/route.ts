@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 import { after } from 'next/server';
 import { generateAnswer } from '@/lib/line-support/answer';
 import { findOpenCase, openOrTouchCase } from '@/lib/line-support/cases';
+import { findCategory, loadCategories } from '@/lib/line-support/categories';
+import { recordInquiry } from '@/lib/line-support/inquiries';
+import { decideAction, loadPolicy } from '@/lib/line-support/policy';
 import { replyText } from '@/lib/line-support/client';
 import { handleGroupEvent } from '@/lib/line-support/group';
 import { loadKnowledge } from '@/lib/line-support/knowledge';
@@ -26,7 +29,8 @@ type LineEvent = {
 /**
  * LINE公式アカウント（Messaging API）の Webhook。
  *
- * 1:1トーク（お客様）: AI（Claude）が事実カードの範囲で自動返信。要対応なら案件番号を付けてスタッフグループへ通知。
+ * 1:1トーク（お客様）: AI（Claude）が分類・レベル・確信度と回答案を作り、カテゴリの運用モードで分岐する。
+ *   AUTO=条件を満たせば自動返信／APPROVAL=受付文を返し回答案をスタッフグループへ（「#番号 送信」で送信）／HUMAN_ONLY=引き継ぎ文＋案件化。
  *   案件が進行中（スタッフ対応中）の間はAI返信を止め、お客様のメッセージをグループへ転送する。
  * グループ（スタッフ）: 招待されると通知先として自動登録。「#番号 返信文」でお客様へ返信、「完了 #番号」でAI再開。
  *
@@ -125,25 +129,53 @@ async function handleEvent(ev: LineEvent): Promise<void> {
   }
 
   const history = await loadHistory(userId, text);
-  const ans = await generateAnswer(text, history);
+  const [categories, policy] = await Promise.all([loadCategories(), loadPolicy()]);
+  const ans = await generateAnswer(text, history, { categories });
+  const cat = findCategory(categories, ans.categoryCode);
+  const action = decideAction({
+    mode: cat.mode,
+    level: ans.level,
+    confidence: ans.confidence,
+    humanRule: ans.humanRule || ans.source === 'fallback',
+    kbRefs: ans.kbRefs,
+    policy,
+  });
+  const classification = `${cat.name}（L${ans.level}・確信度${ans.confidence}）`;
 
-  // 返信の送信に失敗しても（トークン失効など）案件化とスタッフ通知は必ず行う
-  let needsHuman = ans.needsHuman;
-  let reason = ans.reason;
-  let sentReply: string | null = ans.reply;
+  // お客様へ即時に返す本文: 自動返信ならAIの回答、承認待ちなら受付文、有人なら引き継ぎ文
+  const immediate = action === 'auto_reply' ? ans.reply : action === 'approval' ? k.bot.ack : ans.source === 'fallback' ? ans.reply : k.bot.handoff;
+  let sendFailed: string | null = null;
   try {
-    await replyText(ev.replyToken, ans.reply);
-    await saveReply(userId, ans.reply, ans);
+    await replyText(ev.replyToken, immediate);
+    await saveReply(userId, immediate, {
+      needsHuman: action !== 'auto_reply',
+      reason: action === 'auto_reply' ? `自動返信（${classification}）` : `${action === 'approval' ? '受付文' : '引き継ぎ文'}（${classification}）`,
+      topics: ans.topics,
+    });
   } catch (e) {
-    const msg = e instanceof Error ? e.message.slice(0, 160) : String(e);
-    console.error('[line-ai] お客様への返信失敗:', msg);
-    needsHuman = true;
-    reason = [`返信送信失敗: ${msg}`, reason].filter(Boolean).join(' / ');
-    sentReply = null;
+    sendFailed = e instanceof Error ? e.message.slice(0, 160) : String(e);
+    console.error('[line-ai] お客様への返信失敗:', sendFailed);
+  }
+  const reason = [sendFailed ? `返信送信失敗: ${sendFailed}` : '', ans.reason].filter(Boolean).join(' / ');
+
+  if (action === 'auto_reply' && !sendFailed) {
+    await recordInquiry({ lineUserId: userId, caseNo: null, userText: text, answer: ans, mode: cat.mode, action, status: 'auto_sent', sentText: ans.reply, sentBy: 'ai', firstResponseAt: new Date() });
+    return;
   }
 
-  if (needsHuman) {
-    const c = await openOrTouchCase(userId, text, reason);
-    await notifyStaff({ caseNo: c?.no ?? null, lineUserId: userId, userText: text, reply: sentReply, reason });
-  }
+  // 承認待ち・有人・送信失敗 → 案件化してスタッフへ
+  const c = await openOrTouchCase(userId, text, reason || classification);
+  const status = action === 'approval' ? 'pending' : 'handed_off';
+  await recordInquiry({ lineUserId: userId, caseNo: c?.no ?? null, userText: text, answer: ans, mode: cat.mode, action: sendFailed && action === 'auto_reply' ? 'approval' : action, status: sendFailed && action === 'auto_reply' ? 'pending' : status });
+  await notifyStaff({
+    caseNo: c?.no ?? null,
+    lineUserId: userId,
+    userText: text,
+    reply: sendFailed ? null : immediate,
+    reason: reason || classification,
+    classification,
+    draft: action === 'human' && ans.source !== 'fallback' ? null : ans.source === 'ai' ? ans.reply : null,
+    kbRefs: ans.kbRefs,
+    missingInfo: ans.missingInfo,
+  });
 }

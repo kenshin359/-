@@ -2,11 +2,11 @@ import knowledgeJson from '../../../config/line-ai-knowledge.json';
 
 export type Knowledge = {
   company: { name: string; brand: string; channels: string[] };
-  bot: { name: string; greeting: string; greeting_by_bot?: boolean; fallback: string; handoff: string };
+  bot: { name: string; greeting: string; greeting_by_bot?: boolean; ack: string; fallback: string; handoff: string };
   facts: Record<string, string>;
   products: { group: string; sizes: string[]; colors: string[]; note?: string }[];
   unknown: Record<string, string>;
-  always_human: { keywords: string[]; keyword_patterns: string[] };
+  always_human: { keywords: string[]; keyword_patterns: string[]; staff_keywords?: string[] };
   style: { max_chars: number; tone: string; phrases: string[] };
 };
 
@@ -24,6 +24,7 @@ export function loadKnowledge(): Knowledge {
     always_human: {
       keywords: raw.always_human.keywords ?? [],
       keyword_patterns: raw.always_human.keyword_patterns ?? [],
+      staff_keywords: raw.always_human.staff_keywords ?? [],
     },
     style: raw.style,
   };
